@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2016-2017 Contributors to the Eclipse Foundation
+// Copyright (c) 2017 Contributors to the Eclipse Foundation
 //
 // See the NOTICE file(s) distributed with this work for additional
 // information regarding copyright ownership.
@@ -16,7 +16,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // Contributors:
-// Emily Jiang
+// Steve Fontes
 
 [subs="normal"]
 ....
@@ -29,8 +29,8 @@ Status: {revremark}
 
 Release: {revdate}
 
-Copyright (c) 2016-2017 Eclipse Microprofile Contributors:
-Emily Jiang
+Copyright (c) 2017 Eclipse Microprofile Contributors:
+Steve Fontes
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

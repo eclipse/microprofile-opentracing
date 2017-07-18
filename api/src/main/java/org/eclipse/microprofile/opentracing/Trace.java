@@ -42,7 +42,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Trace {
     /** @return the name of this trace point. */
     @Nonbinding
-    String name() default "";
+    String value() default "";
     /** @return the relationship of this Span to the current Span. */
     @Nonbinding
     String relationship() default "child_of";
