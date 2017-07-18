@@ -1,0 +1,62 @@
+//
+// Copyright (c) 2017 Contributors to the Eclipse Foundation
+//
+// See the NOTICE file(s) distributed with this work for additional
+// information regarding copyright ownership.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// Contributors:
+// Steve Fontes
+[[architecture]]
+
+== Architecture
+
+This specification defines an easy way to instrument an application to take advantage of an opentracing Tracer implementation.
+
+
+=== Rational
+
+Distributed tracing allows you to trace the flow of a request across service boundaries.
+This is particularly important in a microservices environment where a request typically flows through multiple services.
+To accomplish distributed tracing, each service must be instrumented to log messages with a correlation id that may have been propagated from an upstream service.
+A common companion to distributed trace logging is a service where the distributed trace records can be stored. ([Examples](http://opentracing.io/documentation/pages/supported-tracers.html)).
+The storage service for distributed trace records can provide features to view the cross service trace records associated with particular request flows.
+
+Opentracing.io is an API specification for working with a distributed tracing system. Opentacing.io defines a Span as the conceptual artifact that is propagated between services. The Span information can also be communicated to a central server for storage.
+
+The microprofile.io OpenTracing proposal will describe how a developer can easily specify methods to be traced. The proposal will also describe when microprofile.io implementations can assist with Span propagation.
+
+Three annotations are provided to define how Spans can be used.
+
+* Trace: Specify a class or method to be traced.
+
+* NoTrace: Specify that a method is not to be traced.
+
+* TraceDecorate: Specify supplemental information to be added to the Span.
+
+This proposal also specifies that the underlying opentracing.io Tracer object can be used through CDI injection to get access to the full opentracing.io API.
+
+* Tracer: Available to the programmer using standard 
+
+[source,java]
+----
+@Inject io.opentracing.Tracer tracer;
+----
+
+The proposal also specifies two behaviors associated with JAX-RS applications, that will make it easier for applications to propagate Spans.
+
+* Span extraction
+
+* Span insertion
+
+
