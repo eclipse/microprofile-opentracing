@@ -48,7 +48,7 @@ public class TestMethodAnnotationApp {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace(name = "MethodAnnotated.endpointC")
+    @Trace("MethodAnnotated.endpointC")
     public String serviceEndpointC() {
         return "Invoked TestMethodAnnotationApp.serviceEndpointC";
     }
@@ -64,7 +64,7 @@ public class TestMethodAnnotationApp {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace(name = "MethodAnnotated.endpointE", relationship = "follows_from")
+    @Trace(value = "MethodAnnotated.endpointE", relationship = "follows_from")
     public String serviceEndpointE() {
         return "Invoked TestMethodAnnotationApp.serviceEndpointE";
     }

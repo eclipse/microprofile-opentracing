@@ -66,13 +66,13 @@ public class TraceInterceptor {
                                 + method.getName();
                     }
                     else {
-                        if (trace.name().equals("")) {
+                        if (trace.value().equals("")) {
                             name = method.getDeclaringClass().getName()
                                     + "."
                                     + method.getName();
                         }
                         else {
-                            name = trace.name();
+                            name = trace.value();
                         }
                         relationship = trace.relationship();
                     }

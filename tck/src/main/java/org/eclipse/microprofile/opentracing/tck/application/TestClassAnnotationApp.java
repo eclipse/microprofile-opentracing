@@ -51,7 +51,7 @@ public class TestClassAnnotationApp {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace (name = "ClassAnnotated.endpointC")
+    @Trace ("ClassAnnotated.endpointC")
     public String serviceEndpointC() {
         return "Invoked TestClassAnnotationApp.serviceEndpointC";
     }
