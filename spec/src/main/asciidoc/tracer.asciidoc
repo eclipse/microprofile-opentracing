@@ -20,4 +20,21 @@
 
 [[tracer]]
 == Tracer
-Describe access to the opentracing.io Tracer
+
+The configured Tracer object is accessed using the GlobalTracer utility class of the opentracing.io Java API.
+[source,java]
+----
+Tracer configuredTracer = io.opentracing.util.GlobalTracer.get();
+----
+
+Access to the configured Tracer gives full access to opentracing.io functions.
+
+Providing the Tracer object enables support for the more complex tracing requirements, such as when a Span is started in one method, and finished in another.
+
+Access to the Tracer also allows tags, logs and baggage to be added to Spans with, for example:
+[source,java]
+----
+configuredTracer.activeSpan().setTag(...);
+configuredTracer.activeSpan().log(...);
+configuredTracer.activeSpan().setBaggage(...);
+----

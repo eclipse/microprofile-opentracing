@@ -20,5 +20,14 @@
 
 [[JAX-RS]]
 == JAX-RS
+When a microservice is written using jax-rs, som opentracing.io functions are handled automatically.
 
-Describe automatic header extraction and insertion 
+=== Automatically handle a Span extracted from an incoming request
+
+Any method annotated @GET, @PUT, @POST, @DELETE, or @PATCH will have @Trace annotation implicitly added for microprofile.io applications.
+
+In this case an attempt is made to use the configured Tracer to extract a Span from the arriving request headers. If a Span is extracted, it is used as the parent Span for the new Span that is created for the method. This allows a microprofile.io application to easily participate in distributed Span correlation.
+
+=== Automatically inject a Span into outgoing requests
+
+A request for a javax.ws.rs.client.Client will deliver a Client that is extended (decorated, has feature registered, ...) in some way so that when an outbound request is made with that Client, a new Span will be created that is inserted in the outbound request for propagation downstream. The new Span will be a child of the current Span if a current Span exists. The new Span will be finished when the outbound request is completed. This extends the capability for a microprofile.io application to participate in distributed Span correlation.

@@ -20,4 +20,7 @@
 
 [[notrace]]
 == NoTrace
-Describe @NoTrace annotation
+
+=== @NoTrace
+
+The @NoTrace annotation is applied to methods. The @NoTrace annotation overrides an @Trace annotation that was applied at the Class level. The @NoTrace annotation has no arguments
