@@ -42,7 +42,7 @@ Two annotations are provided to define how Spans can be used.
 
 * NoTrace: Specify that a method is not to be traced.
 
-This proposal also specifies that the underlying opentracing.io Tracer object configured instance is available for developer use. The microprofile.io implementation will make the configured Tracer available through the GlobalTracer utility class of the opentracing.io Java API.
+This proposal also specifies that the underlying opentracing.io Tracer object configured instance is available for developer use. The microprofile.io implementation will make the configured Tracer available with CDI injection.
 
 The proposal also specifies two behaviors associated with JAX-RS applications, that will make it easier for applications to propagate Spans.
 
