@@ -89,13 +89,12 @@ The @Trace annotation, applies to a class or method. When applied to Class, the 
 The @NoTrace annotation can only be applied to methods. The @NoTrace annotation overrides an @Trace annotation that was applied at the Class level. The @NoTrace annotation has no arguments
 
 ### Requirement 3. Provide direct programmatic access to opentracing.io API
-The configured Tracer object is accessed using the GlobalTracer utility class of the opentracing.io Java API.
+The configured Tracer object is accessed by injecting the Tracer class that has been configured for the environment.
 
 ```
-Tracer configuredTracer = io.opentracing.util.GlobalTracer.get();
+@Inject Tracer configuredTracer;
 ```
 
-The @Tracer annotation provides access to the configured Tracer object.
 
 Providing the Tracer object enables support for the more complex tracing requirements, such as when a Span is started in one method, and finished in another.
 

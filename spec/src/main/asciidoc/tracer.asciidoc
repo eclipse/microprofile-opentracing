@@ -21,10 +21,11 @@
 [[tracer]]
 == Tracer
 
-The configured Tracer object is accessed using the GlobalTracer utility class of the opentracing.io Java API.
+The configured Tracer object is accessed by injecting the Tracer class that has been configured for the environment.
+
 [source,java]
 ----
-Tracer configuredTracer = io.opentracing.util.GlobalTracer.get();
+@Inject Tracer configuredTracer;
 ----
 
 Access to the configured Tracer gives full access to opentracing.io functions.
