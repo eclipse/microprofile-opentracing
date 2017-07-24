@@ -20,6 +20,8 @@
 package org.eclipse.microprofile.opentracing;
 
 import javax.enterprise.util.Nonbinding;
+import javax.interceptor.InterceptorBinding;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.lang.annotation.Documented;
@@ -35,6 +37,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  */
 
 @Documented
+@InterceptorBinding
 @Target({ TYPE, METHOD })
 @Retention(RUNTIME)
 public @interface Trace {

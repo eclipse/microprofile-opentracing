@@ -91,6 +91,7 @@ The @NoTrace annotation can only be applied to methods. The @NoTrace annotation 
 ### Requirement 3. Provide direct programmatic access to opentracing.io API
 The configured Tracer object is accessed by injecting the Tracer class that has been configured for the environment.
 
+
 ```
 @Inject Tracer configuredTracer;
 ```
