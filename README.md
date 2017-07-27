@@ -78,29 +78,34 @@ Specification does not need to contain how this would be implemented.
 
 ### Requirement 2. Allow developer to easily add tracing to an application
 
-This support is implemented with an @Trace annotation, an @NoTrace annotation, and an @TraceDecorate annotation.
+This support is implemented with an @Trace annotation, and an @NoTrace annotation.
 
-#### @Trace(name=&lt;Tracepoint name&gt;, relationship=[ChildOf|FollowsFrom|New])
-The @Trace annotation, applies to a block of code. The annotation starts a Span at the beginning of the block, and finishes the Span at the end of the block. When applied to Class, the @Trace annotation is applied to all methods in the Class. The @Trace annotation has two optional arguments.
-* name=&lt;Tracepoint name&gt;. Defaults to ClassName.MethodName.
+#### @Trace(value=&lt;Tracepoint name&gt;, relationship=[ChildOf|FollowsFrom|New])
+The @Trace annotation, applies to a class or method. When applied to Class, the @Trace annotation is applied to all methods in the Class. The annotation starts a Span at the beginning of the method, and finishes the Span at the end of the methid. The @Trace annotation has two optional arguments.
+* value=&lt;Tracepoint name&gt;. Defaults to ClassName.MethodName.
 * relationship=[ChildOf|FollowsFrom|New]. Default is ChildOf if a Span is active, else New.
 
 #### @NoTrace
 The @NoTrace annotation can only be applied to methods. The @NoTrace annotation overrides an @Trace annotation that was applied at the Class level. The @NoTrace annotation has no arguments
 
-#### @TraceDecorate(tags=&lt;Map of tags&gt;,logs=&lt;Map of logs&gt;,baggage=&lt;Map of baggage&gt;)
-The @TraceDecorate annotation adds information to the active Span. The @TraceDecorate can only be used when there is an active Span. The @TraceDecorate annotation has 3 optional arguments.
-* tags=&lt;Map of tags&gt;. Default is NULL. Records the tags into the Span.
-* logs=&lt;Map of logs&gt;. Default is NULL. Records the logs into the Span.
-* baggage=&lt;Map of baggage&gt;. Default is NULL. Records the baggages into the Span.
-
 ### Requirement 3. Provide direct programmatic access to opentracing.io API
-The @Tracer annotation provides access to the configured Tracer object.
+The configured Tracer object is accessed by injecting the Tracer class that has been configured for the environment.
 
-Access to the configured Tracer gives full access to opentracing.io functions.
-By https://github.com/opentracing/opentracing-java/pull/115, the opentracing.io specification for Java includes access to the active Span.
+
+```
+@Inject Tracer configuredTracer;
+```
+
 
 Providing the Tracer object enables support for the more complex tracing requirements, such as when a Span is started in one method, and finished in another.
+
+Access to the Tracer also allows tags, logs and baggage to be added to Spans with, for example:
+
+```
+configuredTracer.activeSpan().setTag(...);
+configuredTracer.activeSpan().log(...);
+configuredTracer.activeSpan().setBaggage(...);
+```
 
 ### Requirement 4. Automatically handle a Span extracted from an incoming request
 

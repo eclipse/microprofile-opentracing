@@ -21,7 +21,7 @@
 
 == Architecture
 
-This specification defines an easy way to instrument an application to take advantage of an opentracing Tracer implementation.
+This specification defines an easy way to instrument an application to take advantage of an opentracing.io Tracer implementation.
 
 
 === Rational
@@ -36,22 +36,13 @@ Opentracing.io is an API specification for working with a distributed tracing sy
 
 The microprofile.io OpenTracing proposal will describe how a developer can easily specify methods to be traced. The proposal will also describe when microprofile.io implementations can assist with Span propagation.
 
-Three annotations are provided to define how Spans can be used.
+Two annotations are provided to define how Spans can be used.
 
 * Trace: Specify a class or method to be traced.
 
 * NoTrace: Specify that a method is not to be traced.
 
-* TraceDecorate: Specify supplemental information to be added to the Span.
-
-This proposal also specifies that the underlying opentracing.io Tracer object can be used through CDI injection to get access to the full opentracing.io API.
-
-* Tracer: Available to the programmer using standard 
-
-[source,java]
-----
-@Inject io.opentracing.Tracer tracer;
-----
+This proposal also specifies that the underlying opentracing.io Tracer object configured instance is available for developer use. The microprofile.io implementation will make the configured Tracer available with CDI injection.
 
 The proposal also specifies two behaviors associated with JAX-RS applications, that will make it easier for applications to propagate Spans.
 

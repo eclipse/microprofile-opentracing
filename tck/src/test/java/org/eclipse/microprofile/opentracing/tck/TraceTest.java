@@ -19,22 +19,15 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-
 import javax.inject.Inject;
 
-import org.eclipse.microprofile.opentracing.tck.annotationimpls.TraceInterceptor;
 import org.eclipse.microprofile.opentracing.tck.application.TestClassAnnotationApp;
 import org.eclipse.microprofile.opentracing.tck.application.TestMethodAnnotationApp;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -54,22 +47,6 @@ public class TraceTest {
     @Inject
     private TestMethodAnnotationApp testMethodAnnotationApp;
 
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    private PrintStream outSave;
-
-    @Before
-    public void setUpStreams() {
-        outSave = System.out;
-        System.setOut(new PrintStream(outContent));
-    }
-
-    @After
-    public void cleanUpStreams() {
-        System.setOut(outSave);
-        System.out.print(outContent.toString());
-        System.out.flush();
-    }
-
     /**
     /**
      * Deploy the apps to test.
@@ -80,131 +57,81 @@ public class TraceTest {
         return ShrinkWrap.create(JavaArchive.class)
                 .addClass(TestClassAnnotationApp.class)
                 .addClass(TestMethodAnnotationApp.class)
-                .addClass(TraceInterceptor.class)
-                .addAsManifestResource(
-                new StringAsset(
-                  "<beans>\n"
-                  + "  <interceptors>\n"
-                  + "    <class>"
-                  + "org.eclipse.microprofile.opentracing.tck.annotationimpls."
-                  + "TraceInterceptor"
-                  + "    </class>\n"
-                  + "  </interceptors>\n"
-                  + "</beans>"),
-                  "beans.xml");
+                .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
     /**
-     * Make sure all methods of the class a traced.
+     * Test methods of the class are traced when class is annotated with @Trace.
      */
     @Test
     public void classAnnotatedTracingPerformed() {
-        String name = "org.eclipse.microprofile.opentracing.tck.application.TestClassAnnotationApp"
-                + ".serviceEndpointA";
-        String relationship = "child_of";
-        System.out.println(testClassAnnotationApp.serviceEndpointA());
-        Assert.assertTrue(outContent.toString().contains(
-                "Create new Span ["
-                        + name
-                        + "] with relationship ["
-                        + relationship
-                        + "]"));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+        testClassAnnotationApp.serviceEndpointA();
+        // Verify that the instrumentation generates the expected Span data.
+        // TBD
     }
 
+    /**
+     * Test method of a class is not traced when class is annotated with @Trace,
+     * and the method is annotated with @NoTrace.
+     */
     @Test
     public void noTraceAnnotationHonored() {
-        System.out.println(testClassAnnotationApp.serviceEndpointB());
-        Assert.assertTrue(!outContent.toString().contains(
-                "Create new Span ["));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+        testClassAnnotationApp.serviceEndpointB();
+        // Verify that the instrumentation generates the expected Span data.
+        // TBD
     }
 
+    /**
+     * Test method annotation with trace point name specified has name honored
+     * when @Trace is also specified at Class level.
+     */
     @Test
     public void nameParameterHonoredWithClassAnnotation() {
-        String name = "ClassAnnotated.endpointC";
-        String relationship = "child_of";
-        System.out.println(testClassAnnotationApp.serviceEndpointC());
-        Assert.assertTrue(outContent.toString().contains(
-                "Create new Span ["
-                        + name
-                        + "] with relationship ["
-                        + relationship
-                        + "]"));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+        testClassAnnotationApp.serviceEndpointC();
+        // Verify that the instrumentation generates the expected Span data.
+        // TBD
     }
 
+    /**
+     * Test method annotation works when @Trace not specified at Class level.
+     */
     @Test
     public void methodAnnotatedTracingPerformed() {
-        String name = "org.eclipse.microprofile.opentracing.tck.application.TestMethodAnnotationApp"
-                + ".serviceEndpointA";
-        String relationship = "child_of";
-        System.out.println(testMethodAnnotationApp.serviceEndpointA());
-        Assert.assertTrue(outContent.toString().contains(
-                "Create new Span ["
-                        + name
-                        + "] with relationship ["
-                        + relationship
-                        + "]"));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+        testMethodAnnotationApp.serviceEndpointA();
+        // Verify that the instrumentation generates the expected Span data.
+        // TBD
     }
 
+    /**
+     * Test method not traced if no @Trace annotation on Class or method.
+     */
     @Test
-    public void noMethodAnnotationHonored() { 
-        System.out.println(testMethodAnnotationApp.serviceEndpointB());
-        Assert.assertTrue(!outContent.toString().contains(
-                "Create new Span ["));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+    public void noMethodAnnotationHonored() {
+        testMethodAnnotationApp.serviceEndpointB();
+
     }
 
+    /**
+     * Test name parameter honored on method level @Trace.
+     */
     @Test
     public void nameParameterHonoredOnMethodAnnotation() {
-        String name = "MethodAnnotated.endpointC";
-        String relationship = "child_of";
-        System.out.println(testMethodAnnotationApp.serviceEndpointC());
-        Assert.assertTrue(outContent.toString().contains(
-                "Create new Span ["
-                        + name
-                        + "] with relationship ["
-                        + relationship
-                        + "]"));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+        testMethodAnnotationApp.serviceEndpointC();
     }
 
+    /**
+     * Test relationship parameter honored on method level @Trace.
+     */
     @Test
     public void relationshipParameterHonoredOnMethodAnnotation() {
-        String name = "org.eclipse.microprofile.opentracing.tck.application.TestMethodAnnotationApp"
-                + ".serviceEndpointD";
-        String relationship = "follows_from";
-        System.out.println(testMethodAnnotationApp.serviceEndpointD());
-        Assert.assertTrue(outContent.toString().contains(
-                "Create new Span ["
-                        + name
-                        + "] with relationship ["
-                        + relationship
-                        + "]"));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+        testMethodAnnotationApp.serviceEndpointD();
     }
 
+    /**
+     * Test name and relationship parameters honored on method level @Trace.
+     */
     @Test
     public void nameAndRelationshipParameterHonoredOnMethodAnnotation() {
-        String name = "MethodAnnotated.endpointE";
-        String relationship = "follows_from";
-        System.out.println(testMethodAnnotationApp.serviceEndpointE());
-        Assert.assertTrue(outContent.toString().contains(
-                "Create new Span ["
-                        + name
-                        + "] with relationship ["
-                        + relationship
-                        + "]"));
-        Assert.assertTrue(outContent.toString().contains(
-                "Invoked"));
+        testMethodAnnotationApp.serviceEndpointE();
     }
 }

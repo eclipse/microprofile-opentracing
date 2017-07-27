@@ -48,8 +48,6 @@ include::trace.asciidoc[]
 
 include::notrace.asciidoc[]
 
-include::tracedecorate.asciidoc[]
-
 include::tracer.asciidoc[]
 
 include::jaxrs.asciidoc[]
