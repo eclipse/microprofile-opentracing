@@ -21,8 +21,8 @@
 = Microprofile OpenTracing
 :author: Steve Fontes
 :email: steve.m.fontes@gmail.com
-:revnumber: 0.1
-:revdate: 2017-07-11
+:revnumber: 0.2
+:revdate: 2017-10-4
 :revremark: Specification
 :version-label!:
 :sectanchors:
@@ -43,11 +43,3 @@ include::license-alv2.asciidoc[]
 
 
 include::architecture.asciidoc[]
-
-include::trace.asciidoc[]
-
-include::notrace.asciidoc[]
-
-include::tracer.asciidoc[]
-
-include::jaxrs.asciidoc[]
