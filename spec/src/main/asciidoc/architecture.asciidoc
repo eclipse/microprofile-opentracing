@@ -37,8 +37,8 @@ be stored.
 The storage service for distributed trace records can provide features to view
 the cross service trace records associated with particular request flows.
 
-Opentracing.io is an API specification for working with a distributed tracing
-system. Opentracing.io defines a Span as the conceptual artifact that is
+OpenTracing is an API specification for working with a distributed tracing
+system. OpenTracing defines a Span as the conceptual artifact that is
 propagated between services. The Span information can also be communicated to a
 central server for storage.
 
@@ -58,6 +58,10 @@ The microprofile.io implementation will allow JAX-RS applications to participate
 4. The microprofile.io implementation must provide a mechanism to automatically start a Span for any outgoing JAX-RS request.
 
 All automatically created Spans must have the correct parent/child relationships when creating either synchronous or asynchronous JAX-RS incoming and outgoing requests.
+
+The information about a Span that is propagated between services is typically called a SpanContext. It is not the intent of this specification to define the exact format for how SpanContext information is stored or propagated. Our use case is for applications running in an environment where all applications use the same Tracer implementation. The Tracer implementation will create SpanContexts that are consistent across all applications that use the same Tracer implementation.
+
+A second use case would be to support SpanContext propagation between different Tracer implementations. This second use case is outside the scope of this specification.
 
 ==== Tracer configuration
 An implementation of an io.opentracing.Tracer must be made available to each application. Each application will have its own Tracer instance.
