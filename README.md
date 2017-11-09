@@ -1,11 +1,77 @@
-Architecture {#_architecture}
-============
+/*
+ * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+# OpenTracing
+
+* Proposal: [MP-0007](0007-DistributedTracing.md)
+* Authors: [Akihiko Kuroda](https://github.com/akihikokuroda), [Steve Fontes](https://github.com/Steve-Fontes)
+* Status: **Awaiting review**
+* Decision Notes: [Discussion thread topic covering the  Rationale](https://groups.google.com/forum/#!topic/microprofile/YxKba36lye4)
+
+## Introduction
+
+Distributed tracing allows you to trace the flow of a request across service boundaries.
+This is particularly important in a microservices environment where a request typically flows through multiple services.
+To accomplish distributed tracing, each service must be instrumented to log messages with a correlation id that may have been propagated from an upstream service.
+A common companion to distributed trace logging is a service where the distributed trace records can be stored. ([Examples](http://opentracing.io/documentation/pages/supported-tracers.html)).
+The storage service for distributed trace records can provide features to view the cross service trace records associated with particular request flows.
+
+It will be useful for services written in the microprofile.io framework to be able to integrate well with a distributed trace system that is part of the larger microservices environment.
+
+This proposal defines an API and microprofile.io behaviors that allow services to easily participate in an environment where distributed tracing is enabled.
+
+Mailinglist thread: [Discussion thread topic for that proposal](https://groups.google.com/forum/#!topic/microprofile/YxKba36lye4)
+
+## Motivation
+
+In order for a distributed tracing system to be effective and usable, two things are required
+1. The different services in the environment must agree on the mechanism for transferring correlation ids across services.
+2. The different services in the environment should produce their trace records in format that is consumable by the storage service for distributed trace records.
+
+Without the first, some services will not be included in the trace records associated with a request.
+Without the second, custom code would need to be written to present the information about a full request flow.
+
+There are existing distributed tracing systems that provide a server for distributed trace record storage and viewing, and application libraries for instrumenting microservices.
+The problem is that the different distributed tracing systems use implementation specific mechanisms for propagating correlation IDs and for formatting trace records,
+so once a microservice chooses a distributed tracing implementation library to use for its instrumentation, all other microservices in the environment are locked into the same choice.
+
+The [opentracing.io project's](http://opentracing.io/) purpose is to provide a standard API for instrumenting microservices for distributed tracing.
+If every microservice is instrumented for distributed tracing using the opentracing.io API, then (as long as an implementation library exists for the microservice's language),
+the microservice can be configured at deploy time to use a common system implementation to perform the log record formatting and cross service correlation id propagation.
+The common implementation ensures that correlation ids are propagated in a way that is understandable to all services,
+and log records are formatted in a way that is understandable to the server for distributed trace record storage.
+
+In order to make microprofile.io distributed tracing friendly, it will be useful to allow distributed tracing to be enabled on any microprofile.io application, without having to explicitly add distributed tracing code to the application.
+
+In order to make microprofile.io as flexible as possible for adding distributed trace log records, microprofile.io should expose whatever objects are necessary for an application to use the opentracing.io API.
+
+This proposal specifically addresses the problem of making it easy to instrument services with distributed tracing function, given an existing distributed tracing system in the environment.
+
+This proposal specifically does not address the problem of defining, implementing, or configuring the underlying distributed tracing system. The proposal assumes an environment where all services use a common opentracing.io implementation (all zipkin compatible, all jaeger compatible, ...). At some point it would be beneficial to define another specification that allows inter-operation between different opentracing.io implementations.
+
+**Proposed Solution
 
 This specification defines an easy way to allow an application running
 in a microprofile.io container to take advantage of distributed tracing
 by using an opentracing.io Tracer implementation.
 
-Rationale {#_rationale}
+Rationale
 ---------
 
 Distributed tracing allows you to trace the flow of a request across
@@ -20,8 +86,7 @@ The storage service for distributed trace records can provide features
 to view the cross service trace records associated with particular
 request flows.
 
-OpenTracing is an API specification for working with a distributed
-tracing system. OpenTracing defines a Span as the conceptual artifact
+OpenTracing defines a Span as the conceptual artifact
 that is propagated between services. The Span information can also be
 communicated to a central server for storage.
 
