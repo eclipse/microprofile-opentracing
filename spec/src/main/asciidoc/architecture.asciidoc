@@ -18,33 +18,11 @@
 // Contributors:
 // Steve Fontes
 
-== Architecture
+== Proposed Solution
 
 This specification defines an easy way to allow an application running in a
 microprofile.io container to take advantage of distributed tracing by using an
 opentracing.io Tracer implementation.
-
-=== Rationale
-
-Distributed tracing allows you to trace the flow of a request across service
-boundaries. This is particularly important in a microservices environment where
-a request typically flows through multiple services. To accomplish distributed
-tracing, each service must be instrumented to log messages with a correlation id
-that may have been propagated from an upstream service. A common companion to
-distributed trace logging is a service where the distributed trace records can
-be stored.
-([Examples](http://opentracing.io/documentation/pages/supported-tracers.html)).
-The storage service for distributed trace records can provide features to view
-the cross service trace records associated with particular request flows.
-
-OpenTracing is an API specification for working with a distributed tracing
-system. OpenTracing defines a Span as the conceptual artifact that is
-propagated between services. The Span information can also be communicated to a
-central server for storage.
-
-The microprofile.io Opentracing proposal will describe how a developer can easily specify methods to be traced.
-
-The proposal will also describe how a microprofile.io implementation will assist with Span creation and propagation. It is particularly useful to be able to enable distributed tracing for an application without having to add any code at all to the application.
 
 === Enabling distributed tracing with no code instrumentation
 
@@ -57,10 +35,6 @@ The microprofile.io implementation will allow JAX-RS applications to participate
 5. The microprofile.io implementation must provide a mechanism to automatically start a Span for any outgoing JAX-RS request.
 
 All automatically created Spans must have the correct parent/child relationships when creating either synchronous or asynchronous JAX-RS incoming and outgoing requests.
-
-The information about a Span that is propagated between services is typically called a SpanContext. It is not the intent of this specification to define the exact format for how SpanContext information is stored or propagated. Our use case is for applications running in an environment where all applications use the same Tracer implementation. The Tracer implementation will create SpanContexts that are consistent across all applications that use the same Tracer implementation.
-
-A second use case would be to support SpanContext propagation between different Tracer implementations. This second use case is outside the scope of this specification.
 
 ==== Tracer configuration
 An implementation of an io.opentracing.Tracer must be made available to each application. Each application will have its own Tracer instance.
@@ -120,7 +94,7 @@ The @Traced annotation has two optional arguments.
 
 * value=[true|false]. Defaults to true. If @Traced is specified at the Class level, then @Traced(false) is used to annotate specific methods to disable creation of a Span for those methods. By default all JAX-RS endpoint methods are traced. To disable Span creation of a specific JAX-RS endpoint, the @Traced(false) annotation can be used.
 +
-Even when the @Traced(false) annotation is used for a JAX-RS endpoint method, the upstream Spancontext will still be extracted if it exists. The extracted Spancontext will be used to create a current Span.
+Even when the @Traced(false) annotation is used for a JAX-RS endpoint method, the upstream Spancontext will still be extracted if it exists. The extracted Spancontext will be used to define a current Span.
 
 * operationName=&lt;Name for the Span&gt;. Default is "". If the @Traced annotation finds the operationName as "", the operationName is assigned as <package name>.<Class name>.<method name>
 

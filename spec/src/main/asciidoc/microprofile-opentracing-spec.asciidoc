@@ -41,5 +41,10 @@ include::license-alv2.asciidoc[]
 
 = Microprofile OpenTracing
 
+include::introduction.asciidoc[]
+
+include::rationale.asciidoc[]
 
 include::architecture.asciidoc[]
+
+include::closing.asciidoc[]

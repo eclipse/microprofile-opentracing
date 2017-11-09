@@ -1,0 +1,12 @@
+## Introduction
+
+Distributed tracing allows you to trace the flow of a request across service boundaries. This is particularly important in a microservices environment where a request typically flows through multiple services. To accomplish distributed tracing, each service must be instrumented to log messages with a correlation id that may have been propagated from an upstream service. A common companion to distributed trace logging is a service where the distributed trace records can be stored. ([Examples](http://opentracing.io/documentation/pages/supported-tracers.html)).
+The storage service for distributed trace records can provide features to view the cross service trace records associated with particular request flows.
+
+It will be useful for services written in the microprofile.io framework to be able to integrate well with a distributed trace system that is part of the larger microservices environment. This proposal defines an API and microprofile.io behaviors that allow services to easily participate in an environment where distributed tracing is enabled.
+
+This proposal specifically addresses the problem of making it easy to instrument services with distributed tracing function, given an existing distributed tracing system in the environment.
+
+This proposal specifically does not address the problem of defining, implementing, or configuring the underlying distributed tracing system. The proposal assumes an environment where all services use a common opentracing.io implementation (all zipkin compatible, all jaeger compatible, ...).
+
+The information about a Span that is propagated between services is typically called a SpanContext. It is not the intent of this specification to define the exact format for how SpanContext information is stored or propagated. Our use case is for applications running in an environment where all applications use the same Tracer implementation, and microservices that require explicit tracing logic use the opentracing API. Work on defining common formats for SpanContexts and implementations that use the common format is being done at [open-census] (https://github.com/census-instrumentation/opencensus-java). The open-census API appears very similar to opentracing, but support for open-census Tracers will probably require a separate microprofile.io specification.
