@@ -53,8 +53,8 @@ The microprofile.io implementation will allow JAX-RS applications to participate
 1. The microprofile.io implementation must provide a mechanism to configure an io.opentracing.Tracer implementation for use by each JAX-RS application.
 2. The microprofile.io implementation must provide a mechanism to automatically extract Span information from any incoming JAX-RS request.
 3. The microprofile.io implementation must provide a mechanism to automatically start a Span for any incoming JAX-RS request.
-5. The microprofile.io implementation must provide a mechanism to automatically inject Span information into any outgoing JAX-RS request.
-4. The microprofile.io implementation must provide a mechanism to automatically start a Span for any outgoing JAX-RS request.
+4. The microprofile.io implementation must provide a mechanism to automatically inject Span information into any outgoing JAX-RS request.
+5. The microprofile.io implementation must provide a mechanism to automatically start a Span for any outgoing JAX-RS request.
 
 All automatically created Spans must have the correct parent/child relationships when creating either synchronous or asynchronous JAX-RS incoming and outgoing requests.
 
