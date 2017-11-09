@@ -1,6 +1,0 @@
-## Impact on existing code
-@Trace annotations can be added to existing code. A configured Tracer object can be accessed with CDI injection.
-
-## Alternatives considered
-Current mechanisms require a decision at development time about the distributed trace system that will be used.
-This feature allows the decision to be made at the operational environment level.
