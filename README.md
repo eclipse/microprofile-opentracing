@@ -65,7 +65,7 @@ This proposal specifically addresses the problem of making it easy to instrument
 
 This proposal specifically does not address the problem of defining, implementing, or configuring the underlying distributed tracing system. The proposal assumes an environment where all services use a common opentracing.io implementation (all zipkin compatible, all jaeger compatible, ...). At some point it would be beneficial to define another specification that allows inter-operation between different opentracing.io implementations.
 
-** Proposed Solution
+## Proposed Solution
 
 This specification defines an easy way to allow an application running
 in a microprofile.io container to take advantage of distributed tracing
