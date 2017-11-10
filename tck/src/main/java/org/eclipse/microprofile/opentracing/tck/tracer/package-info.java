@@ -19,11 +19,8 @@
  ******************************************************************************/
 
 /**
- * <p>Testing CDI Support for Microprofile OpenTracing.
+ * Test Tracer.
  *
- *
- *
- * @author <a href="mailto:steve.m.fontes@gmail.com">Steve Fontes</a>
  * @version 1.0
  */
-package org.eclipse.microprofile.opentracing.tck;
+package org.eclipse.microprofile.opentracing.tck.tracer;

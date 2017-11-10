@@ -45,7 +45,6 @@
         </dependencies>
     </dependencyManagement>
 
-
     <dependencies>
         <dependency>
             <groupId>org.eclipse.microprofile.opentracing</groupId>
@@ -53,50 +52,67 @@
             <version>1.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-		<dependency>
-		    <groupId>org.jboss.arquillian.junit</groupId>
-		    <artifactId>arquillian-junit-container</artifactId>
-		</dependency>
-		<dependency>
-		    <groupId>junit</groupId>
-		    <artifactId>junit</artifactId>
-		    <version>4.12</version>
-		    <scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.9.9</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.arquillian.testng</groupId>
+            <artifactId>arquillian-testng-container</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.ws.rs</groupId>
+            <artifactId>javax.ws.rs-api</artifactId>
+            <version>2.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentracing</groupId>
+            <artifactId>opentracing-api</artifactId>
+            <version>0.30.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap</groupId>
+            <artifactId>shrinkwrap-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.shrinkwrap.resolver</groupId>
+            <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.jaxrs</groupId>
+            <artifactId>jackson-jaxrs-json-provider</artifactId>
+            <version>2.9.0</version>
+        </dependency>
     </dependencies>
-	<profiles>
-	    <profile>
-	        <id>arquillian-weld-ee-embedded</id>
-	        <activation>
-        		<activeByDefault>true</activeByDefault>
-    		</activation>
-	        <dependencies>
-	            <dependency>
-	                <groupId>org.jboss.spec</groupId>
-	                <artifactId>jboss-javaee-7.0</artifactId>
-	                <version>1.0.3.Final</version>
-	                <type>pom</type>
-	                <scope>provided</scope>
-	            </dependency>
-	            <dependency>
-	                <groupId>org.jboss.arquillian.container</groupId>
-	                <artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
-	                <version>1.0.0.CR9</version>
-	                <scope>test</scope>
-	            </dependency>
-	            <dependency>
-	                <groupId>org.jboss.weld</groupId>
-	                <artifactId>weld-core</artifactId>
-	                <version>2.3.5.Final</version>
-	                <scope>test</scope>
-	            </dependency>
-	            <dependency>
-	                <groupId>org.slf4j</groupId>
-	                <artifactId>slf4j-simple</artifactId>
-	                <version>1.6.4</version>
-	                <scope>test</scope>
-	            </dependency>
-	        </dependencies>
-	    </profile>
-	</profiles>
+    
+    <profiles>
+        <profile>
+            <id>eclipse-jarsigner</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.cbi.maven.plugins</groupId>
+                        <artifactId>eclipse-jarsigner-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

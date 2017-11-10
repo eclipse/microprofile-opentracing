@@ -16,43 +16,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.eclipse.microprofile.opentracing.tck.application;
-
-import org.eclipse.microprofile.opentracing.NoTrace;
-import org.eclipse.microprofile.opentracing.Trace;
-
+package org.eclipse.microprofile.opentracing.tck.tracer;
 
 /**
- * Application where @Trace annotation is added at the Class level.
- *
- * @author Steve Fontes
- *
+ * Kinds of spans.
  */
-@Trace
-public class TestClassAnnotationApp {
+public enum SpanKind {
+    /**
+     * Server span kind.
+     */
+    SERVER(TestSpan.SPAN_KIND_SERVER),
 
     /**
-     * @return name of serviceEnpoint.
+     * Client span kind.
      */
+    CLIENT(TestSpan.SPAN_KIND_CLIENT),
 
-    public String serviceEndpointA() {
-        return "Invoked TestClassAnnotationApp.serviceEndpointA";
+    /**
+     * Manual span kind.
+     */
+    MANUAL(null);
+
+    /**
+     * Create a span kind.
+     * @param newTagValue The underlying value.
+     */
+    SpanKind(final String newTagValue) {
+        this.tagValue = newTagValue;
     }
 
     /**
-     * @return name of serviceEnpoint.
+     * The underlying value.
      */
-    @NoTrace
-    public String serviceEndpointB() {
-        return "Invoked TestClassAnnotationApp.serviceEndpointB";
-    }
+    private final String tagValue;
 
     /**
-     * @return name of serviceEnpoint.
+     * Return the underlying value.
+     * @return Underlying value.
      */
-    @Trace ("ClassAnnotated.endpointC")
-    public String serviceEndpointC() {
-        return "Invoked TestClassAnnotationApp.serviceEndpointC";
+    public String getTagValue() {
+        return tagValue;
     }
 }
