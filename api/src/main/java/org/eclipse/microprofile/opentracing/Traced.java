@@ -40,11 +40,12 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @InterceptorBinding
 @Target({ TYPE, METHOD })
 @Retention(RUNTIME)
-public @interface Trace {
-    /** @return the name of this trace point. */
+public @interface Traced {
+    /** @return whether this method should be traced. */
     @Nonbinding
-    String value() default "";
-    /** @return the relationship of this Span to the current Span. */
+    boolean value() default true;
+    /** @return the name to give the Span for this trace point. */
     @Nonbinding
-    String relationship() default "child_of";
+    String operationName() default "";
 }
+

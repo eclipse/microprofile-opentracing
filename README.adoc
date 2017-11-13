@@ -5,66 +5,24 @@
 // information regarding copyright ownership.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
+// you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//    http://www.apache.org/licenses/LICENSE-2.0
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-// Contributors:
-// Steve Fontes
+//
+# Microprofile OpenTracing
 
-= Microprofile OpenTracing
-:author: Steve Fontes
-:email: steve.m.fontes@gmail.com
-:revnumber: 0.2
-:revdate: 2017-10-4
-:revremark: Specification
-:version-label!:
-:sectanchors:
-:doctype: book
-:license: Apache License v2.0
-:source-highlighter: coderay
-:toc: left
-:toclevels: 4
-:sectnumlevels: 4
-ifdef::backend-pdf[]
-:pagenums:
-endif::[]
-
-[subs="normal"]
-....
-
-Specification: {doctitle}
-
-Version: {revnumber}
-
-Status: {revremark}
-
-Release: {revdate}
-
-Copyright (c) 2017 Eclipse Microprofile Contributors:
-Steve Fontes
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-   http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
-....
-
-= Microprofile OpenTracing
+* Proposal: [MP-0007](0007-DistributedTracing.md)
+* Authors: [Steve Fontes](https://github.com/Steve-Fontes)
+* Status: **Awaiting review**
+* Decision Notes: [Discussion thread topic covering the  Rationale](https://groups.google.com/forum/#!topic/microprofile/YxKba36lye4)
+* Mailinglist thread: [Discussion thread topic for The proposal](https://groups.google.com/forum/#!topic/microprofile/YxKba36lye4)
 
 ## Introduction
 
@@ -78,6 +36,7 @@ This proposal specifically addresses the problem of making it easy to instrument
 This proposal specifically does not address the problem of defining, implementing, or configuring the underlying distributed tracing system. The proposal assumes an environment where all services use a common opentracing.io implementation (all zipkin compatible, all jaeger compatible, ...).
 
 The information about a Span that is propagated between services is typically called a SpanContext. It is not the intent of this specification to define the exact format for how SpanContext information is stored or propagated. Our use case is for applications running in an environment where all applications use the same Tracer implementation, and microservices that require explicit tracing logic use the opentracing API. Work on defining common formats for SpanContexts and implementations that use the common format is being done at [open-census] (https://github.com/census-instrumentation/opencensus-java). The open-census API appears very similar to opentracing, but support for open-census Tracers will probably require a separate microprofile.io specification.
+
 
 ## Rationale
 
