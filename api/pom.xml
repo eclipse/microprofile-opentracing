@@ -70,8 +70,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
-                    <Bundle-SymbolicName>org.eclipse.microprofile.fault.tolerance</Bundle-SymbolicName>
-                    <Bundle-Name>MicroProfile fault tolerance bundle</Bundle-Name>
+                    <Bundle-SymbolicName>org.eclipse.microprofile.opentracing</Bundle-SymbolicName>
+                    <Bundle-Name>MicroProfile Opentracing bundle</Bundle-Name>
                     <archive>
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                     </archive>
