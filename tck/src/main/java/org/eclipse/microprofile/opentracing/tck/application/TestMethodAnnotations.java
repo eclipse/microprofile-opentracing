@@ -28,7 +28,7 @@ import org.eclipse.microprofile.opentracing.Trace;
  * @author Steve Fontes
  *
  */
-public class TestMethodAnnotationApp {
+public class TestMethodAnnotations {
 
     /**
      * @return name of serviceEnpoint.
