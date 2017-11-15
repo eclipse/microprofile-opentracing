@@ -16,6 +16,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+
+
 # Microprofile OpenTracing
 
 * Proposal: [MP-0007](0007-DistributedTracing.md)
@@ -23,6 +25,7 @@
 * Status: **Awaiting review**
 * Decision Notes: [Discussion thread topic covering the  Rationale](https://groups.google.com/forum/#!topic/microprofile/YxKba36lye4)
 * Mailinglist thread: [Discussion thread topic for The proposal](https://groups.google.com/forum/#!topic/microprofile/YxKba36lye4)
+* Join the discussion on Gitter: image:https://badges.gitter.im/eclipse/microprofile-opentracing.svg[link=https://gitter.im/eclipse/microprofile-opentracing]
 
 ## Introduction
 
