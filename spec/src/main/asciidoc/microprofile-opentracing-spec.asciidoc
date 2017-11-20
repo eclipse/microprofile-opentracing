@@ -163,6 +163,9 @@ Spans created for incoming requests will have the following tags added by defaul
 
 Tags.SPAN_KIND has to be specified at Span start time.
 
+An Tags.ERROR tag is added to a Span on failed operations. It means for any server error (5xx) codes.
+If there is an exception object available the implementation should also add logs "event=error` and `error.object=<error object instance>` to the active span.
+
 ==== Span creation and injection for outbound requests
 When a request is sent from a JAX-RS javax.ws.rs.client.Client, a new Span is created and its SpanContext is injected in the outbound request for propagation downstream. The new Span will be a child of the active Span if an active Span exists. The new Span will be finished when the outbound request is completed.
 
