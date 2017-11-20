@@ -19,7 +19,7 @@
 
 package org.eclipse.microprofile.opentracing.tck.application;
 
-import org.eclipse.microprofile.opentracing.Trace;
+import org.eclipse.microprofile.opentracing.Traced;
 
 
 /**
@@ -33,7 +33,7 @@ public class TestMethodAnnotations {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace
+    @Traced
     public String serviceEndpointA() {
         return "Invoked TestMethodAnnotationApp.serviceEndpointA";
     }
@@ -48,7 +48,7 @@ public class TestMethodAnnotations {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace("MethodAnnotated.endpointC")
+    @Traced(operationName = "MethodAnnotated.endpointC")
     public String serviceEndpointC() {
         return "Invoked TestMethodAnnotationApp.serviceEndpointC";
     }
@@ -56,7 +56,7 @@ public class TestMethodAnnotations {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace(relationship = "follows_from")
+    @Traced(/*relationship = "follows_from"*/)
     public String serviceEndpointD() {
         return "Invoked TestMethodAnnotationApp.serviceEndpointD";
     }
@@ -64,7 +64,7 @@ public class TestMethodAnnotations {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace(value = "MethodAnnotated.endpointE", relationship = "follows_from")
+    @Traced(operationName = "MethodAnnotated.endpointE"/*, relationship = "follows_from"*/)
     public String serviceEndpointE() {
         return "Invoked TestMethodAnnotationApp.serviceEndpointE";
     }

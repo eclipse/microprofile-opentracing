@@ -19,8 +19,7 @@
 
 package org.eclipse.microprofile.opentracing.tck.application;
 
-import org.eclipse.microprofile.opentracing.NoTrace;
-import org.eclipse.microprofile.opentracing.Trace;
+import org.eclipse.microprofile.opentracing.Traced;
 
 
 /**
@@ -29,7 +28,7 @@ import org.eclipse.microprofile.opentracing.Trace;
  * @author Steve Fontes
  *
  */
-@Trace
+@Traced
 public class TestClassAnnotation {
 
     /**
@@ -42,7 +41,7 @@ public class TestClassAnnotation {
     /**
      * @return name of serviceEnpoint.
      */
-    @NoTrace
+    @Traced(false)
     public String serviceEndpointB() {
         return "Invoked TestClassAnnotationApp.serviceEndpointB";
     }
@@ -50,7 +49,7 @@ public class TestClassAnnotation {
     /**
      * @return name of serviceEnpoint.
      */
-    @Trace("ClassAnnotated.endpointC")
+    @Traced(operationName = "ClassAnnotated.endpointC")
     public String serviceEndpointC() {
         return "Invoked TestClassAnnotationApp.serviceEndpointC";
     }
