@@ -128,9 +128,9 @@ opentracing.io Tracer implementation.
 The microprofile.io implementation will allow JAX-RS applications to participate in distributed tracing, without requiring developers to add any distributed tracing code into their applications, and without requiring developers to know anything about the distributed tracing environment that their JAX-RS application will be deployed into.
 
 1. The microprofile.io implementation must provide a mechanism to configure an io.opentracing.Tracer implementation for use by each JAX-RS application.
-2. The microprofile.io implementation must provide a mechanism to automatically extract Span information from any incoming JAX-RS request.
+2. The microprofile.io implementation must provide a mechanism to automatically extract SpanContext information from any incoming JAX-RS request.
 3. The microprofile.io implementation must provide a mechanism to automatically start a Span for any incoming JAX-RS request.
-4. The microprofile.io implementation must provide a mechanism to automatically inject Span information into any outgoing JAX-RS request.
+4. The microprofile.io implementation must provide a mechanism to automatically inject SpanContext information into any outgoing JAX-RS request.
 5. The microprofile.io implementation must provide a mechanism to automatically start a Span for any outgoing JAX-RS request.
 
 All automatically created Spans must have the correct parent/child relationships when creating either synchronous or asynchronous JAX-RS incoming and outgoing requests.
@@ -139,44 +139,49 @@ All automatically created Spans must have the correct parent/child relationships
 An implementation of an io.opentracing.Tracer must be made available to each application. Each application will have its own Tracer instance.
 The Tracer must be configurable outside of the application to match the distributed tracing environment where the application is deployed. For example, it should be possible to take the exact same application and deploy it to an environment where Zipkin is in use, and to deploy the application without modification to a different environment where Jaeger is in use, and the application should report Spans correctly in either environment.
 
-==== Span extraction
-When a request arrives at a JAX-RS endpoint, an attempt is made to use the configured Tracer to extract a Span from the arriving request. If a Span is extracted, it is used as the parent Span for the new Span that is created for the endpoint.
+==== SpanContext extraction
+When a request arrives at a JAX-RS endpoint, an attempt is made to use the configured Tracer to extract a SpanContext from the arriving request. If a SpanContext is extracted, it is used as the parent for the new Span that is created for the endpoint.
 
 ==== Span creation for inbound requests
-When a request arrives at a JAX-RS endpoint, a new Span is created. The new Span will be a child of the Span extracted from the incoming request, if the extracted Span exists.
+When a request arrives at a JAX-RS endpoint, a new Span is created. The new Span will be a child of the SpanContext extracted from the incoming request, if the extracted SpanContext exists.
 
-===== Span name
+[[server-span-name]]
+===== Server Span name
 The default operation name of the new Span for the incoming request is
 ```
 <HTTP method>:<package name>.<Class name>.<method name>
 ```
 
-===== Span tags
+===== Server Span tags
 Spans created for incoming requests will have the following tags added by default:
 
-* Tags.SPAN_KIND = Server
+* Tags.SPAN_KIND = Tags.SPAN_KIND_SERVER
 * Tags.HTTP_METHOD
 * Tags.HTTP_URL
 * Tags.HTTP_STATUS
 * Tags.ERROR (if true)
 
-==== Span creation and injection for outbound requests
-When a request is sent from a JAX-RS  javax.ws.rs.client.Client, a new Span will be created that is injected in the outbound request for propagation downstream. The new Span will be a child of the current Span if a current Span exists. The new Span will be finished when the outbound request is completed.
+Tags.SPAN_KIND has to be specified at Span start time.
 
-===== Span name
+==== Span creation and injection for outbound requests
+When a request is sent from a JAX-RS javax.ws.rs.client.Client, a new Span is created and its SpanContext is injected in the outbound request for propagation downstream. The new Span will be a child of the active Span if an active Span exists. The new Span will be finished when the outbound request is completed.
+
+===== Client Span name
 The default operation name of the new Span for the outgoing request is
 ```
 <HTTP method>
 ```
 
-===== Span tags
+===== Client Span tags
 Spans created for outgoing requests will have the following tags added by default:
 
-* Tags.SPAN_KIND = Client
+* Tags.SPAN_KIND = Tags.SPAN_KIND_CLIENT
 * Tags.HTTP_METHOD
 * Tags.HTTP_URL
 * Tags.HTTP_STATUS
 * Tags.ERROR (if true)
+
+Tags.SPAN_KIND has to be specified at Span start time.
 
 === Enabling explicit distributed tracing code instrumentation
 
@@ -193,9 +198,9 @@ The @Traced annotation has two optional arguments.
 
 * value=[true|false]. Defaults to true. If @Traced is specified at the Class level, then @Traced(false) is used to annotate specific methods to disable creation of a Span for those methods. By default all JAX-RS endpoint methods are traced. To disable Span creation of a specific JAX-RS endpoint, the @Traced(false) annotation can be used.
 +
-Even when the @Traced(false) annotation is used for a JAX-RS endpoint method, the upstream Spancontext will still be extracted if it exists. The extracted Spancontext will be used to define a current Span.
+Even when the @Traced(false) annotation is used for a JAX-RS endpoint method, the upstream SpanContext will still be extracted if it exists. The extracted SpanContext will be used to define a current Span.
 
-* operationName=&lt;Name for the Span&gt;. Default is "". If the @Traced annotation finds the operationName as "", the operationName is assigned as <package name>.<Class name>.<method name>
+* operationName=&lt;Name for the Span&gt;. Default is "". If the @Traced annotation finds the operationName as "", the default operationName is used (see <<server-span-name>>).
 
 Example:
 [source,java]
