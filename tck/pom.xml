@@ -19,12 +19,11 @@
 
     <parent>
         <!-- This is just for now and will not work if the API has a separate release cycle than the rest. -->
-        <groupId>org.eclipse.microprofile.opentracing.parent</groupId>
+        <groupId>org.eclipse.microprofile.opentracing</groupId>
         <artifactId>microprofile-opentracing-parent</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.eclipse.microprofile.opentracing</groupId>
     <artifactId>microprofile-opentracing-tck</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -100,24 +99,4 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>eclipse-jarsigner</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.eclipse.cbi.maven.plugins</groupId>
-                        <artifactId>eclipse-jarsigner-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
