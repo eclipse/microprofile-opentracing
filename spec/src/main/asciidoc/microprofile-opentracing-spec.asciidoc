@@ -172,6 +172,7 @@ An annotation is provided to define explicit Span creation. This works on top of
 ==== The @Traced annotation
 
 The `@Traced` annotation, applies to a Class or a method. When applied to a Class, the `@Traced` annotation is applied to all methods of the Class.
+If the annotation is applied to a Class and method then the annotation applied to the method takes precedence.
 The annotation starts a Span at the beginning of the method, and finishes the Span at the end of the method.
 
 The `@Traced` annotation has two optional arguments.
