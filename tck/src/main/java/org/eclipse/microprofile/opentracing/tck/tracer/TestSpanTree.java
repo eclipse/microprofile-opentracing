@@ -64,11 +64,10 @@ public class TestSpanTree {
 
     /**
      * Add a root span.
-     * @param ts The span to add.
-     * @return The new TreeNode.
+     * @param node The node to add.
+     * @return The added node.
      */
-    public TreeNode<TestSpan> addRootSpan(final TestSpan ts) {
-        TreeNode<TestSpan> node = new TreeNode<>(ts);
+    public TreeNode<TestSpan> addRootNode(final TreeNode<TestSpan> node) {
         rootSpans.add(node);
         return node;
     }
@@ -120,13 +119,12 @@ public class TestSpanTree {
 
         /**
          * Add new child to this node.
-         * @param nodeData Child's data
+         * @param child Child to add.
          * @return Newly created node.
          */
-        public TreeNode<T> addChild(final T nodeData) {
-            TreeNode<T> newChild = new TreeNode<>(nodeData);
-            children.add(newChild);
-            return newChild;
+        public TreeNode<T> addChild(final TreeNode<T> child) {
+            children.add(child);
+            return child;
         }
 
         /**

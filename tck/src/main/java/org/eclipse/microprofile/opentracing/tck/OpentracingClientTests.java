@@ -19,10 +19,14 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
+import io.opentracing.tag.Tags;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -30,7 +34,7 @@ import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
-import org.eclipse.microprofile.opentracing.tck.tracer.SpanKind;
+import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree.TreeNode;
@@ -79,83 +83,82 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
-     * Test web service calls.
-     * @throws MalformedURLException URL errors
+     * Test that server endpoint is adding standard tags
      */
     @Test
     @RunAsClient
-    public void simpleTest() throws MalformedURLException {
-        // Execute the Hello World web service multiple times to check
-        // that clearing the Tracer works.
-        executeHelloWorld();
-        executeHelloWorld();
-    }
-
-    /**
-     * Execute the Hello World web service, verify spans, and clear tracer.
-     * @throws MalformedURLException Error building URL
-     */
-    private void executeHelloWorld() throws MalformedURLException {
-        String responseText = executeRemoteWebServiceString(
-                TestWebServicesApplication.REST_SIMPLE_TEST);
-        Assert.assertEquals(responseText, TestWebServices.SIMPLE_TEST_CONTENT);
+    private void testStandartTags() throws MalformedURLException, InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestWebServices.REST_TEST_SERVICE_PATH,
+            TestWebServices.REST_SIMPLE_TEST);
+        response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
 
+        Map<String, Object> tags = new HashMap<>();
+        tags.put(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_SERVER);
+        tags.put(Tags.HTTP_METHOD.getKey(), "GET");
+        tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(TestWebServices.REST_TEST_SERVICE_PATH,
+            TestWebServices.REST_SIMPLE_TEST));
+        tags.put(Tags.HTTP_STATUS.getKey(), 200);
+
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
-                new TestSpan(
-                    SpanKind.SERVER,
-                    getWebServiceURL(
-                        TestWebServicesApplication.REST_SIMPLE_TEST
-                    )
+                new TestSpan(serverOperationName("GET", TestWebServices.class, "simpleTest"),
+                    tags
                 )
             )
         );
-
         Assert.assertEquals(spans, expectedTree);
+        clearTracer();
+    }
 
-        executeRemoteWebServiceString(
-                TestWebServicesApplication.REST_CLEAR_TRACER);
+    /**
+     * Test that implementation exposes active span
+     */
+    @Test
+    @RunAsClient
+    private void testLocalSpanHasParent() throws MalformedURLException, InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestWebServices.REST_TEST_SERVICE_PATH,
+            TestWebServices.REST_LOCAL_SPAN);
+        response.close();
+        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(serverOperationName("GET", TestWebServices.class, "localSpan"),
+                    Collections.emptyMap())
+            ,new TreeNode<>(new TestSpan("localSpan", Collections.emptyMap()))));
+        Assert.assertEquals(spans, expectedTree);
+        clearTracer();
     }
 
     /**
      * Create remote URL.
-     * @param relativePath Path at the end of the URL
+     * @param service Web service path
+     * @param relativePath Web service endpoint
      * @return Remote URL
      * @throws MalformedURLException Error creating URL
      */
-    private String getWebServiceURL(final String relativePath)
+    private String getWebServiceURL(final String service, final String relativePath)
             throws MalformedURLException {
         return new URL(deploymentURL,
                 TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
-                + "/" + TestWebServices.TEST_WS_PATH + "/"
-                        + relativePath).toString();
+                + "/" + service + "/" + relativePath).toString();
     }
 
     /**
      * Execute a remote web service and return the content.
-     * @param relativePath Web service URL
+     * @param service Web service path
+     * @param relativePath Web service endpoint
      * @return Response
      * @throws MalformedURLException Bad URL
      */
-    private Response executeRemoteWebServiceRaw(final String relativePath)
+    private Response executeRemoteWebServiceRaw(final String service, final String relativePath)
             throws MalformedURLException {
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(getWebServiceURL(relativePath));
-        return target.request().get();
-    }
-
-    /**
-     * Execute a remote web service and return the content.
-     * @param relativePath Web service URL
-     * @return HTML response
-     * @throws MalformedURLException Bad URL
-     */
-    private String executeRemoteWebServiceString(final String relativePath)
-            throws MalformedURLException {
-        return executeRemoteWebServiceRaw(relativePath)
-                .readEntity(String.class);
+        WebTarget target = client.target(getWebServiceURL(service, relativePath));
+        Response response = target.request().get();
+        Assert.assertEquals(response.getStatus(),200);
+        return response;
     }
 
     /**
@@ -166,7 +169,27 @@ public class OpentracingClientTests extends Arquillian {
     private TestTracer executeRemoteWebServiceTracer()
             throws MalformedURLException {
         return executeRemoteWebServiceRaw(
-                TestWebServicesApplication.REST_GET_TRACER)
+                TracerWebService.REST_TRACER_SERVICE_PATH, TracerWebService.REST_GET_TRACER)
                 .readEntity(TestTracer.class);
+    }
+
+    /**
+     * Get server span operation name
+     * @param httpMethod HTTP method
+     * @param clazz resource class
+     * @param javaMethod method name
+     * @return
+     */
+    private String serverOperationName(String httpMethod, Class<?> clazz, String javaMethod) {
+        return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
+    }
+
+    private void clearTracer() throws MalformedURLException {
+        Client client = ClientBuilder.newClient();
+        String url = new URL(deploymentURL,
+            TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
+                + "/" + TracerWebService.REST_TRACER_SERVICE_PATH + "/" + TracerWebService.REST_CLEAR_TRACER).toString();
+        Response delete = client.target(url).request().delete();
+        delete.close();
     }
 }
