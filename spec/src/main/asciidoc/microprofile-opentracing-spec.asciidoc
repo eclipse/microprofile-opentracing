@@ -126,7 +126,7 @@ When a request arrives at a JAX-RS endpoint, a new Span is created. The new Span
 ===== Server Span name
 The default operation name of the new Span for the incoming request is
 ```
-<HTTP method>:<package name>.<Class name>.<method name>
+<HTTP method>:<package name>.<class name>.<method name>
 ```
 
 ===== Server Span tags
@@ -171,14 +171,14 @@ An annotation is provided to define explicit Span creation. This works on top of
 
 ==== The @Traced annotation
 
-The `@Traced` annotation, applies to a Class or a method. When applied to a Class, the `@Traced` annotation is applied to all methods of the Class.
-If the annotation is applied to a Class and method then the annotation applied to the method takes precedence.
+The `@Traced` annotation, applies to a class or a method. When applied to a class, the `@Traced` annotation is applied to all methods of the class.
+If the annotation is applied to a class and method then the annotation applied to the method takes precedence.
 The annotation starts a Span at the beginning of the method, and finishes the Span at the end of the method.
 
 The `@Traced` annotation has two optional arguments.
 
 * value=[true|false]. Defaults to true.
-If `@Traced` is specified at the Class level, then `@Traced(false)` is used to annotate specific methods to disable creation of a Span for those methods.
+If `@Traced` is specified at the class level, then `@Traced(false)` is used to annotate specific methods to disable creation of a Span for those methods.
 By default all JAX-RS endpoint methods are traced.
 To disable Span creation of a specific JAX-RS endpoint, the `@Traced(false)` annotation can be used.
 +
@@ -234,7 +234,7 @@ configuredTracer.activeSpan().setBaggage(...);
 
 == Impact on existing code
 
-`@Traced annotations can be added to existing code. `
+`@Traced` annotations can be added to existing code.
 A configured Tracer object can be accessed with CDI injection.
 
 == Alternatives considered
