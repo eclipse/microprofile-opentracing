@@ -87,7 +87,7 @@ public class OpentracingClientTests extends Arquillian {
      */
     @Test
     @RunAsClient
-    private void testStandartTags() throws MalformedURLException, InterruptedException {
+    private void testStandardTags() throws MalformedURLException, InterruptedException {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_SIMPLE_TEST);
         response.close();
