@@ -111,24 +111,22 @@ public class TestTracer implements Tracer {
     public TestSpanTree spanTree() {
         TestSpanTree tree = new TestSpanTree();
         Map<Long, TreeNode<TestSpan>> map = new HashMap<>();
-        for (TestSpan span : spans) {
-            if (span.getParentId() == 0) {
-                TreeNode<TestSpan> node = tree.addRootSpan(span);
-                map.put(span.getSpanId(), node);
+        for (TestSpan span: spans) {
+            map.put(span.getSpanId(), new TreeNode<>(span));
+        }
+
+        for (TestSpan span: spans) {
+            TreeNode<TestSpan> spanTreeNode = map.get(span.getSpanId());
+            if (span.getParentId() == 0 || map.get(span.getParentId()) == null) {
+                tree.addRootNode(spanTreeNode);
             }
             else {
-                TreeNode<TestSpan> parent = map.get(span.getParentId());
-                if (parent != null) {
-                    TreeNode<TestSpan> node = parent.addChild(span);
-                    map.put(span.getSpanId(), node);
-                }
-                else {
-                    throw new IllegalStateException(
-                            "Could not find parent span with ID "
-                            + span.getParentId() + " for span " + span);
+                TreeNode<TestSpan> parentNode = map.get(span.getParentId());
+                if (parentNode != null) {
+                    parentNode.addChild(spanTreeNode);
                 }
             }
-        }
+          }
         return tree;
     }
 }

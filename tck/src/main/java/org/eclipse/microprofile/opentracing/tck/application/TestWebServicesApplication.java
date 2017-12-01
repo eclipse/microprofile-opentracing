@@ -39,26 +39,13 @@ public class TestWebServicesApplication extends Application {
     public static final String TEST_WEB_SERVICES_CONTEXT_ROOT = "rest";
 
     /**
-     * Web Service endpoint for the simpleTest call.
-     */
-    public static final String REST_SIMPLE_TEST = "simpleTest";
-
-    /**
-     * Web Service endpoint for the getTracer call.
-     */
-    public static final String REST_GET_TRACER = "getTracer";
-
-    /**
-     * Web Service endpoint for the clearTracer call.
-     */
-    public static final String REST_CLEAR_TRACER = "clearTracer";
-
-    /**
      * {@inheritDoc}
      */
     @Override
     public Set<Class<?>> getClasses() {
-        return new HashSet<Class<?>>(Arrays.asList(TestWebServices.class,
-                JacksonJsonProvider.class));
+        return new HashSet<>(Arrays.asList(
+            TracerWebService.class,
+            TestServerWebServices.class,
+            JacksonJsonProvider.class));
     }
 }

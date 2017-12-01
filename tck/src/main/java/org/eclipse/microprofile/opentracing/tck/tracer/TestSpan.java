@@ -30,21 +30,6 @@ import io.opentracing.SpanContext;
 public class TestSpan implements Span {
 
     /**
-     * Tag key for the span kind.
-     */
-    public static final String TAG_SPAN_KIND = "span.kind";
-
-    /**
-     * Server span kind.
-     */
-    public static final String SPAN_KIND_SERVER = "server";
-
-    /**
-     * Client span kind.
-     */
-    public static final String SPAN_KIND_CLIENT = "client";
-
-    /**
      * Start time of the span.
      */
     private long startMicros;
@@ -92,13 +77,13 @@ public class TestSpan implements Span {
 
     /**
      * Create span with a particular kind and operation name.
-     * @param spanKind Span kind
      * @param operationName Operation name
+     * @param tags Tags associated with span
      */
-    public TestSpan(final SpanKind spanKind, final String operationName) {
-        simulated = true;
-        tags.put(TAG_SPAN_KIND, spanKind.getTagValue());
-        cachedOperationName = operationName;
+    public TestSpan(final String operationName, Map<String, Object> tags) {
+        this.simulated = true;
+        this.cachedOperationName = operationName;
+        this.tags = new HashMap<>(tags);
     }
 
     /**
@@ -203,25 +188,6 @@ public class TestSpan implements Span {
      */
     public Map<String, Object> getTags() {
         return tags;
-    }
-
-    /**
-     * Get the span kind tag.
-     * @return Span kind.
-     */
-    public SpanKind spanKind() {
-        SpanKind result = SpanKind.MANUAL;
-        String tagKind = (String) tags.get(TAG_SPAN_KIND);
-        if (SPAN_KIND_SERVER.equals(tagKind)) {
-            result = SpanKind.SERVER;
-        }
-        else if (SPAN_KIND_SERVER.equals(tagKind)) {
-            result = SpanKind.CLIENT;
-        }
-        else {
-            throw new IllegalStateException("Unexpected span kind " + tagKind);
-        }
-        return result;
     }
 
     /**
@@ -369,8 +335,7 @@ public class TestSpan implements Span {
         else {
             // Only print the parts that are checked in equals
             return "{ " + "operationName: "
-                    + cachedOperationName
-                    + ", kind: " + tags.get(TAG_SPAN_KIND) + " }";
+                    + cachedOperationName + "}";
         }
     }
 
@@ -385,11 +350,6 @@ public class TestSpan implements Span {
                 System.out.println("Operation names don't match: "
                         + cachedOperationName + " ; "
                         + otherSpan.cachedOperationName);
-                return false;
-            }
-            else if (spanKind() != otherSpan.spanKind()) {
-                System.out.println("Span kinds don't match: "
-                        + spanKind() + " ; " + otherSpan.spanKind());
                 return false;
             }
             return true;
