@@ -32,7 +32,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 
-import org.eclipse.microprofile.opentracing.tck.application.TestWebServices;
+import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
@@ -67,7 +67,7 @@ public class OpentracingClientTests extends Arquillian {
     @Deployment
     public static WebArchive createDeployment() {
 
-        File[] files = Maven.resolver()
+        File[] files = Maven.resolver()qq
                 .resolve(
                 "io.opentracing:opentracing-api:0.30.0",
                 "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
@@ -88,8 +88,8 @@ public class OpentracingClientTests extends Arquillian {
     @Test
     @RunAsClient
     private void testStandartTags() throws MalformedURLException, InterruptedException {
-        Response response = executeRemoteWebServiceRaw(TestWebServices.REST_TEST_SERVICE_PATH,
-            TestWebServices.REST_SIMPLE_TEST);
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_SIMPLE_TEST);
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
@@ -97,13 +97,13 @@ public class OpentracingClientTests extends Arquillian {
         Map<String, Object> tags = new HashMap<>();
         tags.put(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_SERVER);
         tags.put(Tags.HTTP_METHOD.getKey(), "GET");
-        tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(TestWebServices.REST_TEST_SERVICE_PATH,
-            TestWebServices.REST_SIMPLE_TEST));
+        tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_SIMPLE_TEST));
         tags.put(Tags.HTTP_STATUS.getKey(), 200);
 
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
-                new TestSpan(serverOperationName("GET", TestWebServices.class, "simpleTest"),
+                new TestSpan(serverOperationName("GET", TestServerWebServices.class, "simpleTest"),
                     tags
                 )
             )
@@ -118,15 +118,34 @@ public class OpentracingClientTests extends Arquillian {
     @Test
     @RunAsClient
     private void testLocalSpanHasParent() throws MalformedURLException, InterruptedException {
-        Response response = executeRemoteWebServiceRaw(TestWebServices.REST_TEST_SERVICE_PATH,
-            TestWebServices.REST_LOCAL_SPAN);
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_LOCAL_SPAN);
         response.close();
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
-                new TestSpan(serverOperationName("GET", TestWebServices.class, "localSpan"),
+                new TestSpan(serverOperationName("GET", TestServerWebServices.class, "localSpan"),
                     Collections.emptyMap())
             ,new TreeNode<>(new TestSpan("localSpan", Collections.emptyMap()))));
+        Assert.assertEquals(spans, expectedTree);
+        clearTracer();
+    }
+
+    /**
+     * Test that async endpoint exposes active span
+     */
+    @Test
+    @RunAsClient
+    private void testAsyncLocalSpan() throws MalformedURLException, InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_ASYNC_LOCAL_SPAN);
+        response.close();
+        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(serverOperationName("GET", TestServerWebServices.class, "asyncLocalSpan"),
+                    Collections.emptyMap())
+                ,new TreeNode<>(new TestSpan("localSpan", Collections.emptyMap()))));
         Assert.assertEquals(spans, expectedTree);
         clearTracer();
     }

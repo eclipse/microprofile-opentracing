@@ -45,7 +45,7 @@ public class TestWebServicesApplication extends Application {
     public Set<Class<?>> getClasses() {
         return new HashSet<>(Arrays.asList(
             TracerWebService.class,
-            TestWebServices.class,
+            TestServerWebServices.class,
             JacksonJsonProvider.class));
     }
 }

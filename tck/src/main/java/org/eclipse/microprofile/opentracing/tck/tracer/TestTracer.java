@@ -117,7 +117,7 @@ public class TestTracer implements Tracer {
 
         for (TestSpan span: spans) {
             TreeNode<TestSpan> spanTreeNode = map.get(span.getSpanId());
-            if (span.getParentId() == 0) {
+            if (span.getParentId() == 0 || map.get(span.getParentId()) == null) {
                 tree.addRootNode(spanTreeNode);
             }
             else {
