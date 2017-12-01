@@ -163,6 +163,9 @@ Spans created for outgoing requests will have the following tags added by defaul
 
 Tags.SPAN_KIND MUST be specified at Span start time.
 
+An Tags.ERROR tag SHOULD be added to a Span on failed operations. It means for any client error (4xx) codes.
+If there is an exception object available the implementation SHOULD also add logs `event=error` and `error.object=<error object instance>` to the active span.
+
 === Enabling explicit distributed tracing code instrumentation
 
 An annotation is provided to define explicit Span creation. This works on top of the "no-action" setup described in <<no-instrumentation>>.
