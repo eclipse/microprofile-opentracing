@@ -27,10 +27,12 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
@@ -48,6 +50,8 @@ import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.testng.Assert;
+import org.testng.Reporter;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 /**
@@ -81,6 +85,22 @@ public class OpentracingClientTests extends Arquillian {
 
         return war;
     }
+   
+    /**
+     * Before each test method, clear the tracer.
+     * 
+     * In the case that a test fails, other tests may still run, and if the
+     * clearTracer call is done at the end of a test, then the next test may
+     * still have old spans in its result, which would both fail that test
+     * and make debugging harder.
+     * @throws MalformedURLException Error processing the URL.
+     */
+    @BeforeMethod
+    private void beforeEachTest() throws MalformedURLException {
+        debug("beforeEachTest calling clearTracer");
+        clearTracer();
+        debug("beforeEachTest clearTracer completed");
+    }
 
     /**
      * Test that server endpoint is adding standard tags
@@ -94,22 +114,25 @@ public class OpentracingClientTests extends Arquillian {
 
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
 
-        Map<String, Object> tags = new HashMap<>();
-        tags.put(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_SERVER);
-        tags.put(Tags.HTTP_METHOD.getKey(), "GET");
-        tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(TestServerWebServices.REST_TEST_SERVICE_PATH,
-            TestServerWebServices.REST_SIMPLE_TEST));
-        tags.put(Tags.HTTP_STATUS.getKey(), 200);
-
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
-                new TestSpan(serverOperationName("GET", TestServerWebServices.class, "simpleTest"),
-                    tags
+                new TestSpan(
+                    serverOperationName(
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        TestServerWebServices.REST_SIMPLE_TEST
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_SIMPLE_TEST,
+                        Status.OK.getStatusCode()
+                    )
                 )
             )
         );
         Assert.assertEquals(spans, expectedTree);
-        clearTracer();
     }
 
     /**
@@ -124,11 +147,24 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
-                new TestSpan(serverOperationName("GET", TestServerWebServices.class, "localSpan"),
-                    Collections.emptyMap())
-            ,new TreeNode<>(new TestSpan("localSpan", Collections.emptyMap()))));
+                new TestSpan(
+                    serverOperationName(
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        TestServerWebServices.REST_LOCAL_SPAN
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_LOCAL_SPAN,
+                        Status.OK.getStatusCode()
+                    )
+                ),
+                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
+            )
+        );
         Assert.assertEquals(spans, expectedTree);
-        clearTracer();
     }
 
     /**
@@ -143,11 +179,45 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
-                new TestSpan(serverOperationName("GET", TestServerWebServices.class, "asyncLocalSpan"),
-                    Collections.emptyMap())
-                ,new TreeNode<>(new TestSpan("localSpan", Collections.emptyMap()))));
+                new TestSpan(
+                    serverOperationName(
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        TestServerWebServices.REST_ASYNC_LOCAL_SPAN
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_ASYNC_LOCAL_SPAN,
+                        Status.OK.getStatusCode()
+                    )
+                ),
+                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
+            )
+        );
         Assert.assertEquals(spans, expectedTree);
-        clearTracer();
+    }
+
+    /**
+     * Create a tags collection for expected span tags.
+     * @param spanKind Value for {@link Tags#SPAN_KIND}
+     * @param httpMethod Value for {@link Tags#HTTP_METHOD}
+     * @param service First parameter to {@link #getWebServiceURL(String, String)
+     * @param relativePath Second parameter to {@link #getWebServiceURL(String, String)
+     * @param httpStatus Value for {@link Tags#HTTP_STATUS}
+     * @return Tags collection.
+     * @throws MalformedURLException Error creating web service url.
+     */
+    private Map<String, Object> getExpectedSpanTags(String spanKind,
+            String httpMethod, String service, String relativePath,
+            int httpStatus) throws MalformedURLException {
+        Map<String, Object> tags = new HashMap<>();
+        tags.put(Tags.SPAN_KIND.getKey(), spanKind);
+        tags.put(Tags.HTTP_METHOD.getKey(), httpMethod);
+        tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(service, relativePath));
+        tags.put(Tags.HTTP_STATUS.getKey(), httpStatus);
+        return tags;
     }
 
     /**
@@ -176,7 +246,7 @@ public class OpentracingClientTests extends Arquillian {
         Client client = ClientBuilder.newClient();
         WebTarget target = client.target(getWebServiceURL(service, relativePath));
         Response response = target.request().get();
-        Assert.assertEquals(response.getStatus(),200);
+        Assert.assertEquals(response.getStatus(), Status.OK.getStatusCode());
         return response;
     }
 
@@ -193,7 +263,8 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
-     * Get server span operation name
+     * Get server span operation name.
+     * https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc#server-span-name
      * @param httpMethod HTTP method
      * @param clazz resource class
      * @param javaMethod method name
@@ -210,5 +281,13 @@ public class OpentracingClientTests extends Arquillian {
                 + "/" + TracerWebService.REST_TRACER_SERVICE_PATH + "/" + TracerWebService.REST_CLEAR_TRACER).toString();
         Response delete = client.target(url).request().delete();
         delete.close();
+    }
+    
+    /**
+     * Print debug message to target/surefire-reports/testng-results.xml.
+     * @param message The debug message.
+     */
+    private static void debug(String message) {
+        Reporter.log(message);
     }
 }

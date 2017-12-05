@@ -188,7 +188,7 @@ public class TestSpanTree {
                     return false;
                 }
                 if (otherNode.children.size() != children.size()) {
-                    System.out.println("Child span counts don't match: "
+                    System.err.println("MISMATCH: Child span counts don't match: "
                             + children.size() + " ; "
                             + otherNode.children.size());
                     return false;
@@ -245,7 +245,7 @@ public class TestSpanTree {
         TestSpanTree otherTree = (TestSpanTree) obj;
         if (otherTree != null) {
             if (otherTree.rootSpans.size() != rootSpans.size()) {
-                System.out.println("Root span counts don't match: "
+                System.err.println("MISMATCH: Root span counts don't match: "
                         + rootSpans.size() + " ; "
                         + otherTree.rootSpans.size());
                 return false;
