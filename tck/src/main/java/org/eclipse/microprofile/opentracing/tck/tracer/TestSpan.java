@@ -20,6 +20,7 @@ package org.eclipse.microprofile.opentracing.tck.tracer;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -335,7 +336,7 @@ public class TestSpan implements Span {
         else {
             // Only print the parts that are checked in equals
             return "{ " + "operationName: "
-                    + cachedOperationName + "}";
+                    + cachedOperationName + ", tags: " + tags + "}";
         }
     }
 
@@ -347,10 +348,39 @@ public class TestSpan implements Span {
         TestSpan otherSpan = (TestSpan) obj;
         if (otherSpan != null) {
             if (!cachedOperationName.equals(otherSpan.cachedOperationName)) {
-                System.out.println("Operation names don't match: "
+                System.err.println("MISMATCH: Operation names don't match: "
                         + cachedOperationName + " ; "
                         + otherSpan.cachedOperationName);
                 return false;
+            }
+            
+            if (tags.size() != otherSpan.tags.size()) {
+                System.err.println("MISMATCH: Number of tags doesn't match");
+                return false;
+            }
+
+            for (Entry<String, Object> tagEntry : tags.entrySet()) {
+                final String tagEntryKey = tagEntry.getKey();
+                boolean foundOtherTag = false;
+                for (Entry<String, Object> otherTagEntry : otherSpan.tags.entrySet()) {
+                    if (tagEntryKey.equals(otherTagEntry.getKey())) {
+                        foundOtherTag = true;
+                        if (!tagEntry.getValue().equals(otherTagEntry.getValue())) {
+                            System.err.println("MISMATCH: Tag " + tagEntryKey
+                                    + " values don't match: "
+                                    + tagEntry.getValue() + " ; "
+                                    + otherTagEntry.getValue());
+                            return false;
+                        }
+                        break;
+                    }
+                }
+                
+                if (!foundOtherTag) {
+                    System.err.println("MISMATCH: Tag " + tagEntryKey
+                            + " not found in span.");
+                    return false;
+                }
             }
             return true;
         }
