@@ -50,7 +50,7 @@ public class TestServerWebServices {
     /**
      * Async web service endpoint that creates local span.
      */
-    public static final String REST_ASYNC_LOCAL_SPAN = "asuncLocalSpan";
+    public static final String REST_ASYNC_LOCAL_SPAN = "asyncLocalSpan";
 
     @Inject
     private Tracer tracer;
@@ -72,7 +72,7 @@ public class TestServerWebServices {
     @Path(REST_LOCAL_SPAN)
     @Produces(MediaType.TEXT_PLAIN)
     public Response localSpan() {
-        tracer.buildSpan("localSpan").start().finish();
+        tracer.buildSpan("localSpan").startManual().finish();
         return Response.ok().build();
     }
 
@@ -83,7 +83,7 @@ public class TestServerWebServices {
     @Path(REST_ASYNC_LOCAL_SPAN)
     @Produces(MediaType.TEXT_PLAIN)
     public void asyncLocalSpan(@Suspended final AsyncResponse asyncResponse) {
-        tracer.buildSpan("localSpan").start().finish();
+        tracer.buildSpan("localSpan").startManual().finish();
         asyncResponse.resume(Response.ok().build());
     }
 }
