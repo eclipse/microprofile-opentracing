@@ -67,7 +67,7 @@ public class OpentracingClientTests extends Arquillian {
     @Deployment
     public static WebArchive createDeployment() {
 
-        File[] files = Maven.resolver()qq
+        File[] files = Maven.resolver()
                 .resolve(
                 "io.opentracing:opentracing-api:0.30.0",
                 "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
