@@ -21,6 +21,7 @@ package org.eclipse.microprofile.opentracing.tck.tracer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Represents a tree of spans.
@@ -137,8 +138,8 @@ public class TestSpanTree {
         public String toJSON(final String nodeName, final int indentationLevel,
                 final String indentationCharacters) {
             StringBuilder sb = new StringBuilder();
-            String indent = String.join("", Collections.nCopies(
-                    indentationLevel, indentationCharacters));
+            String indent = String.join("", Collections
+                    .nCopies(indentationLevel, indentationCharacters));
             String indent2 = indent + indentationCharacters;
             sb.append(indent);
             sb.append('{');
@@ -188,9 +189,10 @@ public class TestSpanTree {
                     return false;
                 }
                 if (otherNode.children.size() != children.size()) {
-                    System.err.println("MISMATCH: Child span counts don't match: "
-                            + children.size() + " ; "
-                            + otherNode.children.size());
+                    System.err
+                            .println("MISMATCH: Child span counts don't match: "
+                                    + children.size() + " ; "
+                                    + otherNode.children.size());
                     return false;
                 }
                 for (int i = 0; i < children.size(); i++) {
@@ -268,5 +270,29 @@ public class TestSpanTree {
     @Override
     public int hashCode() {
         return super.hashCode();
+    }
+
+    /**
+     * Visit every {@link TestSpan} in this tree with the {@code visitor}
+     * lambda.
+     * @param visitor Lambda
+     */
+    public void visitSpans(final Consumer<? super TestSpan> visitor) {
+        for (TreeNode<TestSpan> node : this.rootSpans) {
+            visitTreeNode(node, visitor);
+        }
+    }
+
+    /**
+     * Recursive function for {@link #visitSpans(Consumer)}
+     * @param node The TreeNode to process.
+     * @param visitor Lambda
+     */
+    private void visitTreeNode(TreeNode<TestSpan> node,
+            final Consumer<? super TestSpan> visitor) {
+        visitor.accept(node.data);
+        for (TreeNode<TestSpan> child : node.children) {
+            visitTreeNode(child, visitor);
+        }
     }
 }

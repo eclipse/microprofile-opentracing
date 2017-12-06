@@ -132,7 +132,7 @@ public class OpentracingClientTests extends Arquillian {
                 )
             )
         );
-        Assert.assertEquals(spans, expectedTree);
+        assertTrees(spans, expectedTree);
     }
 
     /**
@@ -164,7 +164,7 @@ public class OpentracingClientTests extends Arquillian {
                 new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
             )
         );
-        Assert.assertEquals(spans, expectedTree);
+        assertTrees(spans, expectedTree);
     }
 
     /**
@@ -196,7 +196,28 @@ public class OpentracingClientTests extends Arquillian {
                 new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
             )
         );
-        Assert.assertEquals(spans, expectedTree);
+        assertTrees(spans, expectedTree);
+    }
+
+    /**
+     * This wrapper method allows for potential post-processing, such as
+     * removing tags that we don't care to compare in {@code returnedTree}.
+     * 
+     * @param returnedTree The returned tree from the web service.
+     * @param expectedTree The simulated tree that we expect.
+     */
+    private void assertTrees(TestSpanTree returnedTree,
+            TestSpanTree expectedTree) {
+        
+        // It's okay if the returnedTree has tags other than the ones we
+        // want to compare, so just remove those
+        returnedTree.visitSpans(span -> span.getTags().keySet()
+                .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
+                        && !key.equals(Tags.HTTP_METHOD.getKey())
+                        && !key.equals(Tags.HTTP_URL.getKey())
+                        && !key.equals(Tags.HTTP_STATUS.getKey())));
+        
+        Assert.assertEquals(returnedTree, expectedTree);
     }
 
     /**
