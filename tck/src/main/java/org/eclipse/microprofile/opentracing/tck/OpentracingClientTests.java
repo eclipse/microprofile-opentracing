@@ -132,7 +132,7 @@ public class OpentracingClientTests extends Arquillian {
                 )
             )
         );
-        assertTrees(spans, expectedTree);
+        assertEqualTrees(spans, expectedTree);
     }
 
     /**
@@ -164,7 +164,7 @@ public class OpentracingClientTests extends Arquillian {
                 new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
             )
         );
-        assertTrees(spans, expectedTree);
+        assertEqualTrees(spans, expectedTree);
     }
 
     /**
@@ -196,7 +196,7 @@ public class OpentracingClientTests extends Arquillian {
                 new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
             )
         );
-        assertTrees(spans, expectedTree);
+        assertEqualTrees(spans, expectedTree);
     }
 
     /**
@@ -206,7 +206,7 @@ public class OpentracingClientTests extends Arquillian {
      * @param returnedTree The returned tree from the web service.
      * @param expectedTree The simulated tree that we expect.
      */
-    private void assertTrees(TestSpanTree returnedTree,
+    private void assertEqualTrees(TestSpanTree returnedTree,
             TestSpanTree expectedTree) {
         
         // It's okay if the returnedTree has tags other than the ones we
@@ -233,6 +233,9 @@ public class OpentracingClientTests extends Arquillian {
     private Map<String, Object> getExpectedSpanTags(String spanKind,
             String httpMethod, String service, String relativePath,
             int httpStatus) throws MalformedURLException {
+        
+        // When adding items to this, also add to assertTrees
+        
         Map<String, Object> tags = new HashMap<>();
         tags.put(Tags.SPAN_KIND.getKey(), spanKind);
         tags.put(Tags.HTTP_METHOD.getKey(), httpMethod);
