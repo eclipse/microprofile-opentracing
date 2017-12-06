@@ -234,7 +234,7 @@ public class OpentracingClientTests extends Arquillian {
             String httpMethod, String service, String relativePath,
             int httpStatus) throws MalformedURLException {
         
-        // When adding items to this, also add to assertTrees
+        // When adding items to this, also add to assertEqualTrees
         
         Map<String, Object> tags = new HashMap<>();
         tags.put(Tags.SPAN_KIND.getKey(), spanKind);
