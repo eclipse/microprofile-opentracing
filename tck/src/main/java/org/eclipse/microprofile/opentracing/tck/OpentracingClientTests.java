@@ -153,12 +153,14 @@ public class OpentracingClientTests extends Arquillian {
     @RunAsClient
     private void testNestedSpans() throws InterruptedException {
         
+        int nestDepth = 1;
+        int nestBreadth = 2;
         int uniqueId = getRandomNumber();
         
-        executeNested(uniqueId, 1);
+        executeNested(uniqueId, nestDepth, nestBreadth);
         
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
-        TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId));
+        TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId, nestBreadth));
         
         assertEqualTrees(spans, expectedTree);
     }
@@ -175,6 +177,9 @@ public class OpentracingClientTests extends Arquillian {
     @RunAsClient
     private void testMultithreadedNestedSpans() throws InterruptedException, ExecutionException {
         int numberOfCalls = 100;
+        int nestDepth = 1;
+        int nestBreadth = 2;
+        
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
         Set<Integer> uniqueIds = ConcurrentHashMap.newKeySet();
@@ -184,7 +189,7 @@ public class OpentracingClientTests extends Arquillian {
                 public void run() {
                     int uniqueId = getRandomNumber();
                     uniqueIds.add(uniqueId);
-                    executeNested(uniqueId, 1);
+                    executeNested(uniqueId, nestDepth, nestBreadth);
                 }
             }));
         }
@@ -223,7 +228,7 @@ public class OpentracingClientTests extends Arquillian {
             // unique IDs that we sent in the requests above.
             Assert.assertTrue(uniqueIds.remove(uniqueId));
             
-            TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId);
+            TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId, nestBreadth);
             assertEqualTrees(rootSpan, expectedTree);
         }
     }
@@ -231,17 +236,24 @@ public class OpentracingClientTests extends Arquillian {
     /**
      * Create the expected span tree to assert.
      * @param uniqueId Unique ID of the request.
+     * @param nestBreadth Nesting breadth.
      * @return The expected span tree.
      */
-    private TreeNode<TestSpan> createExpectedNestTree(int uniqueId) {
-        return new TreeNode<>(
-            getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 1),
-            new TreeNode<>(
-                getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, uniqueId, 0),
+    private TreeNode<TestSpan> createExpectedNestTree(int uniqueId, int nestBreadth) {
+        @SuppressWarnings("unchecked")
+        TreeNode<TestSpan>[] children = (TreeNode<TestSpan>[]) new TreeNode<?>[nestBreadth];
+        for (int i = 0; i < nestBreadth; i++) {
+            children[i] =
                 new TreeNode<>(
-                    getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 0)
-                )
-            )
+                    getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, uniqueId, 0, 1),
+                    new TreeNode<>(
+                        getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 0, 1)
+                    )
+                );
+        }
+        return new TreeNode<>(
+            getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 1, nestBreadth),
+            children
         );
     }
 
@@ -249,11 +261,13 @@ public class OpentracingClientTests extends Arquillian {
      * Execute the nested web service.
      * @param uniqueId Some unique ID.
      * @param nestDepth How deep to nest the calls.
+     * @param nestBreadth Breadth of first level of nested calls.
      */
-    private void executeNested(int uniqueId, int nestDepth) {
+    private void executeNested(int uniqueId, int nestDepth, int nestBreadth) {
         Map<String, Object> queryParameters = new HashMap<>();
         queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
         queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
+        queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
         
         Response response = executeRemoteWebServiceRaw(
             TestServerWebServices.REST_TEST_SERVICE_PATH,
@@ -336,12 +350,14 @@ public class OpentracingClientTests extends Arquillian {
      * @param spanKind Span kind
      * @param uniqueId The unique ID of the request.
      * @param nestDepth Nest depth
+     * @param nestBreadth Nest breadth
      * @return Span for the nested call.
      */
-    private TestSpan getExpectedNestedServerSpan(String spanKind, int uniqueId, int nestDepth) {
+    private TestSpan getExpectedNestedServerSpan(String spanKind, int uniqueId, int nestDepth, int nestBreadth) {
         Map<String, Object> queryParameters = new HashMap<>();
         queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
         queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
+        queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
         return new TestSpan(
             getOperationName(
                 spanKind,
