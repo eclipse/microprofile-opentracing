@@ -140,7 +140,7 @@ Spans created for incoming requests will have the following tags added by defaul
 
 Tags.SPAN_KIND MUST be specified at Span start time.
 
-An Tags.ERROR tag SHOULD be added to a Span on failed operations. It means for any server error (5xx) codes.
+An [Tags.ERROR tag](https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table) SHOULD be added to a Span on failed operations for any server error (5xx) codes.
 If there is an exception object available the implementation SHOULD also add logs `event=error` and `error.object=<error object instance>` to the active span.
 
 ==== Span creation and injection for outbound requests
