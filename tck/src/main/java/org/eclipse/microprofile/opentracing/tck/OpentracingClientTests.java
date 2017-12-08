@@ -22,6 +22,7 @@ package org.eclipse.microprofile.opentracing.tck;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,17 @@ import io.opentracing.tag.Tags;
  * @author <a href="mailto:steve.m.fontes@gmail.com">Steve Fontes</a>
  */
 public class OpentracingClientTests extends Arquillian {
+    
+    /**
+     * "A stable identifier for some notable moment in the lifetime of a Span.
+     * For instance, a mutex lock acquisition or release or the sorts of
+     * lifetime events in a browser page load described in the
+     * Performance.timing specification. E.g., from Zipkin, "cs", "sr", "ss", or
+     * "cr". Or, more generally, "initialized" or "timed out". For errors,
+     * "error""
+     * https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
+     */
+    private static final String LOG_ENTRY_NAME_EVENT = "event";
 
     /** Server app URL for the client tests. */
     @ArquillianResource
@@ -139,7 +151,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_SIMPLE_TEST,
                         null,
                         Status.OK.getStatusCode()
-                    )
+                    ),
+                    Collections.emptyList()
                 )
             )
         );
@@ -169,6 +182,11 @@ public class OpentracingClientTests extends Arquillian {
         
         // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
         expectedTags.put(Tags.ERROR.getKey(), true);
+        
+        // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
+        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
+        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
+        expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_EVENT, "error"));
 
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
@@ -179,7 +197,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.class,
                         TestServerWebServices.REST_ERROR
                     ),
-                    expectedTags
+                    expectedTags,
+                    expectedLogEntries
                 )
             )
         );
@@ -344,9 +363,16 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_LOCAL_SPAN,
                         null,
                         Status.OK.getStatusCode()
-                    )
+                    ),
+                    Collections.emptyList()
                 ),
-                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, getExpectedLocalSpanTags()))
+                new TreeNode<>(
+                    new TestSpan(
+                        TestServerWebServices.REST_LOCAL_SPAN,
+                        getExpectedLocalSpanTags(),
+                        Collections.emptyList()
+                    )
+                )
             )
         );
         assertEqualTrees(spans, expectedTree);
@@ -378,9 +404,16 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_ASYNC_LOCAL_SPAN,
                         null,
                         Status.OK.getStatusCode()
-                    )
+                    ),
+                    Collections.emptyList()
                 ),
-                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, getExpectedLocalSpanTags()))
+                new TreeNode<>(
+                    new TestSpan(
+                        TestServerWebServices.REST_LOCAL_SPAN,
+                        getExpectedLocalSpanTags(),
+                        Collections.emptyList()
+                    )
+                )
             )
         );
         assertEqualTrees(spans, expectedTree);
@@ -413,7 +446,8 @@ public class OpentracingClientTests extends Arquillian {
                 TestServerWebServices.REST_NESTED,
                 queryParameters,
                 Status.OK.getStatusCode()
-            )
+            ),
+            Collections.emptyList()
         );
     }
 
@@ -436,6 +470,11 @@ public class OpentracingClientTests extends Arquillian {
                         && !key.equals(Tags.HTTP_STATUS.getKey())
                         && !key.equals(Tags.ERROR.getKey())
                         && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)));
+        
+        // It's okay if the returnedTree has log entries other than the ones we
+        // want to compare, so just remove those
+        returnedTree.visitTree(span -> span.getLogEntries()
+                .removeIf(logEntry -> !logEntry.containsKey(LOG_ENTRY_NAME_EVENT)));
         
         Assert.assertEquals(returnedTree, expectedTree);
     }

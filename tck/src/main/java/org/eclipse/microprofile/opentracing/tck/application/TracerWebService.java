@@ -112,7 +112,14 @@ public class TracerWebService {
 
             testSpan.setTags((Map<String, Object>) finishedSpan
                 .getClass().getMethod("tags").invoke(finishedSpan));
-
+            
+            List<?> logEntries = (List<?>) finishedSpan.getClass()
+                    .getMethod("logEntries").invoke(finishedSpan);
+            for (Object logEntry : logEntries) {
+                testSpan.getLogEntries().add((Map<String, ?>) logEntry
+                        .getClass().getMethod("fields").invoke(logEntry));
+            }
+            
             if (testSpan.getCachedOperationName() == null
                 || !testSpan.getCachedOperationName().endsWith(
                 TracerWebService.REST_CLEAR_TRACER)) {
