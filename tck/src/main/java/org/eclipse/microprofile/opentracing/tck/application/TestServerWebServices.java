@@ -67,9 +67,9 @@ public class TestServerWebServices {
     public static final String REST_ASYNC_LOCAL_SPAN = "asyncLocalSpan";
 
     /**
-     * Query parameter that directs the HTTP response.
+     * Query parameter that's a unique ID propagated down nested calls.
      */
-    public static final String PARAM_RESPONSE = "response";
+    public static final String PARAM_UNIQUE_ID = "data";
 
     /**
      * Web service endpoint that will call itself some number of times.
@@ -145,45 +145,34 @@ public class TestServerWebServices {
      * with the depth reduced by one (1).
      *
      * @param nestDepth The depth of nesting to use when implementing the request.
-     * @param responseText Test to answer from the request.
-     * @return HTML response text.
+     * @param uniqueID Unique ID propagated down nested calls.
+     * @return OK response
      * @throws ExecutionException Error executing nested web service.
      * @throws InterruptedException Error executing nested web service.
      */
     @GET
     @Path(REST_NESTED)
     @Produces(MediaType.TEXT_PLAIN)
-    public String nested(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
-            @QueryParam(PARAM_RESPONSE) String responseText)
+    public Response nested(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
+            @QueryParam(PARAM_UNIQUE_ID) String uniqueID)
             throws InterruptedException, ExecutionException {
         
-        debug("nested WS called with nestDepth: " + nestDepth);
-
-        String finalResponse;
-
-        if (nestDepth == 0) {
-            finalResponse = responseText;
-        }
-        else {
+        if (nestDepth > 0) {
             Map<String, Object> nestParameters = new HashMap<String, Object>();
             nestParameters.put(PARAM_NEST_DEPTH, nestDepth - 1);
-            nestParameters.put(PARAM_RESPONSE, responseText);
+            nestParameters.put(PARAM_UNIQUE_ID, uniqueID);
 
             String requestUrl = getRequestPath(
                     REST_TEST_SERVICE_PATH, REST_NESTED, nestParameters);
             
-            debug("Calling nested URL " + requestUrl);
-
             Response nestedResponse = TestWebServicesApplication.invoke(requestUrl);
 
-            finalResponse = nestedResponse.readEntity(String.class);
+            // String response = nestedResponse.readEntity(String.class);
             
             nestedResponse.close();
         }
 
-        debug("nested WS returning for nestDepth: " + nestDepth);
-        
-        return finalResponse;
+        return Response.ok().build();
     }
 
     /**
@@ -224,6 +213,7 @@ public class TestServerWebServices {
      * Potentially print a debug message.
      * @param message Debug message.
      */
+    @SuppressWarnings("unused")
     private void debug(String message) {
         System.out.println(message);
     }

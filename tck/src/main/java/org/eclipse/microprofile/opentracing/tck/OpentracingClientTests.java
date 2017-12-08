@@ -19,12 +19,21 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
-import io.opentracing.tag.Tags;
 import java.io.File;
 import java.net.URL;
-
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -35,6 +44,7 @@ import javax.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
+import org.eclipse.microprofile.opentracing.tck.tracer.ConsumableTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree.TreeNode;
@@ -51,6 +61,8 @@ import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import io.opentracing.tag.Tags;
 
 /**
  * Opentracing TCK tests.
@@ -141,9 +153,107 @@ public class OpentracingClientTests extends Arquillian {
     @RunAsClient
     private void testNestedSpans() throws InterruptedException {
         
+        int uniqueId = getRandomNumber();
+        
+        executeNested(uniqueId, 1);
+        
+        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId));
+        
+        assertEqualTrees(spans, expectedTree);
+    }
+    
+    /**
+     * Test the nested web service concurrently. A unique ID is generated
+     * in the URL of each request and propagated down the nested spans.
+     * We extract this out of the resulting spans and ensure the unique
+     * IDs are correct.
+     * @throws InterruptedException Problem executing web service.
+     * @throws ExecutionException Thread pool problem.
+     */
+    @Test
+    @RunAsClient
+    private void testMultithreadedNestedSpans() throws InterruptedException, ExecutionException {
+        int numberOfCalls = 100;
+        ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        List<Future<?>> futures = new ArrayList<>(numberOfCalls);
+        Set<Integer> uniqueIds = ConcurrentHashMap.newKeySet();
+        for (int i = 0; i < numberOfCalls; i++) {
+            futures.add(executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    int uniqueId = getRandomNumber();
+                    uniqueIds.add(uniqueId);
+                    executeNested(uniqueId, 1);
+                }
+            }));
+        }
+
+        // wait to finish all calls
+        for (Future<?> future: futures) {
+            future.get();
+        }
+
+        executorService.awaitTermination(1, TimeUnit.SECONDS);
+        executorService.shutdown();
+        
+        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        
+        List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
+
+        // If this assertion fails, it means that the number of returned
+        // root spans doesn't equal the number of web service calls.
+        Assert.assertEquals(rootSpans.size(), numberOfCalls);
+        
+        for (TreeNode<TestSpan> rootSpan: rootSpans) {
+            
+            // Extract the unique ID from the root span's URL:
+            String url = (String) rootSpan.getData().getTags().get(Tags.HTTP_URL.getKey());
+            int i = url.indexOf(TestServerWebServices.PARAM_UNIQUE_ID);
+            Assert.assertNotEquals(i, -1);
+            String uniqueIdStr = url.substring(i + TestServerWebServices.PARAM_UNIQUE_ID.length() + 1);
+            i = uniqueIdStr.indexOf('&');
+            if (i != -1) {
+                uniqueIdStr = uniqueIdStr.substring(0, i);
+            }
+            int uniqueId = Integer.parseInt(uniqueIdStr);
+            
+            // If this assertion fails, it menas that the unique ID
+            // in the root span URL doesn't match any of the
+            // unique IDs that we sent in the requests above.
+            Assert.assertTrue(uniqueIds.remove(uniqueId));
+            
+            TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId);
+            assertEqualTrees(rootSpan, expectedTree);
+        }
+    }
+
+    /**
+     * Create the expected span tree to assert.
+     * @param uniqueId Unique ID of the request.
+     * @return The expected span tree.
+     */
+    private TreeNode<TestSpan> createExpectedNestTree(int uniqueId) {
+        return new TreeNode<>(
+            getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 1),
+            new TreeNode<>(
+                getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, uniqueId, 0),
+                new TreeNode<>(
+                    getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 0)
+                )
+            )
+        );
+    }
+
+    /**
+     * Execute the nested web service.
+     * @param uniqueId Some unique ID.
+     * @param nestDepth How deep to nest the calls.
+     */
+    private void executeNested(int uniqueId, int nestDepth) {
         Map<String, Object> queryParameters = new HashMap<>();
-        queryParameters.put(TestServerWebServices.PARAM_RESPONSE, TestWebServicesApplication.EXAMPLE_RESPONSE_TEXT);
-        queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, 1);
+        queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
+        queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
         
         Response response = executeRemoteWebServiceRaw(
             TestServerWebServices.REST_TEST_SERVICE_PATH,
@@ -151,19 +261,6 @@ public class OpentracingClientTests extends Arquillian {
             queryParameters
         );
         response.close();
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
-        TestSpanTree expectedTree = new TestSpanTree(
-            new TreeNode<>(
-                getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, 1),
-                new TreeNode<>(
-                    getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, 0),
-                    new TreeNode<>(
-                        getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, 0)
-                    )
-                )
-            )
-        );
-        assertEqualTrees(spans, expectedTree);
     }
 
     /**
@@ -237,12 +334,13 @@ public class OpentracingClientTests extends Arquillian {
     /**
      * The expected nested span layout.
      * @param spanKind Span kind
+     * @param uniqueId The unique ID of the request.
      * @param nestDepth Nest depth
      * @return Span for the nested call.
      */
-    private TestSpan getExpectedNestedServerSpan(String spanKind, int nestDepth) {
+    private TestSpan getExpectedNestedServerSpan(String spanKind, int uniqueId, int nestDepth) {
         Map<String, Object> queryParameters = new HashMap<>();
-        queryParameters.put(TestServerWebServices.PARAM_RESPONSE, TestWebServicesApplication.EXAMPLE_RESPONSE_TEXT);
+        queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
         queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
         return new TestSpan(
             getOperationName(
@@ -269,12 +367,12 @@ public class OpentracingClientTests extends Arquillian {
      * @param returnedTree The returned tree from the web service.
      * @param expectedTree The simulated tree that we expect.
      */
-    private void assertEqualTrees(TestSpanTree returnedTree,
-            TestSpanTree expectedTree) {
+    private void assertEqualTrees(ConsumableTree<TestSpan> returnedTree,
+            ConsumableTree<TestSpan> expectedTree) {
         
         // It's okay if the returnedTree has tags other than the ones we
         // want to compare, so just remove those
-        returnedTree.visitSpans(span -> span.getTags().keySet()
+        returnedTree.visitTree(span -> span.getTags().keySet()
                 .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
                         && !key.equals(Tags.HTTP_METHOD.getKey())
                         && !key.equals(Tags.HTTP_URL.getKey())
@@ -393,7 +491,7 @@ public class OpentracingClientTests extends Arquillian {
      * @param httpMethod HTTP method
      * @param clazz resource class
      * @param javaMethod method name
-     * @return
+     * @return operation name
      */
     private String getOperationName(String spanKind, String httpMethod, Class<?> clazz, String javaMethod) {
         if (spanKind.equals(Tags.SPAN_KIND_SERVER)) {
@@ -423,5 +521,14 @@ public class OpentracingClientTests extends Arquillian {
      */
     private static void debug(String message) {
         Reporter.log(message);
+    }
+
+    /**
+     * Get a random integer.
+     * @return Random integer.
+     */
+    private int getRandomNumber() {
+        int uniqueId = ThreadLocalRandom.current().nextInt(1, 999999);
+        return uniqueId;
     }
 }

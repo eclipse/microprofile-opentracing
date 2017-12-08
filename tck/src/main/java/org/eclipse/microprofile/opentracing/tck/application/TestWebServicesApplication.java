@@ -49,11 +49,6 @@ public class TestWebServicesApplication extends Application {
     public static final String TEST_WEB_SERVICES_CONTEXT_ROOT = "rest";
     
     /**
-     * An example text/plain response.
-     */
-    public static final String EXAMPLE_RESPONSE_TEXT = "Hello World";
-
-    /**
      * {@inheritDoc}
      */
     @Override
