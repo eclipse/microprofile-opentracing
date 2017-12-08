@@ -65,6 +65,11 @@ public class TestServerWebServices {
      * Async web service endpoint that creates local span.
      */
     public static final String REST_ASYNC_LOCAL_SPAN = "asyncLocalSpan";
+    
+    /**
+     * Web service endpoint that will return HTTP 500.
+     */
+    public static final String REST_ERROR = "error";
 
     /**
      * Query parameter that's a unique ID propagated down nested calls.
@@ -109,7 +114,7 @@ public class TestServerWebServices {
     private UriInfo uri;
 
     /**
-     * Hello world service.
+     * Simple JAXRS endpoint.
      */
     @GET
     @Path(REST_SIMPLE_TEST)
@@ -138,6 +143,16 @@ public class TestServerWebServices {
     public void asyncLocalSpan(@Suspended final AsyncResponse asyncResponse) {
         finishChildSpan(startChildSpan(REST_LOCAL_SPAN));
         asyncResponse.resume(Response.ok().build());
+    }
+
+    /**
+     * Returns HTTP 500 error.
+     */
+    @GET
+    @Path(REST_ERROR)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response error() {
+        return Response.serverError().build();
     }
 
     /**
