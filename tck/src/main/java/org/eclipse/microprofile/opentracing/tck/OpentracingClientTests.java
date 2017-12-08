@@ -21,10 +21,8 @@ package org.eclipse.microprofile.opentracing.tck;
 
 import io.opentracing.tag.Tags;
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import javax.ws.rs.HttpMethod;
@@ -93,10 +91,9 @@ public class OpentracingClientTests extends Arquillian {
      * clearTracer call is done at the end of a test, then the next test may
      * still have old spans in its result, which would both fail that test
      * and make debugging harder.
-     * @throws MalformedURLException Error processing the URL.
      */
     @BeforeMethod
-    private void beforeEachTest() throws MalformedURLException {
+    private void beforeEachTest() {
         debug("beforeEachTest calling clearTracer");
         clearTracer();
         debug("beforeEachTest clearTracer completed");
@@ -107,7 +104,7 @@ public class OpentracingClientTests extends Arquillian {
      */
     @Test
     @RunAsClient
-    private void testStandardTags() throws MalformedURLException, InterruptedException {
+    private void testStandardTags() throws InterruptedException {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_SIMPLE_TEST);
         response.close();
@@ -117,7 +114,8 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
-                    serverOperationName(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
                         TestServerWebServices.REST_SIMPLE_TEST
@@ -127,12 +125,45 @@ public class OpentracingClientTests extends Arquillian {
                         HttpMethod.GET,
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_SIMPLE_TEST,
+                        null,
                         Status.OK.getStatusCode()
                     )
                 )
             )
         );
-        Assert.assertEquals(spans, expectedTree);
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test a web service call that makes nested calls.
+     */
+    @Test
+    @RunAsClient
+    private void testNestedSpans() throws InterruptedException {
+        
+        Map<String, Object> queryParameters = new HashMap<>();
+        queryParameters.put(TestServerWebServices.PARAM_RESPONSE, TestWebServicesApplication.EXAMPLE_RESPONSE_TEXT);
+        queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, 1);
+        
+        Response response = executeRemoteWebServiceRaw(
+            TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_NESTED,
+            queryParameters
+        );
+        response.close();
+        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, 1),
+                new TreeNode<>(
+                    getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, 0),
+                    new TreeNode<>(
+                        getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, 0)
+                    )
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
     }
 
     /**
@@ -140,7 +171,7 @@ public class OpentracingClientTests extends Arquillian {
      */
     @Test
     @RunAsClient
-    private void testLocalSpanHasParent() throws MalformedURLException, InterruptedException {
+    private void testLocalSpanHasParent() throws InterruptedException {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_LOCAL_SPAN);
         response.close();
@@ -148,7 +179,8 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
-                    serverOperationName(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
                         TestServerWebServices.REST_LOCAL_SPAN
@@ -158,13 +190,14 @@ public class OpentracingClientTests extends Arquillian {
                         HttpMethod.GET,
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_LOCAL_SPAN,
+                        null,
                         Status.OK.getStatusCode()
                     )
                 ),
-                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
+                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, getExpectedLocalSpanTags()))
             )
         );
-        Assert.assertEquals(spans, expectedTree);
+        assertEqualTrees(spans, expectedTree);
     }
 
     /**
@@ -172,7 +205,7 @@ public class OpentracingClientTests extends Arquillian {
      */
     @Test
     @RunAsClient
-    private void testAsyncLocalSpan() throws MalformedURLException, InterruptedException {
+    private void testAsyncLocalSpan() throws InterruptedException {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_ASYNC_LOCAL_SPAN);
         response.close();
@@ -180,7 +213,8 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
-                    serverOperationName(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
                         TestServerWebServices.REST_ASYNC_LOCAL_SPAN
@@ -190,13 +224,64 @@ public class OpentracingClientTests extends Arquillian {
                         HttpMethod.GET,
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_ASYNC_LOCAL_SPAN,
+                        null,
                         Status.OK.getStatusCode()
                     )
                 ),
-                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, Collections.emptyMap()))
+                new TreeNode<>(new TestSpan(TestServerWebServices.REST_LOCAL_SPAN, getExpectedLocalSpanTags()))
             )
         );
-        Assert.assertEquals(spans, expectedTree);
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * The expected nested span layout.
+     * @param spanKind Span kind
+     * @param nestDepth Nest depth
+     * @return Span for the nested call.
+     */
+    private TestSpan getExpectedNestedServerSpan(String spanKind, int nestDepth) {
+        Map<String, Object> queryParameters = new HashMap<>();
+        queryParameters.put(TestServerWebServices.PARAM_RESPONSE, TestWebServicesApplication.EXAMPLE_RESPONSE_TEXT);
+        queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
+        return new TestSpan(
+            getOperationName(
+                spanKind,
+                HttpMethod.GET,
+                TestServerWebServices.class,
+                TestServerWebServices.REST_NESTED
+            ),
+            getExpectedSpanTags(
+                spanKind,
+                HttpMethod.GET,
+                TestServerWebServices.REST_TEST_SERVICE_PATH,
+                TestServerWebServices.REST_NESTED,
+                queryParameters,
+                Status.OK.getStatusCode()
+            )
+        );
+    }
+
+    /**
+     * This wrapper method allows for potential post-processing, such as
+     * removing tags that we don't care to compare in {@code returnedTree}.
+     * 
+     * @param returnedTree The returned tree from the web service.
+     * @param expectedTree The simulated tree that we expect.
+     */
+    private void assertEqualTrees(TestSpanTree returnedTree,
+            TestSpanTree expectedTree) {
+        
+        // It's okay if the returnedTree has tags other than the ones we
+        // want to compare, so just remove those
+        returnedTree.visitSpans(span -> span.getTags().keySet()
+                .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
+                        && !key.equals(Tags.HTTP_METHOD.getKey())
+                        && !key.equals(Tags.HTTP_URL.getKey())
+                        && !key.equals(Tags.HTTP_STATUS.getKey())
+                        && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)));
+        
+        Assert.assertEquals(returnedTree, expectedTree);
     }
 
     /**
@@ -205,33 +290,60 @@ public class OpentracingClientTests extends Arquillian {
      * @param httpMethod Value for {@link Tags#HTTP_METHOD}
      * @param service First parameter to {@link #getWebServiceURL(String, String)
      * @param relativePath Second parameter to {@link #getWebServiceURL(String, String)
+     * @param queryParameters Query parameters.
      * @param httpStatus Value for {@link Tags#HTTP_STATUS}
      * @return Tags collection.
-     * @throws MalformedURLException Error creating web service url.
      */
     private Map<String, Object> getExpectedSpanTags(String spanKind,
             String httpMethod, String service, String relativePath,
-            int httpStatus) throws MalformedURLException {
+            Map<String, Object> queryParameters, int httpStatus) {
+        
+        // When adding items to this, also add to assertEqualTrees
+        
         Map<String, Object> tags = new HashMap<>();
         tags.put(Tags.SPAN_KIND.getKey(), spanKind);
         tags.put(Tags.HTTP_METHOD.getKey(), httpMethod);
-        tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(service, relativePath));
+        tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(service, relativePath, queryParameters));
         tags.put(Tags.HTTP_STATUS.getKey(), httpStatus);
         return tags;
     }
 
     /**
-     * Create remote URL.
+     * Create a tags collection for expected span tags of a local span.
+     * @return Tags collection.
+     */
+    private Map<String, Object> getExpectedLocalSpanTags() {
+
+        // When adding items to this, also add to assertEqualTrees
+        
+        Map<String, Object> tags = new HashMap<>();
+        tags.put(TestServerWebServices.LOCAL_SPAN_TAG_KEY, TestServerWebServices.LOCAL_SPAN_TAG_VALUE);
+        return tags;
+    }
+    
+    /**
+     * Create web service URL.
      * @param service Web service path
      * @param relativePath Web service endpoint
-     * @return Remote URL
-     * @throws MalformedURLException Error creating URL
+     * @return Web service URL
      */
-    private String getWebServiceURL(final String service, final String relativePath)
-            throws MalformedURLException {
-        return new URL(deploymentURL,
-                TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
-                + "/" + service + "/" + relativePath).toString();
+    private String getWebServiceURL(final String service, final String relativePath) {
+        return getWebServiceURL(service, relativePath, null);
+    }
+    
+    /**
+     * Create web service URL.
+     * @param service Web service path
+     * @param relativePath Web service endpoint
+     * @param queryParameters Query parameters.
+     * @return Web service URL
+     */
+    private String getWebServiceURL(final String service, final String relativePath, Map<String, Object> queryParameters) {
+        String url = TestWebServicesApplication.getWebServiceURL(deploymentURL, service, relativePath);
+        if (queryParameters != null) {
+            url += TestWebServicesApplication.getQueryString(queryParameters);
+        }
+        return url;
     }
 
     /**
@@ -239,12 +351,26 @@ public class OpentracingClientTests extends Arquillian {
      * @param service Web service path
      * @param relativePath Web service endpoint
      * @return Response
-     * @throws MalformedURLException Bad URL
      */
-    private Response executeRemoteWebServiceRaw(final String service, final String relativePath)
-            throws MalformedURLException {
+    private Response executeRemoteWebServiceRaw(final String service, final String relativePath) {
+        return executeRemoteWebServiceRaw(service, relativePath, null);
+    }
+    
+    /**
+     * Execute a remote web service and return the content.
+     * @param service Web service path
+     * @param relativePath Web service endpoint
+     * @param queryParameters Query parameters.
+     * @return Response
+     */
+    private Response executeRemoteWebServiceRaw(final String service, final String relativePath,
+            Map<String, Object> queryParameters) {
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(getWebServiceURL(service, relativePath));
+        String url = getWebServiceURL(service, relativePath, queryParameters);
+        
+        debug("Executing " + url);
+        
+        WebTarget target = client.target(url);
         Response response = target.request().get();
         Assert.assertEquals(response.getStatus(), Status.OK.getStatusCode());
         return response;
@@ -253,32 +379,40 @@ public class OpentracingClientTests extends Arquillian {
     /**
      * Execute a remote web service and return the Tracer.
      * @return Tracer
-     * @throws MalformedURLException Bad URL
      */
-    private TestTracer executeRemoteWebServiceTracer()
-            throws MalformedURLException {
+    private TestTracer executeRemoteWebServiceTracer() {
         return executeRemoteWebServiceRaw(
                 TracerWebService.REST_TRACER_SERVICE_PATH, TracerWebService.REST_GET_TRACER)
                 .readEntity(TestTracer.class);
     }
 
     /**
-     * Get server span operation name.
-     * https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc#server-span-name
+     * Get operation name depending on the {@code spanKind}.
+     * https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
+     * @param spanKind The type of span.
      * @param httpMethod HTTP method
      * @param clazz resource class
      * @param javaMethod method name
      * @return
      */
-    private String serverOperationName(String httpMethod, Class<?> clazz, String javaMethod) {
-        return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
+    private String getOperationName(String spanKind, String httpMethod, Class<?> clazz, String javaMethod) {
+        if (spanKind.equals(Tags.SPAN_KIND_SERVER)) {
+            return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
+        }
+        else if (spanKind.equals(Tags.SPAN_KIND_CLIENT)) {
+            return httpMethod;
+        }
+        else {
+            throw new RuntimeException("Span kind " + spanKind + " not implemented");
+        }
     }
 
-    private void clearTracer() throws MalformedURLException {
+    /**
+     * Make a web service call to clear the server's Tracer.
+     */
+    private void clearTracer() {
         Client client = ClientBuilder.newClient();
-        String url = new URL(deploymentURL,
-            TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
-                + "/" + TracerWebService.REST_TRACER_SERVICE_PATH + "/" + TracerWebService.REST_CLEAR_TRACER).toString();
+        String url = getWebServiceURL(TracerWebService.REST_TRACER_SERVICE_PATH, TracerWebService.REST_CLEAR_TRACER);
         Response delete = client.target(url).request().delete();
         delete.close();
     }
