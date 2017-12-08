@@ -80,7 +80,16 @@ public class OpentracingClientTests extends Arquillian {
      * "error""
      * https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
      */
-    private static final String LOG_ENTRY_NAME_EVENT = "event";
+    public static final String LOG_ENTRY_NAME_EVENT = "event";
+    
+    /**
+     * "For languages that support such a thing (e.g., Java, Python), the actual
+     * Throwable/Exception/Error object instance itself. E.g., A
+     * java.lang.UnsupportedOperationException instance, a python
+     * exceptions.NameError instance"
+     * https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
+     */
+    public static final String LOG_ENTRY_NAME_ERROR_OBJECT = "error.object";
 
     /** Server app URL for the client tests. */
     @ArquillianResource
@@ -183,10 +192,13 @@ public class OpentracingClientTests extends Arquillian {
         // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
         expectedTags.put(Tags.ERROR.getKey(), true);
         
+        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
+
+        // The following are only added if there is an exception object:
         // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
         // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
-        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
-        expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_EVENT, "error"));
+        // expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_EVENT, "error"));
+        // expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_ERROR_OBJECT, "TODO"));
 
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
