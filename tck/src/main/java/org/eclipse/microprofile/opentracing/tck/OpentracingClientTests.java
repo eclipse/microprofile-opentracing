@@ -180,17 +180,7 @@ public class OpentracingClientTests extends Arquillian {
 
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
         
-        Map<String, Object> expectedTags = getExpectedSpanTags(
-            Tags.SPAN_KIND_SERVER,
-            HttpMethod.GET,
-            TestServerWebServices.REST_TEST_SERVICE_PATH,
-            TestServerWebServices.REST_ERROR,
-            null,
-            Status.INTERNAL_SERVER_ERROR.getStatusCode()
-        );
-        
-        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
-        expectedTags.put(Tags.ERROR.getKey(), true);
+        Map<String, Object> expectedTags = getExpectedSpanTagsForError(Tags.SPAN_KIND_SERVER);
         
         List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
 
@@ -218,6 +208,26 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
+     * Create a tags collection for expected span tags with an error.
+     * @param spanKind Value for {@link Tags#SPAN_KIND}
+     * @return Tags map.
+     */
+    private Map<String, Object> getExpectedSpanTagsForError(String spanKind) {
+        Map<String, Object> expectedTags = getExpectedSpanTags(
+            spanKind,
+            HttpMethod.GET,
+            TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_ERROR,
+            null,
+            Status.INTERNAL_SERVER_ERROR.getStatusCode()
+        );
+        
+        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
+        expectedTags.put(Tags.ERROR.getKey(), true);
+        return expectedTags;
+    }
+
+    /**
      * Test a web service call that makes nested calls.
      */
     @Test
@@ -227,11 +237,39 @@ public class OpentracingClientTests extends Arquillian {
         int nestDepth = 1;
         int nestBreadth = 2;
         int uniqueId = getRandomNumber();
+        boolean failNest = false;
         
-        executeNested(uniqueId, nestDepth, nestBreadth);
+        executeNestedSpans(nestDepth, nestBreadth, uniqueId, failNest);
+    }
+    
+    /**
+     * Test a web service call that makes nested calls with a client failure.
+     */
+    @Test
+    @RunAsClient
+    private void testNestedSpansWithClientFailure() throws InterruptedException {
+        
+        int nestDepth = 1;
+        int nestBreadth = 2;
+        int uniqueId = getRandomNumber();
+        boolean failNest = true;
+        
+        executeNestedSpans(nestDepth, nestBreadth, uniqueId, failNest);
+    }
+
+    /**
+     * Do the actual testing and assertion of a nested call.
+     * @param uniqueId Some unique ID.
+     * @param nestDepth How deep to nest the calls.
+     * @param nestBreadth Breadth of first level of nested calls.
+     * @param failNest Whether to fail the nested call.
+     */
+    private void executeNestedSpans(int nestDepth, int nestBreadth,
+            int uniqueId, boolean failNest) {
+        executeNested(uniqueId, nestDepth, nestBreadth, failNest);
         
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
-        TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId, nestBreadth));
+        TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId, nestBreadth, failNest));
         
         assertEqualTrees(spans, expectedTree);
     }
@@ -250,6 +288,7 @@ public class OpentracingClientTests extends Arquillian {
         int numberOfCalls = 100;
         int nestDepth = 1;
         int nestBreadth = 2;
+        boolean failNest = false;
         
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
@@ -260,7 +299,7 @@ public class OpentracingClientTests extends Arquillian {
                 public void run() {
                     int uniqueId = getRandomNumber();
                     uniqueIds.add(uniqueId);
-                    executeNested(uniqueId, nestDepth, nestBreadth);
+                    executeNested(uniqueId, nestDepth, nestBreadth, failNest);
                 }
             }));
         }
@@ -299,7 +338,7 @@ public class OpentracingClientTests extends Arquillian {
             // unique IDs that we sent in the requests above.
             Assert.assertTrue(uniqueIds.remove(uniqueId));
             
-            TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId, nestBreadth);
+            TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId, nestBreadth, failNest);
             assertEqualTrees(rootSpan, expectedTree);
         }
     }
@@ -308,22 +347,23 @@ public class OpentracingClientTests extends Arquillian {
      * Create the expected span tree to assert.
      * @param uniqueId Unique ID of the request.
      * @param nestBreadth Nesting breadth.
+     * @param failNest Whether to fail the nested call.
      * @return The expected span tree.
      */
-    private TreeNode<TestSpan> createExpectedNestTree(int uniqueId, int nestBreadth) {
+    private TreeNode<TestSpan> createExpectedNestTree(int uniqueId, int nestBreadth, boolean failNest) {
         @SuppressWarnings("unchecked")
         TreeNode<TestSpan>[] children = (TreeNode<TestSpan>[]) new TreeNode<?>[nestBreadth];
         for (int i = 0; i < nestBreadth; i++) {
             children[i] =
                 new TreeNode<>(
-                    getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, uniqueId, 0, 1),
+                    getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, uniqueId, 0, 1, false, failNest),
                     new TreeNode<>(
-                        getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 0, 1)
+                        getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 0, 1, false, failNest)
                     )
                 );
         }
         return new TreeNode<>(
-            getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 1, nestBreadth),
+            getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 1, nestBreadth, failNest, false),
             children
         );
     }
@@ -333,12 +373,14 @@ public class OpentracingClientTests extends Arquillian {
      * @param uniqueId Some unique ID.
      * @param nestDepth How deep to nest the calls.
      * @param nestBreadth Breadth of first level of nested calls.
+     * @param failNest Whether to fail the nested call.
      */
-    private void executeNested(int uniqueId, int nestDepth, int nestBreadth) {
+    private void executeNested(int uniqueId, int nestDepth, int nestBreadth, boolean failNest) {
         Map<String, Object> queryParameters = new HashMap<>();
         queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
         queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
         queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
+        queryParameters.put(TestServerWebServices.PARAM_FAIL_NEST, failNest);
         
         Response response = executeRemoteWebServiceRaw(
             TestServerWebServices.REST_TEST_SERVICE_PATH,
@@ -437,28 +479,51 @@ public class OpentracingClientTests extends Arquillian {
      * @param uniqueId The unique ID of the request.
      * @param nestDepth Nest depth
      * @param nestBreadth Nest breadth
+     * @param failNest Whether to fail the nested call.
+     * @param isFailed Whether this request is expected to fail.
      * @return Span for the nested call.
      */
-    private TestSpan getExpectedNestedServerSpan(String spanKind, int uniqueId, int nestDepth, int nestBreadth) {
-        Map<String, Object> queryParameters = new HashMap<>();
-        queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
-        queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
-        queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
-        return new TestSpan(
-            getOperationName(
+    private TestSpan getExpectedNestedServerSpan(String spanKind, int uniqueId,
+            int nestDepth, int nestBreadth, boolean failNest,
+            boolean isFailed) {
+        String operationName;
+        Map<String, Object> expectedTags;
+        
+        if (isFailed) {
+            operationName = getOperationName(
+                spanKind,
+                HttpMethod.GET,
+                TestServerWebServices.class,
+                TestServerWebServices.REST_ERROR
+            );
+            expectedTags = getExpectedSpanTagsForError(spanKind);
+        }
+        else {
+            Map<String, Object> queryParameters = new HashMap<>();
+            queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
+            queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
+            queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
+            queryParameters.put(TestServerWebServices.PARAM_FAIL_NEST, failNest);
+
+            operationName = getOperationName(
                 spanKind,
                 HttpMethod.GET,
                 TestServerWebServices.class,
                 TestServerWebServices.REST_NESTED
-            ),
-            getExpectedSpanTags(
+            );
+            expectedTags = getExpectedSpanTags(
                 spanKind,
                 HttpMethod.GET,
                 TestServerWebServices.REST_TEST_SERVICE_PATH,
                 TestServerWebServices.REST_NESTED,
                 queryParameters,
                 Status.OK.getStatusCode()
-            ),
+            );
+        }
+        
+        return new TestSpan(
+            operationName,
+            expectedTags,
             Collections.emptyList()
         );
     }

@@ -77,6 +77,11 @@ public class TestServerWebServices {
     public static final String PARAM_UNIQUE_ID = "data";
 
     /**
+     * Query parameter whether to fail the nested call.
+     */
+    public static final String PARAM_FAIL_NEST = "failNest";
+
+    /**
      * Web service endpoint that will call itself some number of times.
      */
     public static final String REST_NESTED = "nested";
@@ -179,20 +184,30 @@ public class TestServerWebServices {
     @Produces(MediaType.TEXT_PLAIN)
     public Response nested(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
             @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
-            @QueryParam(PARAM_UNIQUE_ID) String uniqueID)
+            @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
+            @QueryParam(PARAM_FAIL_NEST) boolean failNest)
             throws InterruptedException, ExecutionException {
         
         if (nestDepth > 0) {
             Map<String, Object> nestParameters = new HashMap<String, Object>();
-            nestParameters.put(PARAM_NEST_DEPTH, nestDepth - 1);
-            nestParameters.put(PARAM_NEST_BREADTH, 1);
-            nestParameters.put(PARAM_UNIQUE_ID, uniqueID);
 
+            String target;
+            if (failNest) {
+                target = REST_ERROR;
+            }
+            else {
+                target = REST_NESTED;
+                nestParameters.put(PARAM_NEST_DEPTH, nestDepth - 1);
+                nestParameters.put(PARAM_NEST_BREADTH, 1);
+                nestParameters.put(PARAM_UNIQUE_ID, uniqueID);
+                nestParameters.put(PARAM_FAIL_NEST, false);
+            }
+            
             String requestUrl = getRequestPath(
-                    REST_TEST_SERVICE_PATH, REST_NESTED, nestParameters);
+                    REST_TEST_SERVICE_PATH, target, nestParameters);
             
             for (int i = 0; i < nestBreadth; i++) {
-                executeNested(requestUrl, nestDepth, uniqueID);
+                executeNested(requestUrl);
             }
         }
 
@@ -202,10 +217,8 @@ public class TestServerWebServices {
     /**
      * Execute a nested web service call.
      * @param requestUrl The request URL.
-     * @param nestDepth The nest depth.
-     * @param uniqueID The unique ID.
      */
-    private void executeNested(String requestUrl, int nestDepth, String uniqueID) {
+    private void executeNested(String requestUrl) {
         Response nestedResponse = TestWebServicesApplication.invoke(requestUrl);
         nestedResponse.close();
     }
