@@ -67,6 +67,11 @@ public class TestSpan implements Span {
      * Tags.
      */
     private Map<String, Object> tags = new HashMap<>();
+    
+    /**
+     * Log entries.
+     */
+    private List<Map<String, ?>> logEntries = new ArrayList<>();
 
     /**
      * Simulated by the test harness for comparison to the real span.
@@ -84,11 +89,13 @@ public class TestSpan implements Span {
      * Create span with a particular kind and operation name.
      * @param operationName Operation name
      * @param tags Tags associated with span
+     * @param logEntries Log entries
      */
-    public TestSpan(final String operationName, Map<String, Object> tags) {
+    public TestSpan(final String operationName, Map<String, Object> tags, List<Map<String, ?>> logEntries) {
         this.simulated = true;
         this.cachedOperationName = operationName;
         this.tags = new HashMap<>(tags);
+        this.logEntries = logEntries;
     }
 
     /**
@@ -201,6 +208,22 @@ public class TestSpan implements Span {
      */
     public void setTags(final Map<String, Object> newTags) {
         this.tags = newTags;
+    }
+
+    /**
+     * Return a list of log entries.
+     * @return the log entries
+     */
+    public List<Map<String, ?>> getLogEntries() {
+        return logEntries;
+    }
+
+    /**
+     * Set the list of log entries
+     * @param newTags the log entries to set
+     */
+    public void setLogEntries(final List<Map<String, ?>> newLogEntries) {
+        this.logEntries = newLogEntries;
     }
 
     /**
@@ -350,8 +373,8 @@ public class TestSpan implements Span {
             }
         });
         
-        return "{ " + "operationName: "
-                + cachedOperationName + ", tags: " + tagsList + "}";
+        return "{ " + "operationName: " + cachedOperationName + ", tags: "
+                + tagsList + ", logEntries: " + logEntries + "}";
     }
 
     /**
@@ -396,6 +419,12 @@ public class TestSpan implements Span {
                     return false;
                 }
             }
+            
+            if (!logEntries.equals(otherSpan.logEntries)) {
+                System.err.println("MISMATCH: Log entries don't match");
+                return false;
+            }
+
             return true;
         }
         return super.equals(obj);
