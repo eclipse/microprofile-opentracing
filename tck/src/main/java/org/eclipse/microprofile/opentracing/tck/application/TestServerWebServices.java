@@ -20,9 +20,12 @@ package org.eclipse.microprofile.opentracing.tck.application;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -80,6 +83,11 @@ public class TestServerWebServices {
      * Query parameter whether to fail the nested call.
      */
     public static final String PARAM_FAIL_NEST = "failNest";
+
+    /**
+     * Query parameter whether to use async requests.
+     */
+    public static final String PARAM_ASYNC = "async";
 
     /**
      * Web service endpoint that will call itself some number of times.
@@ -163,8 +171,7 @@ public class TestServerWebServices {
     /**
      * Web service call that calls itself {@code nestDepth} - 1 times.
      *
-     * A nesting depth of zero (0) causes an immediate return with the specified
-     * response text.
+     * A nesting depth of zero (0) causes an immediate return.
      *
      * A nesting depth greater than zero causes a call to the nesting service
      * with the depth reduced by one (1).
@@ -175,6 +182,8 @@ public class TestServerWebServices {
      * @param nestDepth The depth of nesting to use when implementing the request.
      * @param nestBreadth The breadth of nested calls.
      * @param uniqueID Unique ID propagated down nested calls.
+     * @param failNest Whether the nested request should fail.
+     * @param async Whether the nested request is executed asynchronously.
      * @return OK response
      * @throws ExecutionException Error executing nested web service.
      * @throws InterruptedException Error executing nested web service.
@@ -185,7 +194,8 @@ public class TestServerWebServices {
     public Response nested(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
             @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
             @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
-            @QueryParam(PARAM_FAIL_NEST) boolean failNest)
+            @QueryParam(PARAM_FAIL_NEST) boolean failNest,
+            @QueryParam(PARAM_ASYNC) boolean async)
             throws InterruptedException, ExecutionException {
         
         if (nestDepth > 0) {
@@ -201,13 +211,25 @@ public class TestServerWebServices {
                 nestParameters.put(PARAM_NEST_BREADTH, 1);
                 nestParameters.put(PARAM_UNIQUE_ID, uniqueID);
                 nestParameters.put(PARAM_FAIL_NEST, false);
+                nestParameters.put(PARAM_ASYNC, false);
             }
             
             String requestUrl = getRequestPath(
                     REST_TEST_SERVICE_PATH, target, nestParameters);
             
+            List<Future<Response>> futures = new ArrayList<>();
+            
             for (int i = 0; i < nestBreadth; i++) {
-                executeNested(requestUrl);
+                if (async) {
+                    futures.add(executeNestedAsync(requestUrl));
+                }
+                else {
+                    executeNested(requestUrl);
+                }
+            }
+            
+            for (Future<Response> future : futures) {
+                future.get().close();
             }
         }
 
@@ -221,6 +243,15 @@ public class TestServerWebServices {
     private void executeNested(String requestUrl) {
         Response nestedResponse = TestWebServicesApplication.invoke(requestUrl);
         nestedResponse.close();
+    }
+
+    /**
+     * Execute a nested web service call asynchronously.
+     * @param requestUrl The request URL.
+     * @return Future for the Response.
+     */
+    private Future<Response> executeNestedAsync(String requestUrl) {
+        return TestWebServicesApplication.invokeAsync(requestUrl);
     }
 
     /**

@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.client.Client;
@@ -79,7 +80,7 @@ public class TestWebServicesApplication extends Application {
     }
 
     /**
-     * Invoke an sync JAXRS request.
+     * Invoke a sync JAXRS request.
      * @param requestUrl Request URL.
      * @return HTTP response.
      */
@@ -87,6 +88,17 @@ public class TestWebServicesApplication extends Application {
         Client client = ClientBuilder.newBuilder().build();
         WebTarget target = client.target(requestUrl);
         return target.request().get();
+    }
+
+    /**
+     * Invoke an async JAXRS request.
+     * @param requestUrl Request URL.
+     * @return HTTP response future.
+     */
+    public static Future<Response> invokeAsync(String requestUrl) {
+        Client client = ClientBuilder.newBuilder().build();
+        WebTarget target = client.target(requestUrl);
+        return target.request().async().get();
     }
 
     /**
