@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -306,7 +305,7 @@ public class OpentracingClientTests extends Arquillian {
     @Test
     @RunAsClient
     private void testMultithreadedNestedSpansAsync() throws InterruptedException, ExecutionException {
-        int numberOfCalls = 10;
+        int numberOfCalls = 100;
         int nestDepth = 1;
         int nestBreadth = 2;
         boolean failNest = false;
@@ -329,7 +328,6 @@ public class OpentracingClientTests extends Arquillian {
             throws InterruptedException, ExecutionException {
         int processors = Runtime.getRuntime().availableProcessors();
         ExecutorService executorService = Executors.newFixedThreadPool(processors);
-        List<AsyncRequestInfo> asyncFutures = new CopyOnWriteArrayList<>();
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
         Set<Integer> uniqueIds = ConcurrentHashMap.newKeySet();
         for (int i = 0; i < numberOfCalls; i++) {
@@ -339,7 +337,15 @@ public class OpentracingClientTests extends Arquillian {
                     int uniqueId = getRandomNumber();
                     uniqueIds.add(uniqueId);
                     if (async) {
-                        asyncFutures.add(executeNestedAsync(uniqueId, nestDepth, nestBreadth, failNest, async));
+                        Response response;
+                        try {
+                            response = executeNestedAsync(uniqueId, nestDepth, nestBreadth, failNest, async).get();
+                        }
+                        catch (InterruptedException|ExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                        assertResponseStatus(Status.OK, response);
+                        response.close();
                     }
                     else {
                         executeNested(uniqueId, nestDepth, nestBreadth, failNest, async);
@@ -351,13 +357,6 @@ public class OpentracingClientTests extends Arquillian {
         // wait to finish all calls
         for (Future<?> future: futures) {
             future.get();
-        }
-
-        // If the requests are themselves async, wait for them
-        for (AsyncRequestInfo asyncFuture: asyncFutures) {
-            Response asyncResponse = asyncFuture.future.get();
-            assertResponseStatus(asyncFuture.expectedStatus, asyncResponse);
-            asyncResponse.close();
         }
         
         executorService.awaitTermination(1, TimeUnit.SECONDS);
@@ -449,9 +448,9 @@ public class OpentracingClientTests extends Arquillian {
      * @param nestBreadth Breadth of first level of nested calls.
      * @param failNest Whether to fail the nested call.
      * @param async Whether to execute nested requests asynchronously.
-     * @return An AsyncRequestInfo if async is true.
+     * @return A future for the Response
      */
-    private AsyncRequestInfo executeNestedAsync(int uniqueId, int nestDepth, int nestBreadth, boolean failNest, boolean async) {
+    private Future<Response> executeNestedAsync(int uniqueId, int nestDepth, int nestBreadth, boolean failNest, boolean async) {
         Map<String, Object> queryParameters = getNestedQueryParameters(uniqueId,
                 nestDepth, nestBreadth, failNest, async);
         
@@ -759,9 +758,9 @@ public class OpentracingClientTests extends Arquillian {
      * @param relativePath Web service endpoint
      * @param queryParameters Query parameters.
      * @param expectedStatus Expected HTTP status.
-     * @return Wrapper around the future
+     * @return Future for a Response
      */
-    private AsyncRequestInfo executeRemoteWebServiceRawAsync(final String service, final String relativePath,
+    private Future<Response> executeRemoteWebServiceRawAsync(final String service, final String relativePath,
             Map<String, Object> queryParameters, Status expectedStatus) {
         Client client = ClientBuilder.newClient();
         String url = getWebServiceURL(service, relativePath, queryParameters);
@@ -769,10 +768,7 @@ public class OpentracingClientTests extends Arquillian {
         debug("Executing " + url);
         
         WebTarget target = client.target(url);
-        AsyncRequestInfo asyncRequestInfo = new AsyncRequestInfo();
-        asyncRequestInfo.future = target.request().async().get();
-        asyncRequestInfo.expectedStatus = expectedStatus;
-        return asyncRequestInfo;
+        return target.request().async().get();
     }
 
     /**
@@ -831,13 +827,5 @@ public class OpentracingClientTests extends Arquillian {
     private int getRandomNumber() {
         int uniqueId = ThreadLocalRandom.current().nextInt(1, 999999);
         return uniqueId;
-    }
-    
-    /**
-     * Wrapper around a Future to a Response and other details.
-     */
-    class AsyncRequestInfo {
-        private Future<Response> future;
-        private Status expectedStatus;
     }
 }
