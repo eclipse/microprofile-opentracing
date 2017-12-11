@@ -18,8 +18,12 @@
  */
 package org.eclipse.microprofile.opentracing.tck.tracer;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
@@ -67,6 +71,7 @@ public class TestSpan implements Span {
     /**
      * Simulated by the test harness for comparison to the real span.
      */
+    @SuppressWarnings("unused")
     private boolean simulated;
 
     /**
@@ -325,18 +330,28 @@ public class TestSpan implements Span {
      */
     @Override
     public String toString() {
-        if (!simulated) {
-            return "{ " + "startMicros: " + startMicros
-                    + ", finishMicros: " + finishMicros + ", traceId: "
-                    + traceId + ", parentId: " + parentId + ", spanId: "
-                    + spanId + ", operationName: " + cachedOperationName
-                    + ", tags: " + tags + " }";
-        }
-        else {
-            // Only print the parts that are checked in equals
-            return "{ " + "operationName: "
-                    + cachedOperationName + "}";
-        }
+        // Only print the parts that are checked in equals so that an
+        // assertion failure is easy to understand.
+        
+        // return "{ " + "startMicros: " + startMicros
+        //         + ", finishMicros: " + finishMicros + ", traceId: "
+        //         + traceId + ", parentId: " + parentId + ", spanId: "
+        //         + spanId + ", operationName: " + cachedOperationName
+        //         + ", tags: " + tags + " }";
+        
+        // Sort the tags to make it easier to visually compare object outputs.
+        List<Entry<String, Object>> tagsList = new ArrayList<>();
+        tagsList.addAll(tags.entrySet());
+        tagsList.sort(new Comparator<Entry<String, Object>>() {
+            @Override
+            public int compare(Entry<String, Object> x,
+                    Entry<String, Object> y) {
+                return x.getKey().compareTo(y.getKey());
+            }
+        });
+        
+        return "{ " + "operationName: "
+                + cachedOperationName + ", tags: " + tagsList + "}";
     }
 
     /**
@@ -347,10 +362,39 @@ public class TestSpan implements Span {
         TestSpan otherSpan = (TestSpan) obj;
         if (otherSpan != null) {
             if (!cachedOperationName.equals(otherSpan.cachedOperationName)) {
-                System.out.println("Operation names don't match: "
+                System.err.println("MISMATCH: Operation names don't match: "
                         + cachedOperationName + " ; "
                         + otherSpan.cachedOperationName);
                 return false;
+            }
+            
+            if (tags.size() != otherSpan.tags.size()) {
+                System.err.println("MISMATCH: Number of tags doesn't match");
+                return false;
+            }
+
+            for (Entry<String, Object> tagEntry : tags.entrySet()) {
+                final String tagEntryKey = tagEntry.getKey();
+                boolean foundOtherTag = false;
+                for (Entry<String, Object> otherTagEntry : otherSpan.tags.entrySet()) {
+                    if (tagEntryKey.equals(otherTagEntry.getKey())) {
+                        foundOtherTag = true;
+                        if (!tagEntry.getValue().equals(otherTagEntry.getValue())) {
+                            System.err.println("MISMATCH: Tag " + tagEntryKey
+                                    + " values don't match: "
+                                    + tagEntry.getValue() + " ; "
+                                    + otherTagEntry.getValue());
+                            return false;
+                        }
+                        break;
+                    }
+                }
+                
+                if (!foundOtherTag) {
+                    System.err.println("MISMATCH: Tag " + tagEntryKey
+                            + " not found in span.");
+                    return false;
+                }
             }
             return true;
         }
