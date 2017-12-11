@@ -342,6 +342,7 @@ public class OpentracingClientTests extends Arquillian {
                             response = executeNestedAsync(uniqueId, nestDepth, nestBreadth, failNest, async).get();
                         }
                         catch (InterruptedException|ExecutionException e) {
+                            Assert.fail();
                             throw new RuntimeException(e);
                         }
                         assertResponseStatus(Status.OK, response);
