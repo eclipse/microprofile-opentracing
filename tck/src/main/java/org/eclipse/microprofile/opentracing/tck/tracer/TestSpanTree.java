@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 /**
  * Represents a tree of spans.
  */
-public class TestSpanTree {
+public class TestSpanTree implements ConsumableTree<TestSpan> {
 
     /**
      * List of all root spans.
@@ -62,6 +62,14 @@ public class TestSpanTree {
             rootSpans.add(rootSpan);
         }
     }
+    
+    /**
+     * Return a list of this tree's root spans.
+     * @return List of root spans.
+     */
+    public List<TreeNode<TestSpan>> getRootSpans() {
+        return rootSpans;
+    }
 
     /**
      * Add a root span.
@@ -77,7 +85,7 @@ public class TestSpanTree {
      * Generic tree structure.
      * @param <T> Type of data to hold in the node.
      */
-    public static class TreeNode<T> {
+    public static class TreeNode<T> implements ConsumableTree<T> {
 
         /**
          * List of child nodes.
@@ -214,6 +222,26 @@ public class TestSpanTree {
         public int hashCode() {
             return super.hashCode();
         }
+
+        /**
+         * Recursively visit all nodes with the lambda.
+         * @param visitor Lambda
+         */
+        @Override
+        public void visitTree(final Consumer<? super T> visitor) {
+            visitor.accept(this.data);
+            for (TreeNode<T> child : this.children) {
+                child.visitTree(visitor);
+            }
+        }
+        
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString() {
+            return toJSON(data.getClass().getSimpleName(), 1, "  ");
+        }
     }
 
     /**
@@ -277,22 +305,10 @@ public class TestSpanTree {
      * lambda.
      * @param visitor Lambda
      */
-    public void visitSpans(final Consumer<? super TestSpan> visitor) {
+    @Override
+    public void visitTree(final Consumer<? super TestSpan> visitor) {
         for (TreeNode<TestSpan> node : this.rootSpans) {
-            visitTreeNode(node, visitor);
-        }
-    }
-
-    /**
-     * Recursive function for {@link #visitSpans(Consumer)}
-     * @param node The TreeNode to process.
-     * @param visitor Lambda
-     */
-    private void visitTreeNode(TreeNode<TestSpan> node,
-            final Consumer<? super TestSpan> visitor) {
-        visitor.accept(node.data);
-        for (TreeNode<TestSpan> child : node.children) {
-            visitTreeNode(child, visitor);
+            node.visitTree(visitor);
         }
     }
 }
