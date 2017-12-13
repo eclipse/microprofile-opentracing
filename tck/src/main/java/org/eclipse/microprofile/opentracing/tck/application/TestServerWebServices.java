@@ -120,6 +120,7 @@ public class TestServerWebServices {
 
     /**
      * Simple JAXRS endpoint.
+     * @return OK response
      */
     @GET
     @Path(REST_SIMPLE_TEST)
@@ -130,6 +131,7 @@ public class TestServerWebServices {
 
     /**
      * Endpoint which creates local span.
+     * @retrun OK response
      */
     @GET
     @Path(REST_LOCAL_SPAN)
@@ -141,6 +143,8 @@ public class TestServerWebServices {
 
     /**
      * Async endpoint which creates local span.
+     * @param asyncResponse
+     * @return OK response
      */
     @GET
     @Path(REST_ASYNC_LOCAL_SPAN)
@@ -152,6 +156,7 @@ public class TestServerWebServices {
 
     /**
      * Returns HTTP 500 error.
+     * @return error response
      */
     @GET
     @Path(REST_ERROR)
@@ -175,6 +180,7 @@ public class TestServerWebServices {
      * @param nestDepth The depth of nesting to use when implementing the request.
      * @param nestBreadth The breadth of nested calls.
      * @param uniqueID Unique ID propagated down nested calls.
+     * @param failNest True if nested response should be an error
      * @return OK response
      * @throws ExecutionException Error executing nested web service.
      * @throws InterruptedException Error executing nested web service.

@@ -220,7 +220,7 @@ public class TestSpan implements Span {
 
     /**
      * Set the list of log entries
-     * @param newTags the log entries to set
+     * @param newLogEntries the log entries to set
      */
     public void setLogEntries(final List<Map<String, ?>> newLogEntries) {
         this.logEntries = newLogEntries;
