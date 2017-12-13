@@ -131,7 +131,7 @@ public class TestServerWebServices {
 
     /**
      * Endpoint which creates local span.
-     * @retrun OK response
+     * @return OK response
      */
     @GET
     @Path(REST_LOCAL_SPAN)
@@ -143,8 +143,7 @@ public class TestServerWebServices {
 
     /**
      * Async endpoint which creates local span.
-     * @param asyncResponse
-     * @return OK response
+     * @param asyncResponse holds state of the asynchronous processing
      */
     @GET
     @Path(REST_ASYNC_LOCAL_SPAN)
