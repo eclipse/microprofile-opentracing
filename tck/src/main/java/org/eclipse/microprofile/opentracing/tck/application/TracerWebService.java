@@ -85,6 +85,12 @@ public class TracerWebService {
         List<TestSpan> spans = new ArrayList<TestSpan>();
 
         try {
+            
+            // We use reflection instead of just casting to a MockTracer
+            // because the injected MockTracer might have been loaded
+            // in a different classloader than the one we're in and we
+            // would just get a ClassCastException.
+            
             Iterable<?> finishedSpans = (Iterable<?>) tracer.getClass()
                     .getMethod("finishedSpans").invoke(tracer);
             for (Object finishedSpan : finishedSpans) {
