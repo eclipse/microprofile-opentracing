@@ -333,10 +333,16 @@ public class OpentracingClientTests extends Arquillian {
             }
             int uniqueId = Integer.parseInt(uniqueIdStr);
             
-            // If this assertion fails, it menas that the unique ID
+            // If this assertion fails, it means that the unique ID
             // in the root span URL doesn't match any of the
             // unique IDs that we sent in the requests above.
-            Assert.assertTrue(uniqueIds.remove(uniqueId));
+            boolean removeResult = uniqueIds.remove(uniqueId);
+            
+            if (!removeResult) {
+                debug("Unique ID " + uniqueId + " not found in request list. Span: " + rootSpan);
+            }
+            
+            Assert.assertTrue(removeResult);
             
             TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId, nestBreadth, failNest);
             assertEqualTrees(rootSpan, expectedTree);
