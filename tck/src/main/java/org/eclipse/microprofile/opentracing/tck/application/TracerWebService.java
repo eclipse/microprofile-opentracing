@@ -84,47 +84,58 @@ public class TracerWebService {
         TestTracer testTracer = new TestTracer();
         List<TestSpan> spans = new ArrayList<TestSpan>();
 
-        Iterable<?> finishedSpans = (Iterable<?>) tracer.getClass()
-            .getMethod("finishedSpans").invoke(tracer);
-        for (Object finishedSpan : finishedSpans) {
-            TestSpan testSpan = new TestSpan();
+        try {
+            Iterable<?> finishedSpans = (Iterable<?>) tracer.getClass()
+                    .getMethod("finishedSpans").invoke(tracer);
+            for (Object finishedSpan : finishedSpans) {
+                TestSpan testSpan = new TestSpan();
 
-            testSpan.setStartMicros((Long) finishedSpan.getClass()
-                .getMethod("startMicros").invoke(finishedSpan));
+                testSpan.setStartMicros((Long) finishedSpan.getClass()
+                        .getMethod("startMicros").invoke(finishedSpan));
 
-            testSpan.setFinishMicros((Long) finishedSpan.getClass()
-                .getMethod("finishMicros").invoke(finishedSpan));
+                testSpan.setFinishMicros((Long) finishedSpan.getClass()
+                        .getMethod("finishMicros").invoke(finishedSpan));
 
-            testSpan.setCachedOperationName((String) finishedSpan.getClass()
-                .getMethod("operationName").invoke(finishedSpan));
+                testSpan.setCachedOperationName((String) finishedSpan.getClass()
+                        .getMethod("operationName").invoke(finishedSpan));
 
-            testSpan.setParentId((Long) finishedSpan.getClass()
-                .getMethod("parentId").invoke(finishedSpan));
+                testSpan.setParentId((Long) finishedSpan.getClass()
+                        .getMethod("parentId").invoke(finishedSpan));
 
-            Object context = finishedSpan.getClass()
-                .getMethod("context").invoke(finishedSpan);
+                Object context = finishedSpan.getClass().getMethod("context")
+                        .invoke(finishedSpan);
 
-            testSpan.setSpanId((Long) context.getClass()
-                .getMethod("spanId").invoke(context));
+                testSpan.setSpanId((Long) context.getClass().getMethod("spanId")
+                        .invoke(context));
 
-            testSpan.setTraceId((Long) context.getClass()
-                .getMethod("traceId").invoke(context));
+                testSpan.setTraceId((Long) context.getClass()
+                        .getMethod("traceId").invoke(context));
 
-            testSpan.setTags((Map<String, Object>) finishedSpan
-                .getClass().getMethod("tags").invoke(finishedSpan));
-            
-            List<?> logEntries = (List<?>) finishedSpan.getClass()
-                    .getMethod("logEntries").invoke(finishedSpan);
-            for (Object logEntry : logEntries) {
-                testSpan.getLogEntries().add((Map<String, ?>) logEntry
-                        .getClass().getMethod("fields").invoke(logEntry));
+                testSpan.setTags((Map<String, Object>) finishedSpan.getClass()
+                        .getMethod("tags").invoke(finishedSpan));
+
+                List<?> logEntries = (List<?>) finishedSpan.getClass()
+                        .getMethod("logEntries").invoke(finishedSpan);
+                for (Object logEntry : logEntries) {
+                    testSpan.getLogEntries().add((Map<String, ?>) logEntry
+                            .getClass().getMethod("fields").invoke(logEntry));
+                }
+
+                if (testSpan.getCachedOperationName() == null
+                        || !testSpan.getCachedOperationName()
+                                .endsWith(TracerWebService.REST_CLEAR_TRACER)) {
+                    spans.add(testSpan);
+                }
             }
-            
-            if (testSpan.getCachedOperationName() == null
-                || !testSpan.getCachedOperationName().endsWith(
-                TracerWebService.REST_CLEAR_TRACER)) {
-                spans.add(testSpan);
-            }
+        }
+        catch (NoSuchMethodException nsme) {
+            // This is a likely enough exception - almost surely meaning
+            // that the Tracer that's injected is not a MockTrader - that
+            // we re-throw it with a more meaningful explanation.
+            throw new RuntimeException(
+                    "The injected Tracer is required to be an instance of io.opentracing.mock.MockTracer but is instead an instance of "
+                            + tracer,
+                    nsme);
         }
 
         testTracer.setSpans(spans);
