@@ -396,38 +396,64 @@ public class TestSpan implements Span {
                 return false;
             }
 
-            for (Entry<String, Object> tagEntry : tags.entrySet()) {
-                final String tagEntryKey = tagEntry.getKey();
-                boolean foundOtherTag = false;
-                for (Entry<String, Object> otherTagEntry : otherSpan.tags.entrySet()) {
-                    if (tagEntryKey.equals(otherTagEntry.getKey())) {
-                        foundOtherTag = true;
-                        if (!tagEntry.getValue().equals(otherTagEntry.getValue())) {
-                            System.err.println("MISMATCH: Tag " + tagEntryKey
-                                    + " values don't match: "
-                                    + tagEntry.getValue() + " ; "
-                                    + otherTagEntry.getValue());
-                            return false;
-                        }
-                        break;
-                    }
-                }
-                
-                if (!foundOtherTag) {
-                    System.err.println("MISMATCH: Tag " + tagEntryKey
-                            + " not found in span.");
-                    return false;
-                }
+            if (!compareMap(tags, otherSpan.tags)) {
+                return false;
             }
             
-            if (!logEntries.equals(otherSpan.logEntries)) {
-                System.err.println("MISMATCH: Log entries don't match");
+            if (logEntries.size() != otherSpan.logEntries.size()) {
+                System.err.println(
+                        "MISMATCH: Number of log entries doesn't match ("
+                                + logEntries.size() + ", "
+                                + otherSpan.logEntries.size() + ")");
                 return false;
+            }
+            
+            for (int i = 0; i < logEntries.size(); i++) {
+                Map<String, ?> logEntryX = logEntries.get(i);
+                Map<String, ?> logEntryY = otherSpan.logEntries.get(i);
+                
+                if (!compareMap(logEntryX, logEntryY)) {
+                    return false;
+                }
             }
 
             return true;
         }
         return super.equals(obj);
+    }
+
+    /**
+     * Test if two maps are equal.
+     * @param mapX First map to compare.
+     * @param mapY Second map to compare.
+     * @return True if maps are equal.
+     */
+    private boolean compareMap(Map<String, ?> mapX, Map<String, ?> mapY) {
+        for (Entry<String, ?> tagEntry : mapX.entrySet()) {
+            final String tagEntryKey = tagEntry.getKey();
+            boolean foundOtherTag = false;
+            for (Entry<String, ?> otherTagEntry : mapY.entrySet()) {
+                if (tagEntryKey.equals(otherTagEntry.getKey())) {
+                    foundOtherTag = true;
+                    if (!tagEntry.getValue().equals(otherTagEntry.getValue())) {
+                        System.err.println("MISMATCH: Key " + tagEntryKey
+                                + " value doesn't match: "
+                                + tagEntry.getValue() + " ; "
+                                + otherTagEntry.getValue());
+                        return false;
+                    }
+                    break;
+                }
+            }
+            
+            if (!foundOtherTag) {
+                System.err.println("MISMATCH: Key " + tagEntryKey
+                        + " not found in other map.");
+                return false;
+            }
+        }
+        
+        return true;
     }
 
     /**
