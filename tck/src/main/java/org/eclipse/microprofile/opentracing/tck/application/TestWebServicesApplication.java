@@ -134,4 +134,12 @@ public class TestWebServicesApplication extends Application {
             throw new RuntimeException(e);
         }
     }
+    
+    /**
+     * Create an example RuntimeException used by a web service.
+     * @return New RuntimeException.
+     */
+    public static RuntimeException createExampleRuntimeException() {
+        return new RuntimeException("Example runtime exception");
+    }
 }

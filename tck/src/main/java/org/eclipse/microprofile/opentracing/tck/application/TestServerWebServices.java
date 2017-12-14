@@ -70,6 +70,11 @@ public class TestServerWebServices {
      * Web service endpoint that will return HTTP 500.
      */
     public static final String REST_ERROR = "error";
+    
+    /**
+     * Web service that throws an unhandled exception and return HTTP 500.
+     */
+    public static final String REST_EXCEPTION = "exception";
 
     /**
      * Query parameter that's a unique ID propagated down nested calls.
@@ -105,7 +110,7 @@ public class TestServerWebServices {
      * The value of a simulated span tag.
      */
     public static final String LOCAL_SPAN_TAG_VALUE = "localSpanValue";
-
+    
     /**
      * Injected tracer.
      */
@@ -162,6 +167,17 @@ public class TestServerWebServices {
     @Produces(MediaType.TEXT_PLAIN)
     public Response error() {
         return Response.serverError().build();
+    }
+
+    /**
+     * Returns HTTP 500 error.
+     * @return Response Never returned because an exception is thrown.
+     */
+    @GET
+    @Path(REST_EXCEPTION)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response exception() {
+        throw TestWebServicesApplication.createExampleRuntimeException();
     }
 
     /**
