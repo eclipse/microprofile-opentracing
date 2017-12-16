@@ -75,6 +75,11 @@ public class TestServerWebServices {
      * Web service that throws an unhandled exception and return HTTP 500.
      */
     public static final String REST_EXCEPTION = "exception";
+    
+    /**
+     * Web service endpoint to test Traced annotations.
+     */
+    public static final String REST_ANNOTATIONS = "annotations";
 
     /**
      * Query parameter that's a unique ID propagated down nested calls.
@@ -122,6 +127,12 @@ public class TestServerWebServices {
      */
     @Context
     private UriInfo uri;
+    
+    /**
+     * Injected class with Trace annotation.
+     */
+    @Inject
+    private TestAnnotatedClass testAnnotatedClass;
 
     /**
      * Simple JAXRS endpoint.
@@ -180,6 +191,18 @@ public class TestServerWebServices {
         throw TestWebServicesApplication.createExampleRuntimeException();
     }
 
+    /**
+     * Web service endpoint to test Traced annotations.
+     * @return HTTP 200 OK.
+     */
+    @GET
+    @Path(REST_ANNOTATIONS)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response annotations() {
+        testAnnotatedClass.annotatedClassMethodImplicitlyTraced();
+        return Response.ok().build();
+    }
+    
     /**
      * Web service call that calls itself {@code nestDepth} - 1 times.
      *

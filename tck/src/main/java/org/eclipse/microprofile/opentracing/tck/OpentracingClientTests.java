@@ -44,6 +44,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedClass;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
@@ -146,7 +147,7 @@ public class OpentracingClientTests extends Arquillian {
             TestServerWebServices.REST_SIMPLE_TEST, Status.OK);
         response.close();
 
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
@@ -166,6 +167,50 @@ public class OpentracingClientTests extends Arquillian {
                         Status.OK.getStatusCode()
                     ),
                     Collections.emptyList()
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test various Traced annotations.
+     * @throws InterruptedException Error executing web service.
+     */
+    @Test
+    @RunAsClient
+    private void testAnnotations() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_ANNOTATIONS, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        TestServerWebServices.REST_ANNOTATIONS
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_ANNOTATIONS,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedClass.class.getName() + ".annotatedClassMethodImplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
                 )
             )
         );
@@ -200,7 +245,7 @@ public class OpentracingClientTests extends Arquillian {
             service, Status.INTERNAL_SERVER_ERROR);
         response.close();
 
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         
         Map<String, Object> expectedTags = getExpectedSpanTagsForError(service, Tags.SPAN_KIND_SERVER);
         
@@ -360,7 +405,7 @@ public class OpentracingClientTests extends Arquillian {
             int uniqueId, boolean failNest) {
         executeNested(uniqueId, nestDepth, nestBreadth, failNest);
         
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId, nestBreadth, failNest));
         
         assertEqualTrees(spans, expectedTree);
@@ -404,7 +449,7 @@ public class OpentracingClientTests extends Arquillian {
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         executorService.shutdown();
         
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         
         List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
 
@@ -498,7 +543,7 @@ public class OpentracingClientTests extends Arquillian {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_LOCAL_SPAN, Status.OK);
         response.close();
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -539,7 +584,7 @@ public class OpentracingClientTests extends Arquillian {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_ASYNC_LOCAL_SPAN, Status.OK);
         response.close();
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -744,7 +789,13 @@ public class OpentracingClientTests extends Arquillian {
         
         WebTarget target = client.target(url);
         Response response = target.request().get();
-        Assert.assertEquals(response.getStatus(), expectedStatus.getStatusCode());
+        if (response.getStatus() != expectedStatus.getStatusCode()) {
+            String unexpectedResponse = response.readEntity(String.class);
+            Assert.fail("Expected HTTP response code "
+                    + expectedStatus.getStatusCode() + " but received "
+                    + response.getStatus() + "; Response: "
+                    + unexpectedResponse);
+        }
         return response;
     }
 
@@ -756,6 +807,18 @@ public class OpentracingClientTests extends Arquillian {
         return executeRemoteWebServiceRaw(
                 TracerWebService.REST_TRACER_SERVICE_PATH, TracerWebService.REST_GET_TRACER, Status.OK)
                 .readEntity(TestTracer.class);
+    }
+
+    /**
+     * Execute a remote web service and return the span tree.
+     * @return TestSpanTree
+     */
+    private TestSpanTree executeRemoteWebServiceTracerTree() {
+        TestSpanTree result = executeRemoteWebServiceTracer().spanTree();
+        
+        debug("Tracer returned " + result);
+        
+        return result;
     }
 
     /**
