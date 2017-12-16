@@ -19,9 +19,6 @@
 
 package org.eclipse.microprofile.opentracing.tck.application;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.enterprise.context.ApplicationScoped;
 
 import org.eclipse.microprofile.opentracing.Traced;
@@ -33,14 +30,10 @@ import org.eclipse.microprofile.opentracing.Traced;
 @Traced
 public class TestAnnotatedClass {
     
-    private static final Logger LOG = Logger.getLogger("TestAnnotatedClass");
-    
     /**
      * No-op method that we expected to be Traced implicitly.
      */
     public void annotatedClassMethodImplicitlyTraced() {
         System.out.println("Called annotatedClassMethodImplicitlyTraced");
-        LOG.setLevel(Level.ALL);
-        LOG.fine("Called annotatedClassMethodImplicitlyTraced");
     }
 }
