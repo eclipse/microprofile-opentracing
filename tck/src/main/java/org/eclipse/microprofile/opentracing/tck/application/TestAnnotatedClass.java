@@ -29,11 +29,43 @@ import org.eclipse.microprofile.opentracing.Traced;
 @ApplicationScoped
 @Traced
 public class TestAnnotatedClass {
-    
+
     /**
-     * No-op method that we expected to be Traced implicitly.
+     * Method that we expect to be Traced implicitly.
      */
     public void annotatedClassMethodImplicitlyTraced() {
         System.out.println("Called annotatedClassMethodImplicitlyTraced");
+    }
+
+    /**
+     * Method that we expect to not be Traced.
+     */
+    @Traced(value = false)
+    public void annotatedClassMethodExplicitlyNotTraced() {
+        System.out.println("Called annotatedClassMethodExplicitlyNotTraced");
+    }
+
+    /**
+     * Method that we expect to be Traced explicitly.
+     */
+    @Traced(operationName = "explicitOperationName")
+    public void annotatedClassMethodExplicitlyTraced() {
+        System.out.println("Called annotatedClassMethodExplicitlyTraced");
+    }
+
+    /**
+     * Method that we expect to not be Traced.
+     */
+    @Traced(operationName = "explicitOperationName", value = false)
+    public void annotatedClassMethodExplicitlyNotTracedWithOpName() {
+        System.out.println("Called annotatedClassMethodExplicitlyNotTracedWithOpName");
+    }
+
+    /**
+     * Method that we expect to be Traced implicitly and throws an exception.
+     */
+    public void annotatedClassMethodImplicitlyTracedWithException() {
+        System.out.println("Called annotatedClassMethodImplicitlyTracedWithException");
+        throw TestWebServicesApplication.createExampleRuntimeException();
     }
 }

@@ -45,6 +45,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedClass;
+import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedMethods;
+import org.eclipse.microprofile.opentracing.tck.application.TestDisabledAnnotatedClass;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
@@ -211,6 +213,84 @@ public class OpentracingClientTests extends Arquillian {
                         Collections.emptyMap(),
                         Collections.emptyList()
                     )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        "explicitOperationName",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedMethods.class.getName() + ".annotatedMethodExplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        "explicitOperationName",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestDisabledAnnotatedClass.class.getName() + ".annotatedClassMethodExplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test a web service endpoing that shouldn't create a span.
+     * @throws InterruptedException Error executing web service.
+     */
+    @Test
+    @RunAsClient
+    private void testNotTraced() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_NOT_TRACED, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree();
+        
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test web service with an explicit operation name.
+     * @throws InterruptedException Error executing web service.
+     */
+    @Test
+    @RunAsClient
+    private void testOperationName() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_OPERATION_NAME, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    TestServerWebServices.REST_OPERATION_NAME,
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_OPERATION_NAME,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
                 )
             )
         );
@@ -252,61 +332,13 @@ public class OpentracingClientTests extends Arquillian {
         List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
 
         if (checkLogEntries) {
-            // The following are only added if there is an exception object:
-            // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
-            // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
-
-            Map<String, Object> expectedLogEntry = new HashMap<>();
-
-            expectedLogEntries.add(expectedLogEntry);
-
-            expectedLogEntry.put(LOG_ENTRY_NAME_EVENT, "error");
-
-            // Jackson will serialize over the Throwable in a
-            // Map<String, Object>, so to create a matching one to compare to,
-            // we first serialize the same exception the web service threw
-            // into a String, and then deserialize that back into a
-            // HashMap<String, Object>.
-            // Of course, the full stacks also won't match, so we remove
-            // everything but the top stack frame for both.
-            
             List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
 
             Assert.assertEquals(rootSpans.size(), 1);
 
             TreeNode<TestSpan> firstSpan = rootSpans.get(0);
 
-            List<Map<String, ?>> firstLogEntries = firstSpan.getData()
-                    .getLogEntries();
-
-            Assert.assertEquals(firstLogEntries.size(), 1);
-
-            Map<String, ?> firstLogEntry = firstLogEntries.get(0);
-
-            @SuppressWarnings("unchecked")
-            LinkedHashMap<String, Object> serverException = (LinkedHashMap<String, Object>) firstLogEntry
-                    .get(LOG_ENTRY_NAME_ERROR_OBJECT);
-
-            prepareDeserializedExceptionForComparison(serverException);
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            LinkedHashMap<String, Object> exceptionMap;
-            try {
-                exceptionMap = objectMapper.readValue(
-                        objectMapper
-                                .writeValueAsString(TestWebServicesApplication
-                                        .createExampleRuntimeException()),
-                        objectMapper.getTypeFactory().constructParametricType(
-                                LinkedHashMap.class, String.class,
-                                Object.class));
-            }
-            catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            prepareDeserializedExceptionForComparison(exceptionMap);
-
-            expectedLogEntry.put(LOG_ENTRY_NAME_ERROR_OBJECT, exceptionMap);
+            expectedLogEntries = addExpectedErrorInfo(firstSpan);
         }
 
         TestSpanTree expectedTree = new TestSpanTree(
@@ -324,6 +356,130 @@ public class OpentracingClientTests extends Arquillian {
             )
         );
         assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test annotation exception web service.
+     */
+    @Test
+    @RunAsClient
+    private void testAnnotationException() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+                TestServerWebServices.REST_ANNOTATION_EXCEPTION, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        
+        Map<String, Object> expectedTags = new HashMap<>();
+        putErrorTag(expectedTags);
+
+        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
+
+        List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
+
+        Assert.assertEquals(rootSpans.size(), 1);
+
+        TreeNode<TestSpan> firstSpan = rootSpans.get(0);
+        
+        debug("firstSpan: " + firstSpan);
+        
+        List<TreeNode<TestSpan>> childSpans = firstSpan.getChildren();
+        
+        Assert.assertEquals(childSpans.size(), 1);
+
+        TreeNode<TestSpan> childSpan = childSpans.get(0);
+
+        debug("childSpan: " + childSpan);
+        
+        expectedLogEntries = addExpectedErrorInfo(childSpan);
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        TestServerWebServices.REST_ANNOTATION_EXCEPTION
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_ANNOTATION_EXCEPTION,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedClass.class.getName() + ".annotatedClassMethodImplicitlyTracedWithException",
+                        expectedTags,
+                        expectedLogEntries
+                    )
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+    
+    /**
+     * Jackson will serialize over the Throwable in a Map<String, Object>, so to
+     * create a matching one to compare to, we first serialize the same
+     * exception the web service threw into a String, and then deserialize that
+     * back into a HashMap<String, Object>. Of course, the full stacks also
+     * won't match, so we remove everything but the top stack frame for both.
+     * 
+     * @param span The span to extract the error information from.
+     * @return A new list of log entries.
+     */
+    private List<Map<String, ?>> addExpectedErrorInfo(TreeNode<TestSpan> span) {
+        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
+        
+        // The following are only added if there is an exception object:
+        // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
+        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
+
+        Map<String, Object> expectedLogEntry = new HashMap<>();
+
+        expectedLogEntries.add(expectedLogEntry);
+
+        expectedLogEntry.put(LOG_ENTRY_NAME_EVENT, "error");
+
+        List<Map<String, ?>> firstLogEntries = span.getData()
+                .getLogEntries();
+
+        Assert.assertEquals(firstLogEntries.size(), 1);
+
+        Map<String, ?> firstLogEntry = firstLogEntries.get(0);
+
+        @SuppressWarnings("unchecked")
+        LinkedHashMap<String, Object> serverException = (LinkedHashMap<String, Object>) firstLogEntry
+                .get(LOG_ENTRY_NAME_ERROR_OBJECT);
+
+        prepareDeserializedExceptionForComparison(serverException);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        LinkedHashMap<String, Object> exceptionMap;
+        try {
+            exceptionMap = objectMapper.readValue(
+                    objectMapper
+                            .writeValueAsString(TestWebServicesApplication
+                                    .createExampleRuntimeException()),
+                    objectMapper.getTypeFactory().constructParametricType(
+                            LinkedHashMap.class, String.class,
+                            Object.class));
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        prepareDeserializedExceptionForComparison(exceptionMap);
+
+        expectedLogEntry.put(LOG_ENTRY_NAME_ERROR_OBJECT, exceptionMap);
+        
+        return expectedLogEntries;
     }
 
     /**
@@ -359,9 +515,17 @@ public class OpentracingClientTests extends Arquillian {
             Status.INTERNAL_SERVER_ERROR.getStatusCode()
         );
         
+        putErrorTag(expectedTags);
+        return expectedTags;
+    }
+
+    /**
+     * Add the error tag to the collection.
+     * @param expectedTags Tags collection.
+     */
+    private void putErrorTag(Map<String, Object> expectedTags) {
         // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
         expectedTags.put(Tags.ERROR.getKey(), true);
-        return expectedTags;
     }
 
     /**
