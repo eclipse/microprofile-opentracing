@@ -36,6 +36,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.eclipse.microprofile.opentracing.Traced;
+
 import io.opentracing.ActiveSpan;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
@@ -70,6 +72,21 @@ public class TestServerWebServices {
      * Web service endpoint that will return HTTP 500.
      */
     public static final String REST_ERROR = "error";
+    
+    /**
+     * Web service that throws an unhandled exception and return HTTP 500.
+     */
+    public static final String REST_EXCEPTION = "exception";
+    
+    /**
+     * Web service endpoint to test Traced annotations.
+     */
+    public static final String REST_ANNOTATIONS = "annotations";
+    
+    /**
+     * Web service endpoint to test a Traced annotation with an exception.
+     */
+    public static final String REST_ANNOTATION_EXCEPTION = "annotationException";
 
     /**
      * Query parameter that's a unique ID propagated down nested calls.
@@ -107,6 +124,16 @@ public class TestServerWebServices {
     public static final String LOCAL_SPAN_TAG_VALUE = "localSpanValue";
 
     /**
+     * Web service endpoint that's not traced.
+     */
+    public static final String REST_NOT_TRACED = "notTraced";
+
+    /**
+     * Web service endpoint with an explicit operation name.
+     */
+    public static final String REST_OPERATION_NAME = "operationName";
+
+    /**
      * Injected tracer.
      */
     @Inject
@@ -117,6 +144,25 @@ public class TestServerWebServices {
      */
     @Context
     private UriInfo uri;
+    
+    /**
+     * Injected class with Traced annotation on the class.
+     */
+    @Inject
+    private TestAnnotatedClass testAnnotatedClass;
+    
+    /**
+     * Injected class with Traced annotation disable on the class,
+     * but enabled on methods.
+     */
+    @Inject
+    private TestDisabledAnnotatedClass testDisabledAnnotatedClass;
+    
+    /**
+     * Injected class with Traced annotation on methods.
+     */
+    @Inject
+    private TestAnnotatedMethods testAnnotatedMethods;
 
     /**
      * Simple JAXRS endpoint.
@@ -162,6 +208,79 @@ public class TestServerWebServices {
     @Produces(MediaType.TEXT_PLAIN)
     public Response error() {
         return Response.serverError().build();
+    }
+
+    /**
+     * Returns HTTP 500 error.
+     * @return Response Never returned because an exception is thrown.
+     */
+    @GET
+    @Path(REST_EXCEPTION)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response exception() {
+        throw TestWebServicesApplication.createExampleRuntimeException();
+    }
+
+    /**
+     * Web service endpoint to test Traced annotations.
+     * @return HTTP 200 OK.
+     */
+    @GET
+    @Path(REST_ANNOTATIONS)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response annotations() {
+        testAnnotatedClass.annotatedClassMethodImplicitlyTraced();
+        testAnnotatedClass.annotatedClassMethodExplicitlyNotTraced();
+        testAnnotatedClass.annotatedClassMethodExplicitlyTraced();
+        testAnnotatedClass.annotatedClassMethodExplicitlyNotTracedWithOpName();
+        testAnnotatedMethods.annotatedMethodExplicitlyTraced();
+        testAnnotatedMethods.annotatedMethodExplicitlyNotTraced();
+        testAnnotatedMethods.annotatedMethodExplicitlyTracedWithOpName();
+        testAnnotatedMethods.annotatedMethodExplicitlyNotTracedWithOpName();
+        testDisabledAnnotatedClass.annotatedClassMethodExplicitlyTraced();
+        testDisabledAnnotatedClass.annotatedClassMethodImplicitlyNotTraced();
+        return Response.ok().build();
+    }
+
+    /**
+     * Web service endpoint to test a Traced annotation with an exception.
+     * @return HTTP 200 OK.
+     */
+    @GET
+    @Path(REST_ANNOTATION_EXCEPTION)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response annotationException() {
+        try {
+            testAnnotatedClass.annotatedClassMethodImplicitlyTracedWithException();
+        }
+        catch (Throwable t) {
+            System.out.println("annotationException expected exception caught");
+        }
+        return Response.ok().build();
+    }
+    
+    /**
+     * Shouldn't create a span.
+     * @return OK response
+     */
+    @Traced(value = false)
+    @GET
+    @Path(REST_NOT_TRACED)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response notTraced() {
+        return Response.ok().build();
+    }
+    
+    /**
+     * Traced with an explicit operation name.
+     * @return OK response
+     */
+    @Traced(operationName = REST_OPERATION_NAME)
+    @GET
+    @Path(REST_OPERATION_NAME)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response operationName() {
+        return Response.ok().build();
     }
 
     /**

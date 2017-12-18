@@ -20,10 +20,12 @@
 package org.eclipse.microprofile.opentracing.tck;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +44,9 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedClass;
+import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedMethods;
+import org.eclipse.microprofile.opentracing.tck.application.TestDisabledAnnotatedClass;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
@@ -62,6 +67,8 @@ import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.opentracing.tag.Tags;
 
@@ -142,7 +149,7 @@ public class OpentracingClientTests extends Arquillian {
             TestServerWebServices.REST_SIMPLE_TEST, Status.OK);
         response.close();
 
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
@@ -169,26 +176,17 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
-     * Test error web service.
+     * Test various Traced annotations.
+     * @throws InterruptedException Error executing web service.
      */
     @Test
     @RunAsClient
-    private void testError() throws InterruptedException {
+    private void testAnnotations() throws InterruptedException {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
-            TestServerWebServices.REST_ERROR, Status.INTERNAL_SERVER_ERROR);
+            TestServerWebServices.REST_ANNOTATIONS, Status.OK);
         response.close();
 
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
-        
-        Map<String, Object> expectedTags = getExpectedSpanTagsForError(Tags.SPAN_KIND_SERVER);
-        
-        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
-
-        // The following are only added if there is an exception object:
-        // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
-        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
-        // expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_EVENT, "error"));
-        // expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_ERROR_OBJECT, "TODO"));
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
@@ -197,7 +195,160 @@ public class OpentracingClientTests extends Arquillian {
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
-                        TestServerWebServices.REST_ERROR
+                        TestServerWebServices.REST_ANNOTATIONS
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_ANNOTATIONS,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedClass.class.getName() + ".annotatedClassMethodImplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        "explicitOperationName",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedMethods.class.getName() + ".annotatedMethodExplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        "explicitOperationName",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestDisabledAnnotatedClass.class.getName() + ".annotatedClassMethodExplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test a web service endpoing that shouldn't create a span.
+     * @throws InterruptedException Error executing web service.
+     */
+    @Test
+    @RunAsClient
+    private void testNotTraced() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_NOT_TRACED, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree();
+        
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test web service with an explicit operation name.
+     * @throws InterruptedException Error executing web service.
+     */
+    @Test
+    @RunAsClient
+    private void testOperationName() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            TestServerWebServices.REST_OPERATION_NAME, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    TestServerWebServices.REST_OPERATION_NAME,
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_OPERATION_NAME,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test error web service.
+     */
+    @Test
+    @RunAsClient
+    private void testError() throws InterruptedException {
+        assertErrorTest(TestServerWebServices.REST_ERROR, false);
+    }
+
+    /**
+     * Test exception web service.
+     */
+    @Test
+    @RunAsClient
+    private void testException() throws InterruptedException {
+        assertErrorTest(TestServerWebServices.REST_EXCEPTION, true);
+    }
+
+    /**
+     * Common code for handling error and exception tests.
+     * @param service The REST service path.
+     * @param checkLogEntries True if an unhandled exception is thrown by the web service.
+     */
+    private void assertErrorTest(String service, boolean checkLogEntries) {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+            service, Status.INTERNAL_SERVER_ERROR);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        
+        Map<String, Object> expectedTags = getExpectedSpanTagsForError(service, Tags.SPAN_KIND_SERVER);
+        
+        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
+
+        if (checkLogEntries) {
+            List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
+
+            Assert.assertEquals(rootSpans.size(), 1);
+
+            TreeNode<TestSpan> firstSpan = rootSpans.get(0);
+
+            expectedLogEntries = addExpectedErrorInfo(firstSpan);
+        }
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        service
                     ),
                     expectedTags,
                     expectedLogEntries
@@ -208,23 +359,173 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
+     * Test annotation exception web service.
+     */
+    @Test
+    @RunAsClient
+    private void testAnnotationException() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
+                TestServerWebServices.REST_ANNOTATION_EXCEPTION, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        
+        Map<String, Object> expectedTags = new HashMap<>();
+        putErrorTag(expectedTags);
+
+        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
+
+        List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
+
+        Assert.assertEquals(rootSpans.size(), 1);
+
+        TreeNode<TestSpan> firstSpan = rootSpans.get(0);
+        
+        debug("firstSpan: " + firstSpan);
+        
+        List<TreeNode<TestSpan>> childSpans = firstSpan.getChildren();
+        
+        Assert.assertEquals(childSpans.size(), 1);
+
+        TreeNode<TestSpan> childSpan = childSpans.get(0);
+
+        debug("childSpan: " + childSpan);
+        
+        expectedLogEntries = addExpectedErrorInfo(childSpan);
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        TestServerWebServices.REST_ANNOTATION_EXCEPTION
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_ANNOTATION_EXCEPTION,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedClass.class.getName() + ".annotatedClassMethodImplicitlyTracedWithException",
+                        expectedTags,
+                        expectedLogEntries
+                    )
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+    
+    /**
+     * Jackson will serialize over the Throwable in a Map<String, Object>, so to
+     * create a matching one to compare to, we first serialize the same
+     * exception the web service threw into a String, and then deserialize that
+     * back into a HashMap<String, Object>. Of course, the full stacks also
+     * won't match, so we remove everything but the top stack frame for both.
+     * 
+     * @param span The span to extract the error information from.
+     * @return A new list of log entries.
+     */
+    private List<Map<String, ?>> addExpectedErrorInfo(TreeNode<TestSpan> span) {
+        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
+        
+        // The following are only added if there is an exception object:
+        // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
+        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
+
+        Map<String, Object> expectedLogEntry = new HashMap<>();
+
+        expectedLogEntries.add(expectedLogEntry);
+
+        expectedLogEntry.put(LOG_ENTRY_NAME_EVENT, "error");
+
+        List<Map<String, ?>> firstLogEntries = span.getData()
+                .getLogEntries();
+
+        Assert.assertEquals(firstLogEntries.size(), 1);
+
+        Map<String, ?> firstLogEntry = firstLogEntries.get(0);
+
+        @SuppressWarnings("unchecked")
+        LinkedHashMap<String, Object> serverException = (LinkedHashMap<String, Object>) firstLogEntry
+                .get(LOG_ENTRY_NAME_ERROR_OBJECT);
+
+        prepareDeserializedExceptionForComparison(serverException);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        LinkedHashMap<String, Object> exceptionMap;
+        try {
+            exceptionMap = objectMapper.readValue(
+                    objectMapper
+                            .writeValueAsString(TestWebServicesApplication
+                                    .createExampleRuntimeException()),
+                    objectMapper.getTypeFactory().constructParametricType(
+                            LinkedHashMap.class, String.class,
+                            Object.class));
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        prepareDeserializedExceptionForComparison(exceptionMap);
+
+        expectedLogEntry.put(LOG_ENTRY_NAME_ERROR_OBJECT, exceptionMap);
+        
+        return expectedLogEntries;
+    }
+
+    /**
+     * Exception stack traces won't match between the client and runtime.
+     * Clean up the stack trace for comparison.
+     * 
+     * @param serverException The deserialized exception.
+     */
+    private void prepareDeserializedExceptionForComparison(
+            LinkedHashMap<String, Object> serverException) {
+        @SuppressWarnings("unchecked")
+        ArrayList<Map<String, String>> stackFrames = (ArrayList<Map<String, String>>) serverException
+                .get("stackTrace");
+
+        while (stackFrames.size() > 1) {
+            stackFrames.remove(stackFrames.size() - 1);
+        }
+    }
+
+    /**
      * Create a tags collection for expected span tags with an error.
+     * @param service REST service.
      * @param spanKind Value for {@link Tags#SPAN_KIND}
      * @return Tags map.
      */
-    private Map<String, Object> getExpectedSpanTagsForError(String spanKind) {
+    private Map<String, Object> getExpectedSpanTagsForError(String service, String spanKind) {
         Map<String, Object> expectedTags = getExpectedSpanTags(
             spanKind,
             HttpMethod.GET,
             TestServerWebServices.REST_TEST_SERVICE_PATH,
-            TestServerWebServices.REST_ERROR,
+            service,
             null,
             Status.INTERNAL_SERVER_ERROR.getStatusCode()
         );
         
+        putErrorTag(expectedTags);
+        return expectedTags;
+    }
+
+    /**
+     * Add the error tag to the collection.
+     * @param expectedTags Tags collection.
+     */
+    private void putErrorTag(Map<String, Object> expectedTags) {
         // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
         expectedTags.put(Tags.ERROR.getKey(), true);
-        return expectedTags;
     }
 
     /**
@@ -268,7 +569,7 @@ public class OpentracingClientTests extends Arquillian {
             int uniqueId, boolean failNest) {
         executeNested(uniqueId, nestDepth, nestBreadth, failNest);
         
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId, nestBreadth, failNest));
         
         assertEqualTrees(spans, expectedTree);
@@ -312,7 +613,7 @@ public class OpentracingClientTests extends Arquillian {
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         executorService.shutdown();
         
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         
         List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
 
@@ -406,7 +707,7 @@ public class OpentracingClientTests extends Arquillian {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_LOCAL_SPAN, Status.OK);
         response.close();
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -447,7 +748,7 @@ public class OpentracingClientTests extends Arquillian {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_ASYNC_LOCAL_SPAN, Status.OK);
         response.close();
-        TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -502,7 +803,7 @@ public class OpentracingClientTests extends Arquillian {
                 TestServerWebServices.class,
                 TestServerWebServices.REST_ERROR
             );
-            expectedTags = getExpectedSpanTagsForError(spanKind);
+            expectedTags = getExpectedSpanTagsForError(TestServerWebServices.REST_ERROR, spanKind);
         }
         else {
             Map<String, Object> queryParameters = new HashMap<>();
@@ -652,7 +953,13 @@ public class OpentracingClientTests extends Arquillian {
         
         WebTarget target = client.target(url);
         Response response = target.request().get();
-        Assert.assertEquals(response.getStatus(), expectedStatus.getStatusCode());
+        if (response.getStatus() != expectedStatus.getStatusCode()) {
+            String unexpectedResponse = response.readEntity(String.class);
+            Assert.fail("Expected HTTP response code "
+                    + expectedStatus.getStatusCode() + " but received "
+                    + response.getStatus() + "; Response: "
+                    + unexpectedResponse);
+        }
         return response;
     }
 
@@ -664,6 +971,18 @@ public class OpentracingClientTests extends Arquillian {
         return executeRemoteWebServiceRaw(
                 TracerWebService.REST_TRACER_SERVICE_PATH, TracerWebService.REST_GET_TRACER, Status.OK)
                 .readEntity(TestTracer.class);
+    }
+
+    /**
+     * Execute a remote web service and return the span tree.
+     * @return TestSpanTree
+     */
+    private TestSpanTree executeRemoteWebServiceTracerTree() {
+        TestSpanTree result = executeRemoteWebServiceTracer().spanTree();
+        
+        debug("Tracer returned " + result);
+        
+        return result;
     }
 
     /**

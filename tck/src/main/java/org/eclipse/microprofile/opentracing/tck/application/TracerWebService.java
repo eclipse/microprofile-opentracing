@@ -120,11 +120,7 @@ public class TracerWebService {
                         .getClass().getMethod("fields").invoke(logEntry));
             }
             
-            if (testSpan.getCachedOperationName() == null
-                || !testSpan.getCachedOperationName().endsWith(
-                TracerWebService.REST_CLEAR_TRACER)) {
-                spans.add(testSpan);
-            }
+            spans.add(testSpan);
         }
 
         testTracer.setSpans(spans);
