@@ -92,7 +92,8 @@ In order to make MicroProfile as flexible as possible for adding distributed tra
 
 This specification defines an easy way to allow an application running in a
 MicroProfile container to take advantage of distributed tracing by using an
-OpenTracing Tracer implementation.
+OpenTracing Tracer implementation. This document and implementations MUST comply with
+OpenTracing specification and semantic conventions if it is not defined otherwise.
 
 There are two operation modes
 
@@ -139,7 +140,7 @@ Spans created for incoming requests will have the following tags added by defaul
 
 `Tags.SPAN_KIND` MUST be specified at Span start time.
 
-An https://github.com/opentracing/specification/blob/master/semantic_conventions.md[Tags.ERROR tag] SHOULD be added to a Span on failed operations for any server error (5xx) codes.
+`Tags.ERROR tag` SHOULD be added to a Span on failed operations for any server error (5xx) codes.
 If there is an exception object available the implementation SHOULD also add logs `event=error` and `error.object=<error object instance>` to the active span.
 
 ==== Span creation and injection for outbound requests
@@ -162,7 +163,7 @@ Spans created for outgoing requests will have the following tags added by defaul
 
 `Tags.SPAN_KIND` MUST be specified at Span start time.
 
-An https://github.com/opentracing/specification/blob/master/semantic_conventions.md[Tags.ERROR tag] SHOULD be added to a Span on failed operations for any client error (4xx) codes.
+`Tags.ERROR` tag SHOULD be added to a Span on failed operations for any client error (4xx) codes.
 If there is an exception object available the implementation SHOULD also add logs `event=error` and `error.object=<error object instance>` to the active span.
 
 === Enabling explicit distributed tracing code instrumentation
@@ -188,7 +189,7 @@ When the `@Traced(false)` annotation is used for a JAX-RS endpoint method, the u
 
 * `operationName=<Name for the Span>`.
 Default is `""`.
-If the `@Traced` annotation finds the operationName as `""`, the default operation name is used. For a JAX-RS endpoint method (see <<server-span-name>>).
+If the `@Traced` annotation finds the `operationName` as `""`, the default operation name is used. For a JAX-RS endpoint method (see <<server-span-name>>).
 If the annotated method is not a JAX-RS endpoint, the default operation name of the new Span for the method is
 ```
 <package name>.<class name>.<method name>
