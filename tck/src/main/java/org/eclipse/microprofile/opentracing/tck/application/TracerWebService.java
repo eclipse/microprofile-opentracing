@@ -125,7 +125,8 @@ public class TracerWebService {
 
                 spans.add(testSpan);
             }
-        } catch (NoSuchMethodException nsme) {
+        }
+        catch (NoSuchMethodException nsme) {
             // This is a likely enough exception - almost surely meaning
             // that the Tracer that's injected is not a MockTrader - that
             // we re-throw it with a more meaningful explanation.
