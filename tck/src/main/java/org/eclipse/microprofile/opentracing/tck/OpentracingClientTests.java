@@ -70,7 +70,7 @@ import io.opentracing.tag.Tags;
  * @author <a href="mailto:steve.m.fontes@gmail.com">Steve Fontes</a>
  */
 public class OpentracingClientTests extends Arquillian {
-    
+
     /**
      * "A stable identifier for some notable moment in the lifetime of a Span.
      * For instance, a mutex lock acquisition or release or the sorts of
@@ -81,7 +81,7 @@ public class OpentracingClientTests extends Arquillian {
      * https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
      */
     public static final String LOG_ENTRY_NAME_EVENT = "event";
-    
+
     /**
      * "For languages that support such a thing (e.g., Java, Python), the actual
      * Throwable/Exception/Error object instance itself. E.g., A
@@ -116,10 +116,10 @@ public class OpentracingClientTests extends Arquillian {
 
         return war;
     }
-   
+
     /**
      * Before each test method, clear the tracer.
-     * 
+     *
      * In the case that a test fails, other tests may still run, and if the
      * clearTracer call is done at the end of a test, then the next test may
      * still have old spans in its result, which would both fail that test
@@ -179,9 +179,9 @@ public class OpentracingClientTests extends Arquillian {
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
-        
+
         Map<String, Object> expectedTags = getExpectedSpanTagsForError(Tags.SPAN_KIND_SERVER);
-        
+
         List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
 
         // The following are only added if there is an exception object:
@@ -221,7 +221,7 @@ public class OpentracingClientTests extends Arquillian {
             null,
             Status.INTERNAL_SERVER_ERROR.getStatusCode()
         );
-        
+
         // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
         expectedTags.put(Tags.ERROR.getKey(), true);
         return expectedTags;
@@ -233,27 +233,27 @@ public class OpentracingClientTests extends Arquillian {
     @Test
     @RunAsClient
     private void testNestedSpans() throws InterruptedException {
-        
+
         int nestDepth = 1;
         int nestBreadth = 2;
         int uniqueId = getRandomNumber();
         boolean failNest = false;
-        
+
         executeNestedSpans(nestDepth, nestBreadth, uniqueId, failNest);
     }
-    
+
     /**
      * Test a web service call that makes nested calls with a client failure.
      */
     @Test
     @RunAsClient
     private void testNestedSpansWithClientFailure() throws InterruptedException {
-        
+
         int nestDepth = 1;
         int nestBreadth = 2;
         int uniqueId = getRandomNumber();
         boolean failNest = true;
-        
+
         executeNestedSpans(nestDepth, nestBreadth, uniqueId, failNest);
     }
 
@@ -267,13 +267,13 @@ public class OpentracingClientTests extends Arquillian {
     private void executeNestedSpans(int nestDepth, int nestBreadth,
             int uniqueId, boolean failNest) {
         executeNested(uniqueId, nestDepth, nestBreadth, failNest);
-        
+
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
         TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId, nestBreadth, failNest));
-        
+
         assertEqualTrees(spans, expectedTree);
     }
-    
+
     /**
      * Test the nested web service concurrently. A unique ID is generated
      * in the URL of each request and propagated down the nested spans.
@@ -289,7 +289,7 @@ public class OpentracingClientTests extends Arquillian {
         int nestDepth = 1;
         int nestBreadth = 2;
         boolean failNest = false;
-        
+
         ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         List<Future<?>> futures = new ArrayList<>(numberOfCalls);
         Set<Integer> uniqueIds = ConcurrentHashMap.newKeySet();
@@ -311,17 +311,17 @@ public class OpentracingClientTests extends Arquillian {
 
         executorService.awaitTermination(1, TimeUnit.SECONDS);
         executorService.shutdown();
-        
+
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
-        
+
         List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
 
         // If this assertion fails, it means that the number of returned
         // root spans doesn't equal the number of web service calls.
         Assert.assertEquals(rootSpans.size(), numberOfCalls);
-        
+
         for (TreeNode<TestSpan> rootSpan: rootSpans) {
-            
+
             // Extract the unique ID from the root span's URL:
             String url = (String) rootSpan.getData().getTags().get(Tags.HTTP_URL.getKey());
             int i = url.indexOf(TestServerWebServices.PARAM_UNIQUE_ID);
@@ -332,18 +332,18 @@ public class OpentracingClientTests extends Arquillian {
                 uniqueIdStr = uniqueIdStr.substring(0, i);
             }
             int uniqueId = Integer.parseInt(uniqueIdStr);
-            
+
             // If this assertion fails, it means that the unique ID
             // in the root span URL doesn't match any of the
             // unique IDs that we sent in the requests above.
             boolean removeResult = uniqueIds.remove(uniqueId);
-            
+
             if (!removeResult) {
                 debug("Unique ID " + uniqueId + " not found in request list. Span: " + rootSpan);
             }
-            
+
             Assert.assertTrue(removeResult);
-            
+
             TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId, nestBreadth, failNest);
             assertEqualTrees(rootSpan, expectedTree);
         }
@@ -387,7 +387,7 @@ public class OpentracingClientTests extends Arquillian {
         queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
         queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
         queryParameters.put(TestServerWebServices.PARAM_FAIL_NEST, failNest);
-        
+
         Response response = executeRemoteWebServiceRaw(
             TestServerWebServices.REST_TEST_SERVICE_PATH,
             TestServerWebServices.REST_NESTED,
@@ -494,7 +494,7 @@ public class OpentracingClientTests extends Arquillian {
             boolean isFailed) {
         String operationName;
         Map<String, Object> expectedTags;
-        
+
         if (isFailed) {
             operationName = getOperationName(
                 spanKind,
@@ -526,7 +526,7 @@ public class OpentracingClientTests extends Arquillian {
                 Status.OK.getStatusCode()
             );
         }
-        
+
         return new TestSpan(
             operationName,
             expectedTags,
@@ -537,13 +537,13 @@ public class OpentracingClientTests extends Arquillian {
     /**
      * This wrapper method allows for potential post-processing, such as
      * removing tags that we don't care to compare in {@code returnedTree}.
-     * 
+     *
      * @param returnedTree The returned tree from the web service.
      * @param expectedTree The simulated tree that we expect.
      */
     private void assertEqualTrees(ConsumableTree<TestSpan> returnedTree,
             ConsumableTree<TestSpan> expectedTree) {
-        
+
         // It's okay if the returnedTree has tags other than the ones we
         // want to compare, so just remove those
         returnedTree.visitTree(span -> span.getTags().keySet()
@@ -551,14 +551,8 @@ public class OpentracingClientTests extends Arquillian {
                         && !key.equals(Tags.HTTP_METHOD.getKey())
                         && !key.equals(Tags.HTTP_URL.getKey())
                         && !key.equals(Tags.HTTP_STATUS.getKey())
-                        && !key.equals(Tags.ERROR.getKey())
                         && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)));
-        
-        // It's okay if the returnedTree has log entries other than the ones we
-        // want to compare, so just remove those
-        returnedTree.visitTree(span -> span.getLogEntries()
-                .removeIf(logEntry -> !logEntry.containsKey(LOG_ENTRY_NAME_EVENT)));
-        
+
         Assert.assertEquals(returnedTree, expectedTree);
     }
 
@@ -575,9 +569,9 @@ public class OpentracingClientTests extends Arquillian {
     private Map<String, Object> getExpectedSpanTags(String spanKind,
             String httpMethod, String service, String relativePath,
             Map<String, Object> queryParameters, int httpStatus) {
-        
+
         // When adding items to this, also add to assertEqualTrees
-        
+
         Map<String, Object> tags = new HashMap<>();
         tags.put(Tags.SPAN_KIND.getKey(), spanKind);
         tags.put(Tags.HTTP_METHOD.getKey(), httpMethod);
@@ -593,12 +587,12 @@ public class OpentracingClientTests extends Arquillian {
     private Map<String, Object> getExpectedLocalSpanTags() {
 
         // When adding items to this, also add to assertEqualTrees
-        
+
         Map<String, Object> tags = new HashMap<>();
         tags.put(TestServerWebServices.LOCAL_SPAN_TAG_KEY, TestServerWebServices.LOCAL_SPAN_TAG_VALUE);
         return tags;
     }
-    
+
     /**
      * Create web service URL.
      * @param service Web service path
@@ -608,7 +602,7 @@ public class OpentracingClientTests extends Arquillian {
     private String getWebServiceURL(final String service, final String relativePath) {
         return getWebServiceURL(service, relativePath, null);
     }
-    
+
     /**
      * Create web service URL.
      * @param service Web service path
@@ -634,7 +628,7 @@ public class OpentracingClientTests extends Arquillian {
     private Response executeRemoteWebServiceRaw(final String service, final String relativePath, Status expectedStatus) {
         return executeRemoteWebServiceRaw(service, relativePath, null, expectedStatus);
     }
-    
+
     /**
      * Execute a remote web service and return the content.
      * @param service Web service path
@@ -647,9 +641,9 @@ public class OpentracingClientTests extends Arquillian {
             Map<String, Object> queryParameters, Status expectedStatus) {
         Client client = ClientBuilder.newClient();
         String url = getWebServiceURL(service, relativePath, queryParameters);
-        
+
         debug("Executing " + url);
-        
+
         WebTarget target = client.target(url);
         Response response = target.request().get();
         Assert.assertEquals(response.getStatus(), expectedStatus.getStatusCode());
@@ -696,7 +690,7 @@ public class OpentracingClientTests extends Arquillian {
         Response delete = client.target(url).request().delete();
         delete.close();
     }
-    
+
     /**
      * Print debug message to target/surefire-reports/testng-results.xml.
      * @param message The debug message.
