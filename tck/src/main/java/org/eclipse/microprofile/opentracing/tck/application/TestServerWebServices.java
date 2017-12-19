@@ -32,6 +32,9 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
@@ -364,7 +367,9 @@ public class TestServerWebServices {
      * @param requestUrl The request URL.
      */
     private void executeNested(String requestUrl) {
-        Response nestedResponse = TestWebServicesApplication.invoke(requestUrl);
+        Client restClient = ClientBuilder.newBuilder().build();
+        WebTarget target = restClient.target(requestUrl);
+        Response nestedResponse = target.request().get();
         nestedResponse.close();
     }
 
@@ -374,7 +379,9 @@ public class TestServerWebServices {
      * @return Future for the Response.
      */
     private Future<Response> executeNestedAsync(String requestUrl) {
-        return TestWebServicesApplication.invokeAsync(requestUrl);
+        Client restClient = ClientBuilder.newBuilder().build();
+        WebTarget target = restClient.target(requestUrl);
+        return target.request().async().get();
     }
 
     /**

@@ -27,14 +27,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Future;
 
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
@@ -77,28 +72,6 @@ public class TestWebServicesApplication extends Application {
         catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * Invoke a sync JAXRS request.
-     * @param requestUrl Request URL.
-     * @return HTTP response.
-     */
-    public static Response invoke(String requestUrl) {
-        Client client = ClientBuilder.newBuilder().build();
-        WebTarget target = client.target(requestUrl);
-        return target.request().get();
-    }
-
-    /**
-     * Invoke an async JAXRS request.
-     * @param requestUrl Request URL.
-     * @return HTTP response future.
-     */
-    public static Future<Response> invokeAsync(String requestUrl) {
-        Client client = ClientBuilder.newBuilder().build();
-        WebTarget target = client.target(requestUrl);
-        return target.request().async().get();
     }
 
     /**
