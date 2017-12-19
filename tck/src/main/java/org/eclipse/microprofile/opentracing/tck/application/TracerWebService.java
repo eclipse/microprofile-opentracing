@@ -55,7 +55,6 @@ public class TracerWebService {
      */
     public static final String REST_CLEAR_TRACER = "clearTracer";
 
-
     /**
      * Mock tracer.
      */
