@@ -248,7 +248,7 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
-     * Test a web service endpoing that shouldn't create a span.
+     * Test a web service endpoint that shouldn't create a span.
      * @throws InterruptedException Error executing web service.
      */
     @Test
