@@ -20,12 +20,10 @@
 package org.eclipse.microprofile.opentracing.tck;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,8 +66,6 @@ import org.testng.Reporter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.opentracing.tag.Tags;
 
 /**
@@ -78,26 +74,6 @@ import io.opentracing.tag.Tags;
  */
 public class OpentracingClientTests extends Arquillian {
     
-    /**
-     * "A stable identifier for some notable moment in the lifetime of a Span.
-     * For instance, a mutex lock acquisition or release or the sorts of
-     * lifetime events in a browser page load described in the
-     * Performance.timing specification. E.g., from Zipkin, "cs", "sr", "ss", or
-     * "cr". Or, more generally, "initialized" or "timed out". For errors,
-     * "error""
-     * https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
-     */
-    public static final String LOG_ENTRY_NAME_EVENT = "event";
-    
-    /**
-     * "For languages that support such a thing (e.g., Java, Python), the actual
-     * Throwable/Exception/Error object instance itself. E.g., A
-     * java.lang.UnsupportedOperationException instance, a python
-     * exceptions.NameError instance"
-     * https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
-     */
-    public static final String LOG_ENTRY_NAME_ERROR_OBJECT = "error.object";
-
     /** Server app URL for the client tests. */
     @ArquillianResource
     private URL deploymentURL;
@@ -303,7 +279,7 @@ public class OpentracingClientTests extends Arquillian {
     @Test
     @RunAsClient
     private void testError() throws InterruptedException {
-        assertErrorTest(TestServerWebServices.REST_ERROR, false);
+        assertErrorTest(TestServerWebServices.REST_ERROR);
     }
 
     /**
@@ -312,15 +288,14 @@ public class OpentracingClientTests extends Arquillian {
     @Test
     @RunAsClient
     private void testException() throws InterruptedException {
-        assertErrorTest(TestServerWebServices.REST_EXCEPTION, true);
+        assertErrorTest(TestServerWebServices.REST_EXCEPTION);
     }
 
     /**
      * Common code for handling error and exception tests.
      * @param service The REST service path.
-     * @param checkLogEntries True if an unhandled exception is thrown by the web service.
      */
-    private void assertErrorTest(String service, boolean checkLogEntries) {
+    private void assertErrorTest(String service) {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
             service, Status.INTERNAL_SERVER_ERROR);
         response.close();
@@ -329,18 +304,6 @@ public class OpentracingClientTests extends Arquillian {
         
         Map<String, Object> expectedTags = getExpectedSpanTagsForError(service, Tags.SPAN_KIND_SERVER);
         
-        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
-
-        if (checkLogEntries) {
-            List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
-
-            Assert.assertEquals(rootSpans.size(), 1);
-
-            TreeNode<TestSpan> firstSpan = rootSpans.get(0);
-
-            expectedLogEntries = addExpectedErrorInfo(firstSpan);
-        }
-
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -351,7 +314,7 @@ public class OpentracingClientTests extends Arquillian {
                         service
                     ),
                     expectedTags,
-                    expectedLogEntries
+                    Collections.emptyList()
                 )
             )
         );
@@ -370,29 +333,6 @@ public class OpentracingClientTests extends Arquillian {
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
         
-        Map<String, Object> expectedTags = new HashMap<>();
-        putErrorTag(expectedTags);
-
-        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
-
-        List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
-
-        Assert.assertEquals(rootSpans.size(), 1);
-
-        TreeNode<TestSpan> firstSpan = rootSpans.get(0);
-        
-        debug("firstSpan: " + firstSpan);
-        
-        List<TreeNode<TestSpan>> childSpans = firstSpan.getChildren();
-        
-        Assert.assertEquals(childSpans.size(), 1);
-
-        TreeNode<TestSpan> childSpan = childSpans.get(0);
-
-        debug("childSpan: " + childSpan);
-        
-        expectedLogEntries = addExpectedErrorInfo(childSpan);
-
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -415,88 +355,13 @@ public class OpentracingClientTests extends Arquillian {
                 new TreeNode<>(
                     new TestSpan(
                         TestAnnotatedClass.class.getName() + ".annotatedClassMethodImplicitlyTracedWithException",
-                        expectedTags,
-                        expectedLogEntries
+                        Collections.emptyMap(),
+                        Collections.emptyList()
                     )
                 )
             )
         );
         assertEqualTrees(spans, expectedTree);
-    }
-    
-    /**
-     * Jackson will serialize over the Throwable in a Map<String, Object>, so to
-     * create a matching one to compare to, we first serialize the same
-     * exception the web service threw into a String, and then deserialize that
-     * back into a HashMap<String, Object>. Of course, the full stacks also
-     * won't match, so we remove everything but the top stack frame for both.
-     * 
-     * @param span The span to extract the error information from.
-     * @return A new list of log entries.
-     */
-    private List<Map<String, ?>> addExpectedErrorInfo(TreeNode<TestSpan> span) {
-        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
-        
-        // The following are only added if there is an exception object:
-        // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
-        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
-
-        Map<String, Object> expectedLogEntry = new HashMap<>();
-
-        expectedLogEntries.add(expectedLogEntry);
-
-        expectedLogEntry.put(LOG_ENTRY_NAME_EVENT, "error");
-
-        List<Map<String, ?>> firstLogEntries = span.getData()
-                .getLogEntries();
-
-        Assert.assertEquals(firstLogEntries.size(), 1);
-
-        Map<String, ?> firstLogEntry = firstLogEntries.get(0);
-
-        @SuppressWarnings("unchecked")
-        LinkedHashMap<String, Object> serverException = (LinkedHashMap<String, Object>) firstLogEntry
-                .get(LOG_ENTRY_NAME_ERROR_OBJECT);
-
-        prepareDeserializedExceptionForComparison(serverException);
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        LinkedHashMap<String, Object> exceptionMap;
-        try {
-            exceptionMap = objectMapper.readValue(
-                    objectMapper
-                            .writeValueAsString(TestWebServicesApplication
-                                    .createExampleRuntimeException()),
-                    objectMapper.getTypeFactory().constructParametricType(
-                            LinkedHashMap.class, String.class,
-                            Object.class));
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        prepareDeserializedExceptionForComparison(exceptionMap);
-
-        expectedLogEntry.put(LOG_ENTRY_NAME_ERROR_OBJECT, exceptionMap);
-        
-        return expectedLogEntries;
-    }
-
-    /**
-     * Exception stack traces won't match between the client and runtime.
-     * Clean up the stack trace for comparison.
-     * 
-     * @param serverException The deserialized exception.
-     */
-    private void prepareDeserializedExceptionForComparison(
-            LinkedHashMap<String, Object> serverException) {
-        @SuppressWarnings("unchecked")
-        ArrayList<Map<String, String>> stackFrames = (ArrayList<Map<String, String>>) serverException
-                .get("stackTrace");
-
-        while (stackFrames.size() > 1) {
-            stackFrames.remove(stackFrames.size() - 1);
-        }
     }
 
     /**
@@ -515,17 +380,7 @@ public class OpentracingClientTests extends Arquillian {
             Status.INTERNAL_SERVER_ERROR.getStatusCode()
         );
         
-        putErrorTag(expectedTags);
         return expectedTags;
-    }
-
-    /**
-     * Add the error tag to the collection.
-     * @param expectedTags Tags collection.
-     */
-    private void putErrorTag(Map<String, Object> expectedTags) {
-        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
-        expectedTags.put(Tags.ERROR.getKey(), true);
     }
 
     /**
@@ -945,13 +800,12 @@ public class OpentracingClientTests extends Arquillian {
                         && !key.equals(Tags.HTTP_METHOD.getKey())
                         && !key.equals(Tags.HTTP_URL.getKey())
                         && !key.equals(Tags.HTTP_STATUS.getKey())
-                        && !key.equals(Tags.ERROR.getKey())
                         && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)));
         
         // It's okay if the returnedTree has log entries other than the ones we
         // want to compare, so just remove those
         returnedTree.visitTree(span -> span.getLogEntries()
-                .removeIf(logEntry -> !logEntry.containsKey(LOG_ENTRY_NAME_EVENT)));
+                .removeIf(logEntry -> true));
         
         Assert.assertEquals(returnedTree, expectedTree);
     }
