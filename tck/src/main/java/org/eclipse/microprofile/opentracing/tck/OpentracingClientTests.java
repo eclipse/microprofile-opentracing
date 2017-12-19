@@ -181,15 +181,6 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree spans = executeRemoteWebServiceTracer().spanTree();
 
         Map<String, Object> expectedTags = getExpectedSpanTagsForError(Tags.SPAN_KIND_SERVER);
-
-        List<Map<String, ?>> expectedLogEntries = new ArrayList<>();
-
-        // The following are only added if there is an exception object:
-        // https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
-        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#log-fields-table
-        // expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_EVENT, "error"));
-        // expectedLogEntries.add(Collections.singletonMap(LOG_ENTRY_NAME_ERROR_OBJECT, "TODO"));
-
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -200,7 +191,7 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_ERROR
                     ),
                     expectedTags,
-                    expectedLogEntries
+                    new ArrayList<>()
                 )
             )
         );
@@ -208,7 +199,8 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
-     * Create a tags collection for expected span tags with an error.
+     * Create a tags collection for expected span tags with an error. Note that spec does not
+     * force adding error tags.
      * @param spanKind Value for {@link Tags#SPAN_KIND}
      * @return Tags map.
      */
@@ -221,9 +213,6 @@ public class OpentracingClientTests extends Arquillian {
             null,
             Status.INTERNAL_SERVER_ERROR.getStatusCode()
         );
-
-        // https://github.com/opentracing/specification/blob/master/semantic_conventions.md#span-tags-table
-        expectedTags.put(Tags.ERROR.getKey(), true);
         return expectedTags;
     }
 
