@@ -963,7 +963,6 @@ public class OpentracingClientTests extends Arquillian {
 
     /**
      * Get operation name depending on the {@code spanKind}.
-     * https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc
      * @param spanKind The type of span.
      * @param httpMethod HTTP method
      * @param clazz resource class
