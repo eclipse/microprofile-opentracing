@@ -194,6 +194,7 @@ If the annotated method is not a JAX-RS endpoint, the default operation name of 
 ```
 <package name>.<class name>.<method name>
 ```
+If `operationName` is specified on a class, then the operation name of each traced method in that class is prefixed with the class `operationName` followed by a forward slash (`/`).
 
 Example:
 [source,java]
