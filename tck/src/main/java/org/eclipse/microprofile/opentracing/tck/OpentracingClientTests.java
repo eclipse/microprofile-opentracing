@@ -43,9 +43,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedClass;
+import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedClassWithOperationName;
 import org.eclipse.microprofile.opentracing.tck.application.TestAnnotatedMethods;
 import org.eclipse.microprofile.opentracing.tck.application.TestDisabledAnnotatedClass;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
+import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServicesWithOperationName;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
 import org.eclipse.microprofile.opentracing.tck.tracer.ConsumableTree;
@@ -192,7 +194,7 @@ public class OpentracingClientTests extends Arquillian {
                 ),
                 new TreeNode<>(
                     new TestSpan(
-                        "explicitOperationName",
+                        "explicitOperationName1",
                         Collections.emptyMap(),
                         Collections.emptyList()
                     )
@@ -206,7 +208,7 @@ public class OpentracingClientTests extends Arquillian {
                 ),
                 new TreeNode<>(
                     new TestSpan(
-                        "explicitOperationName",
+                        "explicitOperationName2",
                         Collections.emptyMap(),
                         Collections.emptyList()
                     )
@@ -214,6 +216,13 @@ public class OpentracingClientTests extends Arquillian {
                 new TreeNode<>(
                     new TestSpan(
                         TestDisabledAnnotatedClass.class.getName() + ".annotatedClassMethodExplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        "explicitOperationName3",
                         Collections.emptyMap(),
                         Collections.emptyList()
                     )
@@ -263,6 +272,93 @@ public class OpentracingClientTests extends Arquillian {
                         HttpMethod.GET,
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_OPERATION_NAME,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test class annotated with an operationName which will prefix
+     * its methods' operation names.
+     * @throws InterruptedException Error executing web service.
+     */
+    @Test
+    @RunAsClient
+    private void testOperationPrefix() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
+                TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServicesWithOperationName.class,
+                        TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX,
+                        TestServerWebServicesWithOperationName.CLASS_OPERATION_NAME
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
+                        TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX,
+                        null,
+                        Status.OK.getStatusCode()
+                    ),
+                    Collections.emptyList()
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedClassWithOperationName.OPERATION_NAME + "/"
+                            + TestAnnotatedClassWithOperationName.class.getName() + ".annotatedClassMethodImplicitlyTraced",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                ),
+                new TreeNode<>(
+                    new TestSpan(
+                        TestAnnotatedClassWithOperationName.OPERATION_NAME + "/explicitOperationName4",
+                        Collections.emptyMap(),
+                        Collections.emptyList()
+                    )
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test class and endpoint annotated with an operationName.
+     * @throws InterruptedException Error executing web service.
+     */
+    @Test
+    @RunAsClient
+    private void testOperationPrefixWithName() throws InterruptedException {
+        Response response = executeRemoteWebServiceRaw(TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
+                TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX_WITH_NAME, Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    TestServerWebServicesWithOperationName.CLASS_OPERATION_NAME + "/"
+                        + TestServerWebServicesWithOperationName.ENDPOINT_OPERATION_NAME,
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
+                        TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX_WITH_NAME,
                         null,
                         Status.OK.getStatusCode()
                     ),
@@ -970,8 +1066,26 @@ public class OpentracingClientTests extends Arquillian {
      * @return operation name
      */
     private String getOperationName(String spanKind, String httpMethod, Class<?> clazz, String javaMethod) {
+        return getOperationName(spanKind, httpMethod, clazz, javaMethod, null);
+    }
+    
+    /**
+     * Get operation name depending on the {@code spanKind}.
+     * @param spanKind The type of span.
+     * @param httpMethod HTTP method
+     * @param clazz resource class
+     * @param javaMethod method name
+     * @param classOperationName Optional operationName on the Traced class.
+     * @return operation name
+     */
+    private String getOperationName(String spanKind, String httpMethod, Class<?> clazz, String javaMethod, String classOperationName) {
         if (spanKind.equals(Tags.SPAN_KIND_SERVER)) {
-            return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
+            if (classOperationName == null) {
+                return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
+            }
+            else {
+                return String.format("%s:%s/%s.%s", httpMethod, classOperationName, clazz.getName(), javaMethod);
+            }
         }
         else if (spanKind.equals(Tags.SPAN_KIND_CLIENT)) {
             return httpMethod;

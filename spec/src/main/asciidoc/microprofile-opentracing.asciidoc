@@ -192,6 +192,7 @@ Default is `""`.
 If the `@Traced` annotation finds the `operationName` as `""`, the default operation name is used. For a JAX-RS endpoint method (see <<server-span-name>>).
 If the annotated method is not a JAX-RS endpoint, the default operation name of the new Span for the method is `<package name>.<class name>.<method name>`.
 If `operationName` is specified on a class, then the operation name of each traced method in that class is prefixed with the class `operationName` followed by a forward slash (`/`).
+If the class encloses a JAX-RS endpoint, the prefix is added after `<HTTP method>:` and before `<package name>`.
 
 Example:
 [source,java]
