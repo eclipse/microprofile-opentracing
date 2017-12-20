@@ -396,33 +396,25 @@ public class TestSpan implements Span {
                 return false;
             }
 
-            for (Entry<String, Object> tagEntry : tags.entrySet()) {
-                final String tagEntryKey = tagEntry.getKey();
-                boolean foundOtherTag = false;
-                for (Entry<String, Object> otherTagEntry : otherSpan.tags.entrySet()) {
-                    if (tagEntryKey.equals(otherTagEntry.getKey())) {
-                        foundOtherTag = true;
-                        if (!tagEntry.getValue().equals(otherTagEntry.getValue())) {
-                            System.err.println("MISMATCH: Tag " + tagEntryKey
-                                    + " values don't match: "
-                                    + tagEntry.getValue() + " ; "
-                                    + otherTagEntry.getValue());
-                            return false;
-                        }
-                        break;
-                    }
-                }
-                
-                if (!foundOtherTag) {
-                    System.err.println("MISMATCH: Tag " + tagEntryKey
-                            + " not found in span.");
-                    return false;
-                }
+            if (!tags.equals(otherSpan.tags)) {
+                return false;
             }
             
-            if (!logEntries.equals(otherSpan.logEntries)) {
-                System.err.println("MISMATCH: Log entries don't match");
+            if (logEntries.size() != otherSpan.logEntries.size()) {
+                System.err.println(
+                        "MISMATCH: Number of log entries doesn't match ("
+                                + logEntries.size() + ", "
+                                + otherSpan.logEntries.size() + ")");
                 return false;
+            }
+            
+            for (int i = 0; i < logEntries.size(); i++) {
+                Map<String, ?> logEntryX = logEntries.get(i);
+                Map<String, ?> logEntryY = otherSpan.logEntries.get(i);
+                
+                if (!logEntryX.equals(logEntryY)) {
+                    return false;
+                }
             }
 
             return true;

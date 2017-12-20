@@ -29,11 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 
@@ -76,17 +72,6 @@ public class TestWebServicesApplication extends Application {
         catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * Invoke an sync JAXRS request.
-     * @param requestUrl Request URL.
-     * @return HTTP response.
-     */
-    public static Response invoke(String requestUrl) {
-        Client client = ClientBuilder.newBuilder().build();
-        WebTarget target = client.target(requestUrl);
-        return target.request().get();
     }
 
     /**
@@ -133,5 +118,13 @@ public class TestWebServicesApplication extends Application {
         catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    /**
+     * Create an example RuntimeException used by a web service.
+     * @return New RuntimeException.
+     */
+    public static RuntimeException createExampleRuntimeException() {
+        return new RuntimeException("Example runtime exception");
     }
 }
