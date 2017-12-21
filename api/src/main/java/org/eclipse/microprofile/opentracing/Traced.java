@@ -65,13 +65,12 @@ public @interface Traced {
     /**
      * Default is "". If the <code>@Traced</code> annotation finds the
      * operationName as "", the default operation name is used. For a JAX-RS
-     * endpoint method (see Server Span name). If the annotated method is not a
-     * JAX-RS endpoint, the default operation name of the new Span for the
-     * method is:
-     * 
-     * <code>${package name}.${class name}.${method name}</code>
-     * 
-     * If operationName is specified on a class, that operationName will be used
+     * endpoint method, it is
+     * <code>${HTTP method}:${package name}.${class name}.${method name}</code>.
+     * If the annotated method is not a JAX-RS endpoint, the default operation
+     * name of the new Span for the method is:
+     * <code>${package name}.${class name}.${method name}</code>. If
+     * operationName is specified on a class, that operationName will be used
      * for all methods of the class unless a method explicitly overrides it with
      * its own operationName.
      * 
