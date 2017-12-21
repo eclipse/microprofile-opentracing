@@ -42,6 +42,15 @@
         </license>
     </licenses>
 
+    <developers>
+        <developer>
+            <name>Steve Fontes</name>
+            <url>https://github.com/Steve-Fontes</url>
+            <organization>IBM</organization>
+            <organizationUrl>https://www.ibm.com</organizationUrl>
+        </developer>
+    </developers>
+
     <organization>
         <name>Eclipse Foundation</name>
         <url>http://www.eclipse.org/</url>
@@ -117,6 +126,17 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.3</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                        <serverId>ossrh</serverId>
+                        <autoReleaseAfterClose>${autorelease}</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
