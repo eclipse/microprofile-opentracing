@@ -48,7 +48,7 @@ public class TestAnnotatedMethods {
     /**
      * Method that we expect to be Traced with operation name.
      */
-    @Traced(operationName = "explicitOperationName")
+    @Traced(operationName = "explicitOperationName2")
     public void annotatedMethodExplicitlyTracedWithOpName() {
         System.out.println("Called annotatedMethodExplicitlyTracedWithOpName");
     }
@@ -56,7 +56,7 @@ public class TestAnnotatedMethods {
     /**
      * Method that we expect to not be Traced with operation name.
      */
-    @Traced(value = false, operationName = "explicitOperationName")
+    @Traced(value = false, operationName = "disabledOperationName")
     public void annotatedMethodExplicitlyNotTracedWithOpName() {
         System.out.println("Called annotatedMethodExplicitlyNotTracedWithOpName");
     }
