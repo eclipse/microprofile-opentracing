@@ -62,8 +62,8 @@ The information about a Span that is propagated between services is typically ca
 It is not the intent of this specification to define the exact format for how SpanContext information is stored or propagated.
 Our use case is for applications running in an environment where all applications use the same Tracer implementation,
 and microservices that require explicit tracing logic use the OpenTracing API.
-Work on defining common formats for SpanContexts and implementations that use the common format is being done at http://opencensus.io/[OpenCensus].
-The OpenCensus API appears very similar to OpenTracing, but support for OpenCensus Tracers will probably require a separate MicroProfile specification.
+Work on defining standard wire protocols and consistent APIs for handling trace (and metric) data is being done at http://opencensus.io/[OpenCensus].
+The OpenCensus API appears very similar to OpenTracing, but support for OpenCensus Tracers will require a separate MicroProfile specification.
 
 == Rationale
 
