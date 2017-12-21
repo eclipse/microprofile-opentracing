@@ -31,11 +31,18 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
+ * This annotation allows fine-tuned control over which classes and methods
+ * create OpenTracing spans. By default, all JAX-RS methods implicitly have
+ * this annotation.
+ * 
  * This annotation applies to a class or a method. When applied to a class, this
  * annotation is applied to all methods of the class. If the annotation is
  * applied to a class and method then the annotation applied to the method takes
  * precedence. The annotation starts a Span at the beginning of the method, and
  * finishes the Span at the end of the method.
+ * 
+ * This annotation also has {@code InterceptorBinding} for frameworks to
+ * process all of each application's explicit {@code Traced} annotations.
  * 
  * @author <a href="mailto:steve.m.fontes@gmail.com">Steve Fontes</a>
  */
