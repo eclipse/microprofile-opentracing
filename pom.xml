@@ -134,7 +134,6 @@
                     <configuration>
                         <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                         <serverId>ossrh</serverId>
-                        <autoReleaseAfterClose>${autorelease}</autoReleaseAfterClose>
                     </configuration>
                 </plugin>
                 <plugin>
