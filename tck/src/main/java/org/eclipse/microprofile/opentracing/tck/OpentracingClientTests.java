@@ -283,15 +283,14 @@ public class OpentracingClientTests extends Arquillian {
     }
 
     /**
-     * Test class annotated with an operationName which will prefix
-     * its methods' operation names.
+     * Test class annotated with an operationName.
      * @throws InterruptedException Error executing web service.
      */
     @Test
     @RunAsClient
-    private void testOperationPrefix() throws InterruptedException {
+    private void testClassOperationName() throws InterruptedException {
         Response response = executeRemoteWebServiceRaw(TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
-                TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX, Status.OK);
+                TestServerWebServicesWithOperationName.REST_OPERATION_CLASS_OP_NAME, Status.OK);
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
@@ -299,18 +298,12 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
-                    getOperationName(
-                        Tags.SPAN_KIND_SERVER,
-                        HttpMethod.GET,
-                        TestServerWebServicesWithOperationName.class,
-                        TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX,
-                        TestServerWebServicesWithOperationName.CLASS_OPERATION_NAME
-                    ),
+                    TestServerWebServicesWithOperationName.CLASS_OPERATION_NAME,
                     getExpectedSpanTags(
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
-                        TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX,
+                        TestServerWebServicesWithOperationName.REST_OPERATION_CLASS_OP_NAME,
                         null,
                         Status.OK.getStatusCode()
                     ),
@@ -318,15 +311,14 @@ public class OpentracingClientTests extends Arquillian {
                 ),
                 new TreeNode<>(
                     new TestSpan(
-                        TestAnnotatedClassWithOperationName.OPERATION_NAME + "/"
-                            + TestAnnotatedClassWithOperationName.class.getName() + ".annotatedClassMethodImplicitlyTraced",
+                        TestAnnotatedClassWithOperationName.OPERATION_NAME,
                         Collections.emptyMap(),
                         Collections.emptyList()
                     )
                 ),
                 new TreeNode<>(
                     new TestSpan(
-                        TestAnnotatedClassWithOperationName.OPERATION_NAME + "/explicitOperationName4",
+                        "explicitOperationName4",
                         Collections.emptyMap(),
                         Collections.emptyList()
                     )
@@ -342,9 +334,9 @@ public class OpentracingClientTests extends Arquillian {
      */
     @Test
     @RunAsClient
-    private void testOperationPrefixWithName() throws InterruptedException {
+    private void testClassAndMethodOperationName() throws InterruptedException {
         Response response = executeRemoteWebServiceRaw(TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
-                TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX_WITH_NAME, Status.OK);
+                TestServerWebServicesWithOperationName.REST_OPERATION_CLASS_AND_METHOD_OP_NAME, Status.OK);
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
@@ -352,13 +344,12 @@ public class OpentracingClientTests extends Arquillian {
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
-                    TestServerWebServicesWithOperationName.CLASS_OPERATION_NAME + "/"
-                        + TestServerWebServicesWithOperationName.ENDPOINT_OPERATION_NAME,
+                    TestServerWebServicesWithOperationName.ENDPOINT_OPERATION_NAME,
                     getExpectedSpanTags(
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
-                        TestServerWebServicesWithOperationName.REST_OPERATION_PREFIX_WITH_NAME,
+                        TestServerWebServicesWithOperationName.REST_OPERATION_CLASS_AND_METHOD_OP_NAME,
                         null,
                         Status.OK.getStatusCode()
                     ),
@@ -1056,7 +1047,7 @@ public class OpentracingClientTests extends Arquillian {
         
         return result;
     }
-
+    
     /**
      * Get operation name depending on the {@code spanKind}.
      * @param spanKind The type of span.
@@ -1066,26 +1057,8 @@ public class OpentracingClientTests extends Arquillian {
      * @return operation name
      */
     private String getOperationName(String spanKind, String httpMethod, Class<?> clazz, String javaMethod) {
-        return getOperationName(spanKind, httpMethod, clazz, javaMethod, null);
-    }
-    
-    /**
-     * Get operation name depending on the {@code spanKind}.
-     * @param spanKind The type of span.
-     * @param httpMethod HTTP method
-     * @param clazz resource class
-     * @param javaMethod method name
-     * @param classOperationName Optional operationName on the Traced class.
-     * @return operation name
-     */
-    private String getOperationName(String spanKind, String httpMethod, Class<?> clazz, String javaMethod, String classOperationName) {
         if (spanKind.equals(Tags.SPAN_KIND_SERVER)) {
-            if (classOperationName == null) {
-                return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
-            }
-            else {
-                return String.format("%s:%s/%s.%s", httpMethod, classOperationName, clazz.getName(), javaMethod);
-            }
+            return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
         }
         else if (spanKind.equals(Tags.SPAN_KIND_CLIENT)) {
             return httpMethod;

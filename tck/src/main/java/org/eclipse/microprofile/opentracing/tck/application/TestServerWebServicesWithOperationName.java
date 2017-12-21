@@ -47,12 +47,12 @@ public class TestServerWebServicesWithOperationName {
     /**
      * Web service endpoint with an explicit operation name on the class.
      */
-    public static final String REST_OPERATION_PREFIX = "operationPrefix";
+    public static final String REST_OPERATION_CLASS_OP_NAME = "classOperationName";
 
     /**
      * Web service endpoint with an explicit operation name on the class and endpoint.
      */
-    public static final String REST_OPERATION_PREFIX_WITH_NAME = "operationPrefixWithName";
+    public static final String REST_OPERATION_CLASS_AND_METHOD_OP_NAME = "classAndMethodOperationName";
     
     /**
      * Explicit endpoint operation name.
@@ -71,9 +71,9 @@ public class TestServerWebServicesWithOperationName {
      * @return OK response
      */
     @GET
-    @Path(REST_OPERATION_PREFIX)
+    @Path(REST_OPERATION_CLASS_OP_NAME)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response operationPrefix() {
+    public Response classOperationName() {
         testAnnotatedClassWithOperationName.annotatedClassMethodImplicitlyTraced();
         testAnnotatedClassWithOperationName.annotatedClassMethodExplicitlyTraced();
         return Response.ok().build();
@@ -86,9 +86,9 @@ public class TestServerWebServicesWithOperationName {
      */
     @Traced(operationName = ENDPOINT_OPERATION_NAME)
     @GET
-    @Path(REST_OPERATION_PREFIX_WITH_NAME)
+    @Path(REST_OPERATION_CLASS_AND_METHOD_OP_NAME)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response operationPrefixWithName() {
+    public Response classAndMethodOperationName() {
         return Response.ok().build();
     }
 }

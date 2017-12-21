@@ -31,21 +31,52 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Define the InterceptorBinding that wraps methods to be traced.
+ * This annotation applies to a class or a method. When applied to a class, this
+ * annotation is applied to all methods of the class. If the annotation is
+ * applied to a class and method then the annotation applied to the method takes
+ * precedence. The annotation starts a Span at the beginning of the method, and
+ * finishes the Span at the end of the method.
+ * 
  * @author <a href="mailto:steve.m.fontes@gmail.com">Steve Fontes</a>
- *
  */
-
 @Documented
 @InterceptorBinding
 @Target({ TYPE, METHOD })
 @Retention(RUNTIME)
 public @interface Traced {
-    /** @return whether this method should be traced. */
+    /**
+     * Defaults to true. If <code>@Traced</code> is specified at the class
+     * level, then <code>@Traced(false)</code> is used to annotate specific
+     * methods to disable creation of a Span for those methods. By default all
+     * JAX-RS endpoint methods are traced. To disable Span creation of a
+     * specific JAX-RS endpoint, the @Traced(false) annotation can be used.
+     * 
+     * When the <code>@Traced(false)</code> annotation is used for a JAX-RS
+     * endpoint method, the upstream SpanContext will not be extracted. Any
+     * Spans created, either automatically for outbound requests, or explicitly
+     * using an injected Tracer, will not have an upstream parent Span in the
+     * Span hierarchy.
+     * 
+     * @return whether this method should be traced.
+     */
     @Nonbinding
     boolean value() default true;
-    /** @return the name to give the Span for this trace point. */
+
+    /**
+     * Default is "". If the <code>@Traced</code> annotation finds the
+     * operationName as "", the default operation name is used. For a JAX-RS
+     * endpoint method (see Server Span name). If the annotated method is not a
+     * JAX-RS endpoint, the default operation name of the new Span for the
+     * method is:
+     * 
+     * <code>${package name}.${class name}.${method name}</code>
+     * 
+     * If operationName is specified on a class, that operationName will be used
+     * for all methods of the class unless a method explicitly overrides it with
+     * its own operationName.
+     * 
+     * @return the name to give the Span for this trace point.
+     */
     @Nonbinding
     String operationName() default "";
 }
-
