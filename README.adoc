@@ -23,6 +23,7 @@ The behaviors specify how incoming and outgoing requests will have OpenTracing S
 
 * Proposal: [MP-0007](0007-DistributedTracing.md)
 * Authors: link:https://github.com/Steve-Fontes[Steve Fontes],
+link:https://github.com/kgibm[Kevin Grigorenko],
 link:https://github.com/pavolloffay[Pavol Loffay],
 link:https://github.com/pilhuhnm[Heiko W. Rupp]
 * Status: V 1.0 Released
