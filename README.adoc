@@ -18,10 +18,15 @@
 //
 # Microprofile OpenTracing
 
-* Proposal: [MP-0007](0007-DistributedTracing.md)
-* Authors: link:https://github.com/Steve-Fontes[Steve Fontes]
-* Status: **Awaiting review**
-* For the current specification see link:spec/src/main/asciidoc/microprofile-opentracing-spec.asciidoc[microprofile-opentracing-spec].
-* For announcements and more discussions visit link:++https://groups.google.com/forum/#!forum/microprofile++[MicroProfile Google Groups], and filter on link:++https://groups.google.com/forum/#!tags/microprofile/distributed-tracing++[distributed-tracing tag].
-* Join the discussion on Gitter: image:https://badges.gitter.im/eclipse/microprofile-opentracing.svg[link=https://gitter.im/eclipse/microprofile-opentracing]
+The Microprofile Opentracing specification defines behaviors and an API for accessing an OpenTracing compliant Tracer object within your JAX-RS application.
+The behaviors specify how incoming and outgoing requests will have OpenTracing Spans automatically created. The API defines how to explicitly access a configured Tracer object.
 
+* Proposal: [MP-0007](0007-DistributedTracing.md)
+* Authors: link:https://github.com/Steve-Fontes[Steve Fontes],
+link:https://github.com/kgibm[Kevin Grigorenko],
+link:https://github.com/pavolloffay[Pavol Loffay],
+link:https://github.com/pilhuhnm[Heiko W. Rupp]
+* Status: V 1.0 Released
+* For the current specification see link:https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing.asciidoc[microprofile-opentracing-spec].
+* For announcements and more discussions visit link:++https://groups.google.com/forum/#!forum/microprofile++[MicroProfile Google Groups], and filter on link:++https://groups.google.com/forum/#!searchin/microprofile/tag$3Adistributed-tracing$20OR$20tag$3Aopentracing%7Csort:date++[distributed-tracing or opentracing tags].
+* Join the discussion on Gitter: image:https://badges.gitter.im/eclipse/microprofile-opentracing.svg[link=https://gitter.im/eclipse/microprofile-opentracing]
