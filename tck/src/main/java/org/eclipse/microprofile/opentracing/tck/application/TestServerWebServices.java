@@ -250,6 +250,7 @@ public class TestServerWebServices {
         testAnnotatedMethods.annotatedMethodExplicitlyNotTracedWithOpName();
         testDisabledAnnotatedClass.annotatedClassMethodExplicitlyTraced();
         testDisabledAnnotatedClass.annotatedClassMethodImplicitlyNotTraced();
+        testDisabledAnnotatedClass.annotatedClassMethodExplicitlyTracedWithOperationName();
         return Response.ok().build();
     }
 

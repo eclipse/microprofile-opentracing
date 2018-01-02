@@ -39,6 +39,14 @@ public class TestDisabledAnnotatedClass {
     }
 
     /**
+     * Method that we expect to be Traced with an operation name.
+     */
+    @Traced(operationName = "explicitOperationName3")
+    public void annotatedClassMethodExplicitlyTracedWithOperationName() {
+        System.out.println("Called annotatedClassMethodExplicitlyTracedWithOperationName");
+    }
+
+    /**
      * Method that we expect not to be Traced.
      */
     public void annotatedClassMethodImplicitlyNotTraced() {
