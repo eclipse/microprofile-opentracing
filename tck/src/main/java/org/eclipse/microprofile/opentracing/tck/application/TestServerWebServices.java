@@ -42,6 +42,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.eclipse.microprofile.opentracing.ClientTracingRegistrar;
 import org.eclipse.microprofile.opentracing.Traced;
 
 import io.opentracing.Span;
@@ -367,7 +368,7 @@ public class TestServerWebServices {
      * @param requestUrl The request URL.
      */
     private void executeNested(String requestUrl) {
-        Client restClient = ClientBuilder.newBuilder().build();
+        Client restClient = ClientTracingRegistrar.configure(ClientBuilder.newBuilder()).build();
         WebTarget target = restClient.target(requestUrl);
         Response nestedResponse = target.request().get();
         nestedResponse.close();
@@ -379,7 +380,7 @@ public class TestServerWebServices {
      * @return Future for the Response.
      */
     private Future<Response> executeNestedAsync(String requestUrl) {
-        Client restClient = ClientBuilder.newBuilder().build();
+        Client restClient = ClientTracingRegistrar.configure(ClientBuilder.newBuilder()).build();
         WebTarget target = restClient.target(requestUrl);
         return target.request().async().get();
     }
