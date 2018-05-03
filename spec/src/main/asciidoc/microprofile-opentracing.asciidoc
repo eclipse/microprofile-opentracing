@@ -136,6 +136,7 @@ Spans created for incoming requests will have the following tags added by defaul
 * `Tags.HTTP_METHOD`
 * `Tags.HTTP_URL`
 * `Tags.HTTP_STATUS`
+* `Tags.COMPONENT = "jaxrs"`
 * `Tags.ERROR` (if true)
 
 `Tags.SPAN_KIND` MUST be specified at Span start time.
@@ -146,7 +147,7 @@ If there is an exception object available the implementation SHOULD also add log
 ==== Span creation and injection for outbound requests
 Tracing in `javax.ws.rs.Client` has to be explicitly enabled by invoking
 `org.eclipse.microprofile.opentracing.ClientTracingRegistrar.configure(ClientBuilder clientBuilder)`.
-Implementation might enable client tracing globally, then explicit configuration has no effect.
+The implementation might enable client tracing globally, in this case explicit configuration has no effect.
 
 When a request is sent from a JAX-RS `javax.ws.rs.client.Client`, a new Span is created and its SpanContext is injected in the outbound request for propagation downstream. The new Span will be a child of the active Span if an active Span exists. The new Span will be finished when the outbound request is completed.
 
@@ -163,6 +164,7 @@ Spans created for outgoing requests will have the following tags added by defaul
 * `Tags.HTTP_METHOD`
 * `Tags.HTTP_URL`
 * `Tags.HTTP_STATUS`
+* `Tags.COMPONENT = "jaxrs"`
 * `Tags.ERROR` (if true)
 
 `Tags.SPAN_KIND` MUST be specified at Span start time.
