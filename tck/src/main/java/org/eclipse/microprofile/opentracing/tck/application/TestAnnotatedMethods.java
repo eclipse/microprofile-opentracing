@@ -28,7 +28,7 @@ import org.eclipse.microprofile.opentracing.Traced;
  */
 @ApplicationScoped
 public class TestAnnotatedMethods {
-    
+
     /**
      * Method that we expect to be Traced.
      */
@@ -36,7 +36,7 @@ public class TestAnnotatedMethods {
     public void annotatedMethodExplicitlyTraced() {
         System.out.println("Called annotatedMethodExplicitlyTraced");
     }
-    
+
     /**
      * Method that we expect to not be Traced.
      */

@@ -29,7 +29,7 @@ import org.eclipse.microprofile.opentracing.Traced;
 @ApplicationScoped
 @Traced(operationName = TestAnnotatedClassWithOperationName.OPERATION_NAME)
 public class TestAnnotatedClassWithOperationName {
-    
+
     /**
      * Operation name for this class.
      */

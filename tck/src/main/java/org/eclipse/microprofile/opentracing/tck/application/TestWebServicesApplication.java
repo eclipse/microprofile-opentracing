@@ -43,7 +43,7 @@ public class TestWebServicesApplication extends Application {
      * The context root of JAXRS web services.
      */
     public static final String TEST_WEB_SERVICES_CONTEXT_ROOT = "rest";
-    
+
     /**
      * {@inheritDoc}
      */
@@ -82,28 +82,28 @@ public class TestWebServicesApplication extends Application {
      */
     public static String getQueryString(Map<String, Object> queryParameters) {
         String result = "?";
-    
+
         String prefix = null;
         for (Map.Entry<String, Object> parmEntry : queryParameters
                 .entrySet()) {
             String parmName = parmEntry.getKey();
             Object parmValue = parmEntry.getValue();
-    
+
             if (prefix != null) {
                 result += prefix;
             }
             else {
                 prefix = "&";
             }
-    
+
             result += urlEncode(parmName);
-    
+
             if (parmValue != null) {
                 result += "=";
                 result += urlEncode(parmValue.toString());
             }
         }
-        
+
         return result;
     }
 
@@ -120,7 +120,7 @@ public class TestWebServicesApplication extends Application {
             throw new RuntimeException(e);
         }
     }
-    
+
     /**
      * Create an example RuntimeException used by a web service.
      * @return New RuntimeException.

@@ -58,37 +58,37 @@ public class TestServerWebServices {
      * The path to this set of web services.
      */
     public static final String REST_TEST_SERVICE_PATH = "testServices";
-    
+
     /**
      * Web service endpoint for the simpleTest call.
      */
     public static final String REST_SIMPLE_TEST = "simpleTest";
-    
+
     /**
      * Web service endpoint that creates local span.
      */
     public static final String REST_LOCAL_SPAN = "localSpan";
-    
+
     /**
      * Async web service endpoint that creates local span.
      */
     public static final String REST_ASYNC_LOCAL_SPAN = "asyncLocalSpan";
-    
+
     /**
      * Web service endpoint that will return HTTP 500.
      */
     public static final String REST_ERROR = "error";
-    
+
     /**
      * Web service that throws an unhandled exception and return HTTP 500.
      */
     public static final String REST_EXCEPTION = "exception";
-    
+
     /**
      * Web service endpoint to test Traced annotations.
      */
     public static final String REST_ANNOTATIONS = "annotations";
-    
+
     /**
      * Web service endpoint to test a Traced annotation with an exception.
      */
@@ -113,12 +113,12 @@ public class TestServerWebServices {
      * Web service endpoint that will call itself some number of times.
      */
     public static final String REST_NESTED = "nested";
-    
+
     /**
      * Query parameter for the number of nested calls.
      */
     public static final String PARAM_NEST_DEPTH = "nestDepth";
-    
+
     /**
      * Query parameter for the breadth of nesting.
      */
@@ -149,26 +149,26 @@ public class TestServerWebServices {
      */
     @Inject
     private Tracer tracer;
-    
+
     /**
      * Represents the URI of the executing web service call.
      */
     @Context
     private UriInfo uri;
-    
+
     /**
      * Injected class with Traced annotation on the class.
      */
     @Inject
     private TestAnnotatedClass testAnnotatedClass;
-    
+
     /**
      * Injected class with Traced annotation disable on the class,
      * but enabled on methods.
      */
     @Inject
     private TestDisabledAnnotatedClass testDisabledAnnotatedClass;
-    
+
     /**
      * Injected class with Traced annotation on methods.
      */
@@ -270,7 +270,7 @@ public class TestServerWebServices {
         }
         return Response.ok().build();
     }
-    
+
     /**
      * Shouldn't create a span.
      * @return OK response
@@ -282,7 +282,7 @@ public class TestServerWebServices {
     public Response notTraced() {
         return Response.ok().build();
     }
-    
+
     /**
      * Traced with an explicit operation name.
      * @return OK response
@@ -302,7 +302,7 @@ public class TestServerWebServices {
      *
      * A nesting depth greater than zero causes a call to the nesting service
      * with the depth reduced by one (1).
-     * 
+     *
      * The {@code nestBreadth} controls how many concurrent, nested calls are
      * made on the first level of nesting.
      *
@@ -324,7 +324,7 @@ public class TestServerWebServices {
             @QueryParam(PARAM_FAIL_NEST) boolean failNest,
             @QueryParam(PARAM_ASYNC) boolean async)
             throws InterruptedException, ExecutionException {
-        
+
         if (nestDepth > 0) {
             Map<String, Object> nestParameters = new HashMap<String, Object>();
 
@@ -340,12 +340,12 @@ public class TestServerWebServices {
                 nestParameters.put(PARAM_FAIL_NEST, false);
                 nestParameters.put(PARAM_ASYNC, false);
             }
-            
+
             String requestUrl = getRequestPath(
                     REST_TEST_SERVICE_PATH, target, nestParameters);
-            
+
             List<Future<Response>> futures = new ArrayList<>();
-            
+
             for (int i = 0; i < nestBreadth; i++) {
                 if (async) {
                     futures.add(executeNestedAsync(requestUrl));
@@ -354,7 +354,7 @@ public class TestServerWebServices {
                     executeNested(requestUrl);
                 }
             }
-            
+
             for (Future<Response> future : futures) {
                 future.get().close();
             }
@@ -395,7 +395,7 @@ public class TestServerWebServices {
     public String getRequestPath(
             String servicePath, String endpointPath,
             Map<String, Object> requestParameters) {
-        
+
         String incomingUrl = uri.getAbsolutePath().toString();
         int i = incomingUrl.indexOf(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT);
         if (i == -1) {
@@ -418,7 +418,7 @@ public class TestServerWebServices {
 
         return result;
     }
-    
+
     /**
      * Potentially print a debug message.
      * @param message Debug message.
@@ -433,7 +433,7 @@ public class TestServerWebServices {
      *
      * The child span must be finished using {@link #finishChildSpan} before
      * completing the service request which created the span.
-     * 
+     *
      * If there is no active span, the newly created span is made the active
      * span.
      *

@@ -38,7 +38,7 @@ public class TestServerWebServicesWithOperationName {
      * The path to this set of web services.
      */
     public static final String REST_TEST_SERVICE_PATH_WITH_OP_NAME = "testServicesWithOpName";
-    
+
     /**
      * Traced operationName prefix.
      */
@@ -53,7 +53,7 @@ public class TestServerWebServicesWithOperationName {
      * Web service endpoint with an explicit operation name on the class and endpoint.
      */
     public static final String REST_OPERATION_CLASS_AND_METHOD_OP_NAME = "classAndMethodOperationName";
-    
+
     /**
      * Explicit endpoint operation name.
      */
@@ -67,7 +67,7 @@ public class TestServerWebServicesWithOperationName {
 
     /**
      * Test class with Traced annotation and operation name.
-     * 
+     *
      * @return OK response
      */
     @GET
@@ -81,7 +81,7 @@ public class TestServerWebServicesWithOperationName {
 
     /**
      * Test class and endpoint with Traced annotation and operation name.
-     * 
+     *
      * @return OK response
      */
     @Traced(operationName = ENDPOINT_OPERATION_NAME)

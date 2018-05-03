@@ -62,7 +62,7 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
             rootSpans.add(rootSpan);
         }
     }
-    
+
     /**
      * Return a list of this tree's root spans.
      * @return List of root spans.
@@ -234,7 +234,7 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
                 child.visitTree(visitor);
             }
         }
-        
+
         /**
          * {@inheritDoc}
          */
