@@ -67,7 +67,7 @@ public class TestSpan implements Span {
      * Tags.
      */
     private Map<String, Object> tags = new HashMap<>();
-    
+
     /**
      * Log entries.
      */
@@ -319,23 +319,6 @@ public class TestSpan implements Span {
      * {@inheritDoc}
      */
     @Override
-    public Span log(final String eventName, final Object payload) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Span log(final long timestampMicroseconds, final String eventName,
-            final Object payload) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void finish() {
         throw new UnsupportedOperationException();
     }
@@ -355,13 +338,13 @@ public class TestSpan implements Span {
     public String toString() {
         // Only print the parts that are checked in equals so that an
         // assertion failure is easy to understand.
-        
+
         // return "{ " + "startMicros: " + startMicros
         //         + ", finishMicros: " + finishMicros + ", traceId: "
         //         + traceId + ", parentId: " + parentId + ", spanId: "
         //         + spanId + ", operationName: " + cachedOperationName
         //         + ", tags: " + tags + " }";
-        
+
         // Sort the tags to make it easier to visually compare object outputs.
         List<Entry<String, Object>> tagsList = new ArrayList<>();
         tagsList.addAll(tags.entrySet());
@@ -372,7 +355,7 @@ public class TestSpan implements Span {
                 return x.getKey().compareTo(y.getKey());
             }
         });
-        
+
         return "{ " + "operationName: " + cachedOperationName + ", tags: "
                 + tagsList + ", logEntries: " + logEntries + "}";
     }
@@ -390,7 +373,7 @@ public class TestSpan implements Span {
                         + otherSpan.cachedOperationName);
                 return false;
             }
-            
+
             if (tags.size() != otherSpan.tags.size()) {
                 System.err.println("MISMATCH: Number of tags doesn't match");
                 return false;
@@ -399,7 +382,7 @@ public class TestSpan implements Span {
             if (!tags.equals(otherSpan.tags)) {
                 return false;
             }
-            
+
             if (logEntries.size() != otherSpan.logEntries.size()) {
                 System.err.println(
                         "MISMATCH: Number of log entries doesn't match ("
@@ -407,11 +390,11 @@ public class TestSpan implements Span {
                                 + otherSpan.logEntries.size() + ")");
                 return false;
             }
-            
+
             for (int i = 0; i < logEntries.size(); i++) {
                 Map<String, ?> logEntryX = logEntries.get(i);
                 Map<String, ?> logEntryY = otherSpan.logEntries.get(i);
-                
+
                 if (!logEntryX.equals(logEntryY)) {
                     return false;
                 }
