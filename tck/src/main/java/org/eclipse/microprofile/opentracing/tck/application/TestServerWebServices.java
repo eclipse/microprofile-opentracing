@@ -446,10 +446,7 @@ public class TestServerWebServices {
         if (activeSpan != null) {
             spanBuilder.asChildOf(activeSpan.context());
         }
-        Span childSpan = spanBuilder.startManual();
-        if (activeSpan == null) {
-            tracer.scopeManager().activate(childSpan, true);
-        }
+        Span childSpan = spanBuilder.start();
         childSpan.setTag(LOCAL_SPAN_TAG_KEY, LOCAL_SPAN_TAG_VALUE);
         return childSpan;
     }
