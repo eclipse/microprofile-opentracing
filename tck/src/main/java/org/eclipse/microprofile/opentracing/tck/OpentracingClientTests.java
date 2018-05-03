@@ -89,7 +89,7 @@ public class OpentracingClientTests extends Arquillian {
 
         File[] files = Maven.resolver()
                 .resolve(
-                "io.opentracing:opentracing-api:0.30.0",
+                "io.opentracing:opentracing-api:0.31.0",
                 "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
                 )
                 .withTransitivity().asFile();

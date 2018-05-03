@@ -44,7 +44,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.opentracing.Traced;
 
-import io.opentracing.ActiveSpan;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 
@@ -442,14 +441,14 @@ public class TestServerWebServices {
      * @return The new child span.
      */
     private Span startChildSpan(String operationName) {
-        ActiveSpan activeSpan = tracer.activeSpan();
+        Span activeSpan = tracer.activeSpan();
         Tracer.SpanBuilder spanBuilder = tracer.buildSpan(operationName);
         if (activeSpan != null) {
             spanBuilder.asChildOf(activeSpan.context());
         }
         Span childSpan = spanBuilder.startManual();
         if (activeSpan == null) {
-            tracer.makeActive(childSpan);
+            tracer.scopeManager().activate(childSpan, true);
         }
         childSpan.setTag(LOCAL_SPAN_TAG_KEY, LOCAL_SPAN_TAG_VALUE);
         return childSpan;

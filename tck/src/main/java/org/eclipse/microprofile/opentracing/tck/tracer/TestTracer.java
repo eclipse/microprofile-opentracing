@@ -18,6 +18,8 @@
  */
 package org.eclipse.microprofile.opentracing.tck.tracer;
 
+import io.opentracing.ScopeManager;
+import io.opentracing.Span;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,8 +29,6 @@ import javax.enterprise.inject.Alternative;
 
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree.TreeNode;
 
-import io.opentracing.ActiveSpan;
-import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
@@ -67,7 +67,7 @@ public class TestTracer implements Tracer {
      * {@inheritDoc}
      */
     @Override
-    public ActiveSpan activeSpan() {
+    public ScopeManager scopeManager() {
         throw new UnsupportedOperationException();
     }
 
@@ -75,7 +75,7 @@ public class TestTracer implements Tracer {
      * {@inheritDoc}
      */
     @Override
-    public ActiveSpan makeActive(final Span span) {
+    public Span activeSpan() {
         throw new UnsupportedOperationException();
     }
 

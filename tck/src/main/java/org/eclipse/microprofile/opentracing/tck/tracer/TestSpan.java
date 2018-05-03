@@ -319,23 +319,6 @@ public class TestSpan implements Span {
      * {@inheritDoc}
      */
     @Override
-    public Span log(final String eventName, final Object payload) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Span log(final long timestampMicroseconds, final String eventName,
-            final Object payload) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void finish() {
         throw new UnsupportedOperationException();
     }
