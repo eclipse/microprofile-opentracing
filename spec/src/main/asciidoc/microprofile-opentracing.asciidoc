@@ -136,6 +136,7 @@ Spans created for incoming requests will have the following tags added by defaul
 * `Tags.HTTP_METHOD`
 * `Tags.HTTP_URL`
 * `Tags.HTTP_STATUS`
+* `Tags.COMPONENT = "jaxrs"`
 * `Tags.ERROR` (if true)
 
 `Tags.SPAN_KIND` MUST be specified at Span start time.
@@ -159,6 +160,7 @@ Spans created for outgoing requests will have the following tags added by defaul
 * `Tags.HTTP_METHOD`
 * `Tags.HTTP_URL`
 * `Tags.HTTP_STATUS`
+* `Tags.COMPONENT = "jaxrs"`
 * `Tags.ERROR` (if true)
 
 `Tags.SPAN_KIND` MUST be specified at Span start time.
