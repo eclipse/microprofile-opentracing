@@ -75,6 +75,7 @@ import io.opentracing.tag.Tags;
  * @author <a href="mailto:steve.m.fontes@gmail.com">Steve Fontes</a>
  */
 public class OpentracingClientTests extends Arquillian {
+    private static final String JAXRS_COMPONENT = "jaxrs";
 
     /** Server app URL for the client tests. */
     @ArquillianResource
@@ -144,7 +145,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_SIMPLE_TEST,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 )
@@ -181,7 +183,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_ANNOTATIONS,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 ),
@@ -273,7 +276,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_OPERATION_NAME,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 )
@@ -305,7 +309,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
                         TestServerWebServicesWithOperationName.REST_OPERATION_CLASS_OP_NAME,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 ),
@@ -351,7 +356,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServicesWithOperationName.REST_TEST_SERVICE_PATH_WITH_OP_NAME,
                         TestServerWebServicesWithOperationName.REST_OPERATION_CLASS_AND_METHOD_OP_NAME,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 )
@@ -435,7 +441,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_ANNOTATION_EXCEPTION,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 ),
@@ -464,7 +471,8 @@ public class OpentracingClientTests extends Arquillian {
             TestServerWebServices.REST_TEST_SERVICE_PATH,
             service,
             null,
-            Status.INTERNAL_SERVER_ERROR.getStatusCode()
+            Status.INTERNAL_SERVER_ERROR.getStatusCode(),
+            JAXRS_COMPONENT
         );
 
         return expectedTags;
@@ -756,7 +764,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_LOCAL_SPAN,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 ),
@@ -797,7 +806,8 @@ public class OpentracingClientTests extends Arquillian {
                         TestServerWebServices.REST_TEST_SERVICE_PATH,
                         TestServerWebServices.REST_ASYNC_LOCAL_SPAN,
                         null,
-                        Status.OK.getStatusCode()
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
                     ),
                     Collections.emptyList()
                 ),
@@ -859,7 +869,8 @@ public class OpentracingClientTests extends Arquillian {
                 TestServerWebServices.REST_TEST_SERVICE_PATH,
                 TestServerWebServices.REST_NESTED,
                 queryParameters,
-                Status.OK.getStatusCode()
+                Status.OK.getStatusCode(),
+                JAXRS_COMPONENT
             );
         }
 
@@ -887,6 +898,7 @@ public class OpentracingClientTests extends Arquillian {
                         && !key.equals(Tags.HTTP_METHOD.getKey())
                         && !key.equals(Tags.HTTP_URL.getKey())
                         && !key.equals(Tags.HTTP_STATUS.getKey())
+                        && !key.equals(Tags.COMPONENT.getKey())
                         && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)));
 
         // It's okay if the returnedTree has log entries other than the ones we
@@ -909,7 +921,7 @@ public class OpentracingClientTests extends Arquillian {
      */
     private Map<String, Object> getExpectedSpanTags(String spanKind,
             String httpMethod, String service, String relativePath,
-            Map<String, Object> queryParameters, int httpStatus) {
+            Map<String, Object> queryParameters, int httpStatus, String component) {
 
         // When adding items to this, also add to assertEqualTrees
 
@@ -918,6 +930,7 @@ public class OpentracingClientTests extends Arquillian {
         tags.put(Tags.HTTP_METHOD.getKey(), httpMethod);
         tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(service, relativePath, queryParameters));
         tags.put(Tags.HTTP_STATUS.getKey(), httpStatus);
+        tags.put(Tags.COMPONENT.getKey(), component);
         return tags;
     }
 
