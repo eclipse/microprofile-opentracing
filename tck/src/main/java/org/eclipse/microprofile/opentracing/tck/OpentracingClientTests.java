@@ -32,9 +32,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -76,6 +76,7 @@ import io.opentracing.tag.Tags;
  */
 public class OpentracingClientTests extends Arquillian {
     private static final String JAXRS_COMPONENT = "jaxrs";
+    private final AtomicInteger idCounter = new AtomicInteger(0);
 
     /** Server app URL for the client tests. */
     @ArquillianResource
@@ -1104,7 +1105,6 @@ public class OpentracingClientTests extends Arquillian {
      * @return Random integer.
      */
     private int getRandomNumber() {
-        int uniqueId = ThreadLocalRandom.current().nextInt(1, 999999);
-        return uniqueId;
+        return idCounter.incrementAndGet();
     }
 }
