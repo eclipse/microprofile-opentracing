@@ -145,7 +145,7 @@ Spans created for incoming requests will have the following tags added by defaul
 If there is an exception object available the implementation SHOULD also add logs `event=error` and `error.object=<error object instance>` to the active span.
 
 ==== Span creation and injection for outbound requests
-Tracing in `javax.ws.rs.Client` has to be explicitly enabled by invoking
+Tracing in `javax.ws.rs.client.Client` has to be explicitly enabled by invoking
 `org.eclipse.microprofile.opentracing.ClientTracingRegistrar.configure(ClientBuilder clientBuilder)`.
 The implementation might enable client tracing globally, in this case explicit configuration has no effect.
 
