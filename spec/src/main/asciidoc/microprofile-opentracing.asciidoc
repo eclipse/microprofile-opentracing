@@ -249,3 +249,12 @@ A configured Tracer object can be accessed with CDI injection.
 
 Current mechanisms require a decision at development time about the distributed trace system that will be used.
 This feature allows the decision to be made at the operational environment level.
+
+== Changelog
+
+=== Changes since 1.0
+
+* Added `ClientTracingRegistar` and `ClientTracingRegistarProvider`
+* Tracing in a JAX-RS client has to be explictly enabled
+* Updated opentracing.io API from 0.30 to 0.31. This is a breaking change.
+
