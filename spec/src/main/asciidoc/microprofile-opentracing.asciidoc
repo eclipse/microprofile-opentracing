@@ -256,5 +256,5 @@ This feature allows the decision to be made at the operational environment level
 
 * Added `ClientTracingRegistar` and `ClientTracingRegistarProvider`
 * Tracing in a JAX-RS client has to be explictly enabled
-* Depend upon 0.31 of opentracing.io API
+* Updated opentracing.io API from 0.30 to 0.31. This is a breaking change.
 
