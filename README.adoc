@@ -26,7 +26,7 @@ The behaviors specify how incoming and outgoing requests will have OpenTracing S
 link:https://github.com/kgibm[Kevin Grigorenko],
 link:https://github.com/pavolloffay[Pavol Loffay],
 link:https://github.com/pilhuhnm[Heiko W. Rupp]
-* Status: V 1.0 Released
+* Status: V 1.1 Released
 * For the current specification see link:https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing.asciidoc[microprofile-opentracing-spec].
 * For announcements and more discussions visit link:++https://groups.google.com/forum/#!forum/microprofile++[MicroProfile Google Groups], and filter on link:++https://groups.google.com/forum/#!searchin/microprofile/tag$3Adistributed-tracing$20OR$20tag$3Aopentracing%7Csort:date++[distributed-tracing or opentracing tags].
 * Join the discussion on Gitter: image:https://badges.gitter.im/eclipse/microprofile-opentracing.svg[link=https://gitter.im/eclipse/microprofile-opentracing]
