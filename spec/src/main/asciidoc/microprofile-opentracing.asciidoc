@@ -175,7 +175,8 @@ If there is an exception object available the implementation SHOULD also add log
 ===== Disabling server side tracing
 Server side tracing can be disabled by specifying a skip pattern which is used to match with HTTP path
 `UriInfo.getPath()`. If the regex matches with HTTP path then tracing for the given server
-request is disabled. The configuration does not disable any outbound request made from the disabled
+request is disabled even if the method or class is annotated with `@Traced`.
+The configuration does not disable any outbound request made from the disabled
 server endpoint.
 
 Configuration of the skip pattern leverages MicroProfile Config specification.
