@@ -53,7 +53,7 @@ import org.testng.annotations.BeforeMethod;
 /**
  * @author Pavol Loffay
  */
-public class OpenTracingBaseTests extends Arquillian {
+abstract class OpenTracingBaseTests extends Arquillian {
     static final String JAXRS_COMPONENT = "jaxrs";
     private final AtomicInteger idCounter = new AtomicInteger(0);
 
