@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -79,7 +79,7 @@ abstract class OpenTracingBaseTests extends Arquillian {
             .withTransitivity().asFile();
 
         WebArchive war = ShrinkWrap.create(WebArchive.class, "opentracing.war")
-            .addPackages(true, OpentracingClientTests.class.getPackage())
+            .addPackages(true, OpenTracingClientTests.class.getPackage())
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsLibraries(files);
 
