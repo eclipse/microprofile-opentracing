@@ -249,3 +249,5 @@ A configured Tracer object can be accessed with CDI injection.
 
 Current mechanisms require a decision at development time about the distributed trace system that will be used.
 This feature allows the decision to be made at the operational environment level.
+
+include::changelog.asciidoc[]
