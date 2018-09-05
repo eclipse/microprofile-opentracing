@@ -172,6 +172,17 @@ Spans created for outgoing requests will have the following tags added by defaul
 `Tags.ERROR` tag SHOULD be added to a Span on failed operations for any client error (4xx) codes.
 If there is an exception object available the implementation SHOULD also add logs `event=error` and `error.object=<error object instance>` to the active span.
 
+===== Disabling server side tracing
+Server side tracing can be disabled by specifying a skip pattern which is used to match with HTTP path
+`UriInfo.getPath()`. If the regex matches with HTTP path then tracing for the given server
+request is disabled even if the method or class is annotated with `@Traced`.
+The configuration does not disable any outbound request made from the disabled
+server endpoint.
+
+Configuration of the skip pattern leverages MicroProfile Config specification.
+The skip pattern is specified as a string with key `mp.opentracing.skip-pattern` which has to be
+compliant with `java.util.regex.Pattern`. An example skip pattern might be `mp.opentracing.skip-pattern=/health|/metrics.*`
+
 === Enabling explicit distributed tracing code instrumentation
 
 An annotation is provided to define explicit Span creation. This works on top of the "no-action" setup described in <<no-instrumentation>>.

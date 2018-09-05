@@ -40,6 +40,7 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.opentracing.ClientTracingRegistrar;
@@ -68,6 +69,11 @@ public class TestServerWebServices {
      * Web service endpoint that creates local span.
      */
     public static final String REST_LOCAL_SPAN = "localSpan";
+
+    /**
+     * Web service endpoint which should not be traced
+     */
+    public static final String REST_SKIP_SIMPLE = "skipSimple";
 
     /**
      * Async web service endpoint that creates local span.
@@ -362,6 +368,20 @@ public class TestServerWebServices {
 
         return Response.ok().build();
     }
+
+    /**
+     * Endpoint which creates local span.
+     * @return OK response
+     */
+    @GET
+    @Path(REST_SKIP_SIMPLE)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response skipSimple() {
+        boolean isActiveSpan = tracer.activeSpan() != null;
+        return Response.ok().status(isActiveSpan ?
+            Status.OK.getStatusCode() : Status.NO_CONTENT.getStatusCode()).build();
+    }
+
 
     /**
      * Execute a nested web service call.

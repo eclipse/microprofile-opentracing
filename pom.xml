@@ -33,6 +33,7 @@
         <checkstyle.methodNameFormat>^_?[a-z][a-zA-Z0-9]*$</checkstyle.methodNameFormat>
         <autorelease>false</autorelease>
 
+        <version.mp.config>1.3</version.mp.config>
         <!-- Versions of API dependencies -->
         <osgi-annotation.version>1.0.0</osgi-annotation.version>
 
