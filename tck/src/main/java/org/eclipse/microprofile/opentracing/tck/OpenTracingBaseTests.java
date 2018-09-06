@@ -226,18 +226,38 @@ public abstract class OpenTracingBaseTests extends Arquillian {
 
         // It's okay if the returnedTree has tags other than the ones we
         // want to compare, so just remove those
-        returnedTree.visitTree(span -> span.getTags().keySet()
-            .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
-                && !key.equals(Tags.HTTP_METHOD.getKey())
-                && !key.equals(Tags.HTTP_URL.getKey())
-                && !key.equals(Tags.HTTP_STATUS.getKey())
-                && !key.equals(Tags.COMPONENT.getKey())
-                && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)));
+        returnedTree.visitTree(span -> {
+            if (Tags.SPAN_KIND_SERVER.equals(span.getTags().get(Tags.SPAN_KIND.getKey()))) {
+                span.getTags().keySet()
+                    .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
+                        && !key.equals(Tags.HTTP_METHOD.getKey())
+                        && !key.equals(Tags.HTTP_URL.getKey())
+                        && !key.equals(Tags.HTTP_STATUS.getKey())
+                        && !key.equals(Tags.COMPONENT.getKey())
+                        && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY));
+            }
+            else {
+                span.getTags().keySet()
+                    .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
+                        && !key.equals(Tags.HTTP_METHOD.getKey())
+                        && !key.equals(Tags.HTTP_URL.getKey())
+                        && !key.equals(Tags.HTTP_STATUS.getKey())
+                        && !key.equals(Tags.COMPONENT.getKey())
+                        && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)
+                        && !key.equals(Tags.ERROR.getKey()));
+            }
+        });
 
         // It's okay if the returnedTree has log entries other than the ones we
         // want to compare, so just remove those
-        returnedTree.visitTree(span -> span.getLogEntries()
-            .removeIf(logEntry -> true));
+        returnedTree.visitTree(span -> {
+            if (!Tags.SPAN_KIND_SERVER.equals(span.getTags().get(Tags.SPAN_KIND.getKey()))) {
+                span.getLogEntries().forEach(stringMap -> {
+                    stringMap.keySet()
+                        .removeIf(key -> !key.equals("event") && !key.equals("error.object"));
+                });
+            }
+        });
 
         Assert.assertEquals(returnedTree, expectedTree);
     }

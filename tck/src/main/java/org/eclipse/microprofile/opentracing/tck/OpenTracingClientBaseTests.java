@@ -21,6 +21,7 @@ package org.eclipse.microprofile.opentracing.tck;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -368,6 +369,12 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
+        Map<String, Object> tags = new HashMap<>();
+        tags.put(Tags.ERROR.getKey(), true);
+        Map<String, Object> logs = new HashMap<>();
+        logs.put("event", Tags.ERROR.getKey());
+        logs.put("error.object", new RuntimeException());
+
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
                 new TestSpan(
@@ -391,8 +398,8 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
                 new TreeNode<>(
                     new TestSpan(
                         TestAnnotatedClass.class.getName() + ".annotatedClassMethodImplicitlyTracedWithException",
-                        Collections.emptyMap(),
-                        Collections.emptyList()
+                        tags,
+                        Arrays.asList(logs)
                     )
                 )
             )
