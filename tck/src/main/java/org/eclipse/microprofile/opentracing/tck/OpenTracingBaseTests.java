@@ -297,8 +297,8 @@ abstract class OpenTracingBaseTests extends Arquillian {
      * Create a tags collection for expected span tags.
      * @param spanKind Value for {@link Tags#SPAN_KIND}
      * @param httpMethod Value for {@link Tags#HTTP_METHOD}
-     * @param service First parameter to {@link #getWebServiceURL(String, String)
-     * @param relativePath Second parameter to {@link #getWebServiceURL(String, String)
+     * @param service First parameter to {@link #getWebServiceURL(String, String)}
+     * @param relativePath Second parameter to {@link #getWebServiceURL(String, String)}
      * @param queryParameters Query parameters.
      * @param httpStatus Value for {@link Tags#HTTP_STATUS}
      * @return Tags collection.
