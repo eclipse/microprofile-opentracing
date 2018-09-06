@@ -33,7 +33,7 @@ public class OpentracingClassMethodNameClientTests extends OpenTracingClientBase
     public static class TestConfiguration implements ConfigSource {
         private Map<String, String> propMap = new HashMap<>();
         {
-            propMap.put("mp.opentracing.server-operation-name-provider", "class-method");
+            propMap.put("mp.opentracing.server.operation-name-provider", "class-method");
         }
 
         @Override

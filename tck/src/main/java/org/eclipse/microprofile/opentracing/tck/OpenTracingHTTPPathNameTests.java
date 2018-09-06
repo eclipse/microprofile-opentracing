@@ -41,13 +41,13 @@ import org.testng.annotations.Test;
 /**
  * @author Pavol Loffay
  */
-public class OpenTracingWildcardNameTests extends OpenTracingClientBaseTests {
+public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
 
     public static class TestConfiguration implements ConfigSource {
         private Map<String, String> propMap = new HashMap<>();
 
         {
-            propMap.put("mp.opentracing.server-operation-name-provider", "http-path");
+            propMap.put("mp.opentracing.server.operation-name-provider", "http-path");
         }
 
         @Override
@@ -77,6 +77,9 @@ public class OpenTracingWildcardNameTests extends OpenTracingClientBaseTests {
         if (spanKind.equals(Tags.SPAN_KIND_SERVER)) {
             StringBuilder operationName = new StringBuilder();
             Path classPath = clazz.getAnnotation(Path.class);
+            if (classPath == null) {
+                throw new IllegalArgumentException("Supplied clazz is not JAX-RS resource");
+            }
             if (classPath != null) {
                 if (!classPath.value().startsWith("/")) {
                     operationName.append("/");

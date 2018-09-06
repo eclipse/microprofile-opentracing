@@ -129,14 +129,14 @@ The default operation name of the new Span for the incoming request is
 <HTTP method>:<package name>.<class name>.<method name>
 ```
 
-The operation name can be configured via MicroProfile Config configuration property `mp.opentracing.server-operation-name-provider`.
+The operation name can be configured via MicroProfile Config configuration property `mp.opentracing.server.operation-name-provider`.
 The implementation has to provide two operation name providers:
 
 * `class-method` - the provider for the default operation name.
 * `http-path` - the operation name consists of values provided to `@Path` annotation. For example
 if the class is annotated with `@Path(service)` and method `@(endpoint)` then the operation name is `/service/endpoint`.
 
-If no operation name is specified then `class-method` is used.
+If no operation name provider is specified then `class-method` is used.
 
 ===== Server Span tags
 Spans created for incoming requests will have the following tags added by default:
@@ -189,8 +189,8 @@ The configuration does not disable any outbound request made from the disabled
 server endpoint.
 
 Configuration of the skip pattern leverages MicroProfile Config specification.
-The skip pattern is specified as a string with key `mp.opentracing.skip-pattern` which has to be
-compliant with `java.util.regex.Pattern`. An example skip pattern might be `mp.opentracing.skip-pattern=/health|/metrics.*`
+The skip pattern is specified as a string with key `mp.opentracing.server.skip-pattern` which has to be
+compliant with `java.util.regex.Pattern`. An example skip pattern might be `mp.opentracing.server.skip-pattern=/health|/metrics.*`
 
 === Enabling explicit distributed tracing code instrumentation
 
