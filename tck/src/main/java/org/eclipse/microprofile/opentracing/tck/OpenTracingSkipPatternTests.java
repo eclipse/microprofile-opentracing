@@ -19,18 +19,53 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
+import java.util.HashMap;
+import java.util.Map;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerSkipAllWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
+import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.testng.annotations.Test;
 
 /**
  * @author Pavol Loffay
  */
 public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
+
+    public static class TestConfiguration implements ConfigSource {
+        private Map<String, String> propMap = new HashMap<>();
+
+        {
+            propMap.put("mp.opentracing.server.skip-pattern", "/skipAll/.*|/testServices/skipSimple");
+        }
+
+        @Override
+        public Map<String, String> getProperties() {
+            return propMap;
+        }
+
+        @Override
+        public String getValue(String s) {
+            return propMap.get(s);
+        }
+
+        @Override
+        public String getName() {
+            return this.getClass().getName();
+        }
+    }
+
+    @Deployment
+    public static WebArchive createDeployment() {
+        return OpenTracingBaseTests.createDeployment()
+            .addAsServiceProvider(ConfigSource.class, TestConfiguration.class);
+    }
+
 
     /**
      * Test a web service endpoint that shouldn't be traced.
