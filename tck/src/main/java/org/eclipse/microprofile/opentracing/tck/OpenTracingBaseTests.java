@@ -21,12 +21,14 @@ package org.eclipse.microprofile.opentracing.tck;
 
 import io.opentracing.tag.Tags;
 import java.io.File;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Path;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
@@ -39,7 +41,6 @@ import org.eclipse.microprofile.opentracing.tck.tracer.ConsumableTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestTracer;
-import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.testng.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -53,7 +54,7 @@ import org.testng.annotations.BeforeMethod;
 /**
  * @author Pavol Loffay
  */
-abstract class OpenTracingBaseTests extends Arquillian {
+public abstract class OpenTracingBaseTests extends Arquillian {
     static final String JAXRS_COMPONENT = "jaxrs";
     private final AtomicInteger idCounter = new AtomicInteger(0);
 
@@ -68,7 +69,6 @@ abstract class OpenTracingBaseTests extends Arquillian {
      *
      * @return the Deployed apps
      */
-    @Deployment
     public static WebArchive createDeployment() {
 
         File[] files = Maven.resolver()
@@ -79,7 +79,7 @@ abstract class OpenTracingBaseTests extends Arquillian {
             .withTransitivity().asFile();
 
         WebArchive war = ShrinkWrap.create(WebArchive.class, "opentracing.war")
-            .addPackages(true, OpenTracingClientTests.class.getPackage())
+            .addPackages(true, OpenTracingClientBaseTests.class.getPackage())
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsLibraries(files);
 
@@ -278,12 +278,12 @@ abstract class OpenTracingBaseTests extends Arquillian {
      * @param spanKind The type of span.
      * @param httpMethod HTTP method
      * @param clazz resource class
-     * @param javaMethod method name
+     * @param method method of the REST endpoint
      * @return operation name
      */
-    protected String getOperationName(String spanKind, String httpMethod, Class<?> clazz, String javaMethod) {
+    protected String getOperationName(String spanKind, String httpMethod, Class<?> clazz, Method method) {
         if (spanKind.equals(Tags.SPAN_KIND_SERVER)) {
-            return String.format("%s:%s.%s", httpMethod, clazz.getName(), javaMethod);
+            return String.format("%s:%s.%s", httpMethod, clazz.getName(), method.getName());
         }
         else if (spanKind.equals(Tags.SPAN_KIND_CLIENT)) {
             return httpMethod;
@@ -291,6 +291,23 @@ abstract class OpenTracingBaseTests extends Arquillian {
         else {
             throw new RuntimeException("Span kind " + spanKind + " not implemented");
         }
+    }
+
+    /**
+     * Get REST endpoint java method based on the mapping value in {@link Path} annotation.
+     *
+     * @param clazz class of the endpoint.
+     * @param mapping endpoint mapping.
+     * @return endpoint method or null if not found.
+     */
+    protected Method getEndpointMethod(Class<?> clazz, String mapping) {
+        for (Method method: clazz.getMethods()) {
+            Path methodPath = method.getAnnotation(Path.class);
+            if (methodPath != null && mapping.equals(methodPath.value())) {
+                return method;
+            }
+        }
+        return null;
     }
 
     /**

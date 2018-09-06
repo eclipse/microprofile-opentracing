@@ -19,6 +19,7 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -55,7 +57,7 @@ import io.opentracing.tag.Tags;
  * Opentracing TCK tests.
  * @author <a href="mailto:steve.m.fontes@gmail.com">Steve Fontes</a>
  */
-public class OpenTracingClientTests extends OpenTracingBaseTests {
+public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
 
     /**
      * Test that server endpoint is adding standard tags
@@ -76,7 +78,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
-                        TestServerWebServices.REST_SIMPLE_TEST
+                        getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_SIMPLE_TEST)
                     ),
                     getExpectedSpanTags(
                         Tags.SPAN_KIND_SERVER,
@@ -114,7 +116,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
-                        TestServerWebServices.REST_ANNOTATIONS
+                        getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_ANNOTATIONS)
                     ),
                     getExpectedSpanTags(
                         Tags.SPAN_KIND_SERVER,
@@ -311,7 +313,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
     @Test
     @RunAsClient
     private void testError() throws InterruptedException {
-        assertErrorTest(TestServerWebServices.REST_ERROR);
+        assertErrorTest(getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_ERROR));
     }
 
     /**
@@ -320,21 +322,22 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
     @Test
     @RunAsClient
     private void testException() throws InterruptedException {
-        assertErrorTest(TestServerWebServices.REST_EXCEPTION);
+        assertErrorTest(getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_EXCEPTION));
     }
 
     /**
      * Common code for handling error and exception tests.
-     * @param service The REST service path.
+     * @param method method of the REST endpoint.
      */
-    private void assertErrorTest(String service) {
+    private void assertErrorTest(Method method) {
+        String path = method.getAnnotation(Path.class).value();
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
-            service, Status.INTERNAL_SERVER_ERROR);
+            path, Status.INTERNAL_SERVER_ERROR);
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
-        Map<String, Object> expectedTags = getExpectedSpanTagsForError(service, Tags.SPAN_KIND_SERVER);
+        Map<String, Object> expectedTags = getExpectedSpanTagsForError(path, Tags.SPAN_KIND_SERVER);
 
         TestSpanTree expectedTree = new TestSpanTree(
             new TreeNode<>(
@@ -343,7 +346,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
-                        service
+                        method
                     ),
                     expectedTags,
                     Collections.emptyList()
@@ -372,7 +375,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
-                        TestServerWebServices.REST_ANNOTATION_EXCEPTION
+                        getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_ANNOTATION_EXCEPTION)
                     ),
                     getExpectedSpanTags(
                         Tags.SPAN_KIND_SERVER,
@@ -675,7 +678,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
-                        TestServerWebServices.REST_LOCAL_SPAN
+                        getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_LOCAL_SPAN)
                     ),
                     getExpectedSpanTags(
                         Tags.SPAN_KIND_SERVER,
@@ -717,7 +720,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                         Tags.SPAN_KIND_SERVER,
                         HttpMethod.GET,
                         TestServerWebServices.class,
-                        TestServerWebServices.REST_ASYNC_LOCAL_SPAN
+                        getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_ASYNC_LOCAL_SPAN)
                     ),
                     getExpectedSpanTags(
                         Tags.SPAN_KIND_SERVER,
@@ -764,7 +767,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                 spanKind,
                 HttpMethod.GET,
                 TestServerWebServices.class,
-                TestServerWebServices.REST_ERROR
+                getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_ERROR)
             );
             expectedTags = getExpectedSpanTagsForError(TestServerWebServices.REST_ERROR, spanKind);
         }
@@ -780,7 +783,7 @@ public class OpenTracingClientTests extends OpenTracingBaseTests {
                 spanKind,
                 HttpMethod.GET,
                 TestServerWebServices.class,
-                TestServerWebServices.REST_NESTED
+                getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_NESTED)
             );
             expectedTags = getExpectedSpanTags(
                 spanKind,

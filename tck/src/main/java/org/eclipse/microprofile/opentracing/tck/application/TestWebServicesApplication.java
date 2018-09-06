@@ -54,6 +54,7 @@ public class TestWebServicesApplication extends Application {
             TestServerWebServices.class,
             TestServerSkipAllWebServices.class,
             TestServerWebServicesWithOperationName.class,
+            WildcardClassService.class,
             JacksonJsonProvider.class));
     }
 
