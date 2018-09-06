@@ -80,19 +80,15 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
             if (classPath == null) {
                 throw new IllegalArgumentException("Supplied clazz is not JAX-RS resource");
             }
-            if (classPath != null) {
-                if (!classPath.value().startsWith("/")) {
-                    operationName.append("/");
-                }
-                debug(classPath.value());
-                operationName.append(classPath.value());
+            if (!classPath.value().startsWith("/")) {
+                operationName.append("/");
             }
+            operationName.append(classPath.value());
             if (!classPath.value().endsWith("/")) {
                 operationName.append("/");
             }
             Path methodPath = method.getAnnotation(Path.class);
             String methodPathStr = methodPath.value();
-            debug(methodPathStr);
             if (methodPathStr.startsWith("/")) {
                 methodPathStr = methodPathStr.replaceFirst("/", "");
             }
