@@ -155,6 +155,21 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
 
     @Test
     @RunAsClient
+    private void testMetricsNotTraced() {
+        Client client = ClientBuilder.newClient();
+        String url = String.format("%smetrics", deploymentURL.toString());
+        debug("Executing " + url);
+
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        Assert.assertEquals(200, response.getStatus());
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, new TestSpanTree());
+    }
+
+    @Test
+    @RunAsClient
     private void testMetricsBaseNotTraced() {
         Client client = ClientBuilder.newClient();
         String url = String.format("%smetrics/base", deploymentURL.toString());
