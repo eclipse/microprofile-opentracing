@@ -34,6 +34,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.eclipse.microprofile.opentracing.tck.application.HealthServlet;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
@@ -80,6 +81,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
 
         WebArchive war = ShrinkWrap.create(WebArchive.class, "opentracing.war")
             .addPackages(true, OpenTracingClientBaseTests.class.getPackage())
+            .addClass(HealthServlet.class)
             .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
             .addAsLibraries(files);
 
