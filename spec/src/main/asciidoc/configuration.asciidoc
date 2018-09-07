@@ -18,10 +18,10 @@
 == Configuration
 
 MicroProfile OpenTracing project leverages MicroProfile Config specification to provide a consistent means for
-all supported configuration options. It means that vendor implementations must by also compliant with
+all supported configuration options. It means that vendor implementations must also be compliant with
 the Config specification.
 
-All configuration keys supported by this projects start with `mp.opentracing`.
+All configuration keys supported by this project start with `mp.opentracing`.
 
 === Configuration items
 
@@ -29,6 +29,6 @@ All configuration keys supported by this projects start with `mp.opentracing`.
 |===
 | Configuration key | Description
 
-| `mp.opentracing.server.skip-pattern` | Configuration property to specify a skip pattern to avoid tracing of selected REST endpoints. See <<server-skip-pattern>>.
-| `mp.opentracing.server.operation-name-provider` | Configuration property to specify operation name provider for server spans. Possible values are `http-path` and `class-method`. See <<server-span-name>>.
+| `mp.opentracing.server.skip-pattern` | Specifies a skip pattern to avoid tracing of selected REST endpoints. See <<server-skip-pattern>>.
+| `mp.opentracing.server.operation-name-provider` | Specifies operation name provider for server spans. Possible values are `http-path` and `class-method`. See <<server-span-name>>.
 |===
