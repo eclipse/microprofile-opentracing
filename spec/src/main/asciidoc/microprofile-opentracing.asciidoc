@@ -219,6 +219,13 @@ If the `@Traced` annotation finds the `operationName` as `""`, the default opera
 If the annotated method is not a JAX-RS endpoint, the default operation name of the new Span for the method is `<package name>.<class name>.<method name>`.
 If `operationName` is specified on a class, that `operationName` will be used for all methods of the class unless a method explicitly overrides it with its own `operationName`.
 
+Any exceptions thrown by non JAX-RS components must be logged to the span corresponding to the ongoing invocation.
+The span must be annotated with the following data:
+
+* `Tags.ERROR = true` - added as span tag.
+* `event = Tags.ERROR.getKey()` and `error.object = <exception>` logged to span in a single log fields map. The `exception` is
+the thrown exception object.
+
 Example:
 [source,java]
 ----

@@ -392,11 +392,26 @@ public class TestSpan implements Span {
             }
 
             for (int i = 0; i < logEntries.size(); i++) {
-                Map<String, ?> logEntryX = logEntries.get(i);
-                Map<String, ?> logEntryY = otherSpan.logEntries.get(i);
-
-                if (!logEntryX.equals(logEntryY)) {
+                Map<String, ?> logFieldsX = logEntries.get(i);
+                Map<String, ?> logFieldsY = otherSpan.logEntries.get(i);
+                if (logFieldsX.size() != logFieldsY.size()) {
+                    System.err.printf("MISMATCH: Number of log fields doesn't match (%d, %d)\n", logFieldsX.size(), logFieldsY.size());
                     return false;
+                }
+
+                for (Map.Entry<String, ?> logEntry: logFieldsX.entrySet()) {
+                    Object valY = logFieldsY.get(logEntry.getKey());
+                    if (valY == null) {
+                        System.err.printf("Log field %s not present in the logs\n", logEntry.getKey());
+                        return false;
+                    }
+
+                    if (!logEntry.getKey().equals("error.object")) {
+                        if (!valY.equals(logEntry.getValue())) {
+                            System.err.printf("Log values do not match key=%s, %s, %s\n\n\n\n", logEntry.getKey(), logEntry.getValue(), valY);
+                            return false;
+                        }
+                    }
                 }
             }
 
