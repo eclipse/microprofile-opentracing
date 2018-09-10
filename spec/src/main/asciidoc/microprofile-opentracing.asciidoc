@@ -192,6 +192,8 @@ Configuration of the skip pattern leverages MicroProfile Config specification.
 The skip pattern is specified as a string with key `mp.opentracing.server.skip-pattern` which has to be
 compliant with `java.util.regex.Pattern`. An example skip pattern might be `mp.opentracing.server.skip-pattern=/health|/metrics.*`
 
+The default value of the skip pattern excludes tracing for default endpoints defined by MicroProfile Health, Metrics and OpenAPI specification.
+
 === Enabling explicit distributed tracing code instrumentation
 
 An annotation is provided to define explicit Span creation. This works on top of the "no-action" setup described in <<no-instrumentation>>.

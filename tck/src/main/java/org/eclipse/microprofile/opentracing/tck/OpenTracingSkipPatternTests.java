@@ -21,6 +21,9 @@ package org.eclipse.microprofile.opentracing.tck;
 
 import java.util.HashMap;
 import java.util.Map;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.config.spi.ConfigSource;
@@ -30,6 +33,7 @@ import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -115,6 +119,96 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
         Response response = executeRemoteWebServiceRaw(TestServerSkipAllWebServices.REST_TEST_SKIP_SERVICE_PATH,
             TestServerSkipAllWebServices.REST_EXPLICITLY_TRACED, Status.OK);
         response.close();
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, new TestSpanTree());
+    }
+
+    @Test
+    @RunAsClient
+    private void testHealthNotTraced() {
+        Client client = ClientBuilder.newClient();
+        String url = String.format("%shealth", deploymentURL.toString());
+        debug("Executing " + url);
+
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        Assert.assertEquals(200, response.getStatus());
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, new TestSpanTree());
+    }
+
+    @Test
+    @RunAsClient
+    private void testOpenAPINotTraced() {
+        Client client = ClientBuilder.newClient();
+        String url = String.format("%sopenapi", deploymentURL.toString());
+        debug("Executing " + url);
+
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        Assert.assertEquals(200, response.getStatus());
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, new TestSpanTree());
+    }
+
+    @Test
+    @RunAsClient
+    private void testMetricsNotTraced() {
+        Client client = ClientBuilder.newClient();
+        String url = String.format("%smetrics", deploymentURL.toString());
+        debug("Executing " + url);
+
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        Assert.assertEquals(200, response.getStatus());
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, new TestSpanTree());
+    }
+
+    @Test
+    @RunAsClient
+    private void testMetricsBaseNotTraced() {
+        Client client = ClientBuilder.newClient();
+        String url = String.format("%smetrics/base", deploymentURL.toString());
+        debug("Executing " + url);
+
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        Assert.assertEquals(200, response.getStatus());
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, new TestSpanTree());
+    }
+
+    @Test
+    @RunAsClient
+    private void testMetricsVendorNotTraced() {
+        Client client = ClientBuilder.newClient();
+        String url = String.format("%smetrics/vendor", deploymentURL.toString());
+        debug("Executing " + url);
+
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        Assert.assertEquals(200, response.getStatus());
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, new TestSpanTree());
+    }
+
+    @Test
+    @RunAsClient
+    private void testMetricsApplicationNotTraced() {
+        Client client = ClientBuilder.newClient();
+        String url = String.format("%smetrics/application", deploymentURL.toString());
+        debug("Executing " + url);
+
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        Assert.assertEquals(200, response.getStatus());
+
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
         assertEqualTrees(spans, new TestSpanTree());
     }
