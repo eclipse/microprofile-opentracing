@@ -21,9 +21,9 @@
 
 === Release 1.2
 
-* By default excluded MicroProfile Metrics, Health and OpenAPI from tracing (https://github.com/eclipse/microprofile-opentracing/pull/95[#95])
+* By default will not trace endpoints associated with MicroProfile Metrics, Health and OpenAPI (https://github.com/eclipse/microprofile-opentracing/pull/95[#95])
 * Added logging exceptions thrown by explicit instrumentation (`@Traced`)(https://github.com/eclipse/microprofile-opentracing/pull/94[#94])
-* Added server name operation provider (https://github.com/eclipse/microprofile-opentracing/pull/90[#90])
+* Added server operation name provider (https://github.com/eclipse/microprofile-opentracing/pull/90[#90])
 * Removed `geronimo-antinject` and `javax.annotation` dependencies for API module (https://github.com/eclipse/microprofile-opentracing/pull/92[#92])
 * Added support for server side skip pattern (https://github.com/eclipse/microprofile-opentracing/pull/86[#86])
 
