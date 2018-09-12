@@ -21,8 +21,8 @@
     <artifactId>microprofile-opentracing-parent</artifactId>
     <version>1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>MicroProfile Opentracing</name>
-    <description>Specification for opentracing behavior in Microprofile</description>
+    <name>MicroProfile OpenTracing</name>
+    <description>Specification for OpenTracing behavior in MicroProfile</description>
     <url>http://microprofile.io</url>
 
     <properties>
@@ -50,10 +50,10 @@
 
     <developers>
         <developer>
-            <name>Steve Fontes</name>
-            <url>https://github.com/Steve-Fontes</url>
-            <organization>IBM</organization>
-            <organizationUrl>https://www.ibm.com</organizationUrl>
+            <id>contributors</id>
+            <name>MicroProfile OpenTracing Forum</name>
+            <email>microprofile@googlegroups.com</email>
+            <url>https://groups.google.com/forum/#!forum/microprofile</url>
         </developer>
     </developers>
 
