@@ -20,19 +20,11 @@
 package org.eclipse.microprofile.opentracing.tck;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
@@ -49,7 +41,6 @@ import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree.TreeNode;
 import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import io.opentracing.tag.Tags;
@@ -420,7 +411,7 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
         boolean failNest = false;
         boolean async = false;
 
-        executeNestedSpans(nestDepth, nestBreadth, uniqueId, failNest, async);
+        testNestedSpans(TestServerWebServices.REST_NESTED, nestDepth, nestBreadth, uniqueId, failNest, async);
     }
 
     /**
@@ -436,25 +427,7 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
         boolean failNest = true;
         boolean async = false;
 
-        executeNestedSpans(nestDepth, nestBreadth, uniqueId, failNest, async);
-    }
-
-    /**
-     * Do the actual testing and assertion of a nested call.
-     * @param uniqueId Some unique ID.
-     * @param nestDepth How deep to nest the calls.
-     * @param nestBreadth Breadth of first level of nested calls.
-     * @param failNest Whether to fail the nested call.
-     * @param async Whether to execute nested requests asynchronously.
-     */
-    private void executeNestedSpans(int nestDepth, int nestBreadth,
-            int uniqueId, boolean failNest, boolean async) {
-        executeNested(uniqueId, nestDepth, nestBreadth, failNest, async);
-
-        TestSpanTree spans = executeRemoteWebServiceTracerTree();
-        TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(uniqueId, nestBreadth, failNest, async));
-
-        assertEqualTrees(spans, expectedTree);
+        testNestedSpans(TestServerWebServices.REST_NESTED, nestDepth, nestBreadth, uniqueId, failNest, async);
     }
 
     /**
@@ -474,7 +447,7 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
         boolean failNest = false;
         boolean async = false;
 
-        runNestedTests(numberOfCalls, nestDepth, nestBreadth, failNest, async);
+        testMultithreadedNestedSpans(TestServerWebServices.REST_NESTED, numberOfCalls, nestDepth, nestBreadth, failNest, async);
     }
 
     /**
@@ -491,181 +464,7 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
         boolean failNest = false;
         boolean async = true;
 
-        runNestedTests(numberOfCalls, nestDepth, nestBreadth, failNest, async);
-    }
-
-    /**
-     * @param numberOfCalls Number of total web requests.
-     * @param nestDepth How deep to nest the calls.
-     * @param nestBreadth Breadth of first level of nested calls.
-     * @param failNest Whether to fail the nested call.
-     * @param async Whether to execute nested requests asynchronously.
-     * @throws InterruptedException Problem executing web service.
-     * @throws ExecutionException Thread pool problem.
-     */
-    private void runNestedTests(int numberOfCalls, int nestDepth,
-            int nestBreadth, boolean failNest, boolean async)
-            throws InterruptedException, ExecutionException {
-        int processors = Runtime.getRuntime().availableProcessors();
-        ExecutorService executorService = Executors.newFixedThreadPool(processors);
-        List<Future<?>> futures = new ArrayList<>(numberOfCalls);
-        Set<Integer> uniqueIds = ConcurrentHashMap.newKeySet();
-        for (int i = 0; i < numberOfCalls; i++) {
-            futures.add(executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    int uniqueId = getRandomNumber();
-                    uniqueIds.add(uniqueId);
-                    if (async) {
-                        Response response;
-                        try {
-                            response = executeNestedAsync(uniqueId, nestDepth, nestBreadth, failNest, async).get();
-                        }
-                        catch (InterruptedException|ExecutionException e) {
-                            Assert.fail();
-                            throw new RuntimeException(e);
-                        }
-                        assertResponseStatus(Status.OK, response);
-                        response.close();
-                    }
-                    else {
-                        executeNested(uniqueId, nestDepth, nestBreadth, failNest, async);
-                    }
-                }
-            }));
-        }
-
-        // wait to finish all calls
-        for (Future<?> future: futures) {
-            future.get();
-        }
-
-        executorService.awaitTermination(1, TimeUnit.SECONDS);
-        executorService.shutdown();
-
-        TestSpanTree spans = executeRemoteWebServiceTracerTree();
-
-        List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
-
-        // If this assertion fails, it means that the number of returned
-        // root spans doesn't equal the number of web service calls.
-        Assert.assertEquals(rootSpans.size(), numberOfCalls);
-
-        for (TreeNode<TestSpan> rootSpan: rootSpans) {
-
-            // Extract the unique ID from the root span's URL:
-            String url = (String) rootSpan.getData().getTags().get(Tags.HTTP_URL.getKey());
-            int i = url.indexOf(TestServerWebServices.PARAM_UNIQUE_ID);
-            Assert.assertNotEquals(i, -1);
-            String uniqueIdStr = url.substring(i + TestServerWebServices.PARAM_UNIQUE_ID.length() + 1);
-            i = uniqueIdStr.indexOf('&');
-            if (i != -1) {
-                uniqueIdStr = uniqueIdStr.substring(0, i);
-            }
-            int uniqueId = Integer.parseInt(uniqueIdStr);
-
-            // If this assertion fails, it means that the unique ID
-            // in the root span URL doesn't match any of the
-            // unique IDs that we sent in the requests above.
-            boolean removeResult = uniqueIds.remove(uniqueId);
-
-            if (!removeResult) {
-                debug("Unique ID " + uniqueId + " not found in request list. Span: " + rootSpan);
-            }
-
-            Assert.assertTrue(removeResult);
-
-            TreeNode<TestSpan> expectedTree = createExpectedNestTree(uniqueId, nestBreadth, failNest, async);
-            assertEqualTrees(rootSpan, expectedTree);
-        }
-    }
-
-    /**
-     * Create the expected span tree to assert.
-     * @param uniqueId Unique ID of the request.
-     * @param nestBreadth Nesting breadth.
-     * @param failNest Whether to fail the nested call.
-     * @param async Whether to execute nested requests asynchronously.
-     * @return The expected span tree.
-     */
-    private TreeNode<TestSpan> createExpectedNestTree(int uniqueId, int nestBreadth, boolean failNest, boolean async) {
-        @SuppressWarnings("unchecked")
-        TreeNode<TestSpan>[] children = (TreeNode<TestSpan>[]) new TreeNode<?>[nestBreadth];
-        for (int i = 0; i < nestBreadth; i++) {
-            children[i] =
-                new TreeNode<>(
-                    getExpectedNestedServerSpan(Tags.SPAN_KIND_CLIENT, uniqueId, 0, 1, false, failNest, false),
-                    new TreeNode<>(
-                        getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 0, 1, false, failNest, false)
-                    )
-                );
-        }
-        return new TreeNode<>(
-            getExpectedNestedServerSpan(Tags.SPAN_KIND_SERVER, uniqueId, 1, nestBreadth, failNest, false, async),
-            children
-        );
-    }
-
-    /**
-     * Execute the nested web service.
-     * @param uniqueId Some unique ID.
-     * @param nestDepth How deep to nest the calls.
-     * @param nestBreadth Breadth of first level of nested calls.
-     * @param failNest Whether to fail the nested call.
-     * @param async Whether to execute nested requests asynchronously.
-     */
-    private void executeNested(int uniqueId, int nestDepth, int nestBreadth, boolean failNest, boolean async) {
-        Map<String, Object> queryParameters = getNestedQueryParameters(uniqueId,
-                nestDepth, nestBreadth, failNest, async);
-
-        Response response = executeRemoteWebServiceRaw(
-            TestServerWebServices.REST_TEST_SERVICE_PATH,
-            TestServerWebServices.REST_NESTED,
-            queryParameters,
-            Status.OK
-        );
-        response.close();
-    }
-
-
-    /**
-     * Execute the nested web service.
-     * @param uniqueId Some unique ID.
-     * @param nestDepth How deep to nest the calls.
-     * @param nestBreadth Breadth of first level of nested calls.
-     * @param failNest Whether to fail the nested call.
-     * @param async Whether to execute nested requests asynchronously.
-     * @return A future for the Response
-     */
-    private Future<Response> executeNestedAsync(int uniqueId, int nestDepth, int nestBreadth, boolean failNest, boolean async) {
-        Map<String, Object> queryParameters = getNestedQueryParameters(uniqueId,
-                nestDepth, nestBreadth, failNest, async);
-
-        return executeRemoteWebServiceRawAsync(
-            TestServerWebServices.REST_TEST_SERVICE_PATH,
-            TestServerWebServices.REST_NESTED,
-            queryParameters,
-            Status.OK
-        );
-    }
-
-    /**
-     * @param uniqueId Some unique ID.
-     * @param nestDepth How deep to nest the calls.
-     * @param nestBreadth Breadth of first level of nested calls.
-     * @param failNest Whether to fail the nested call.
-     * @param async Whether to execute nested requests asynchronously.
-     * @return Query parameters map.
-     */
-    private Map<String, Object> getNestedQueryParameters(int uniqueId,
-            int nestDepth, int nestBreadth, boolean failNest, boolean async) {
-        Map<String, Object> queryParameters = new HashMap<>();
-        queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
-        queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
-        queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
-        queryParameters.put(TestServerWebServices.PARAM_FAIL_NEST, failNest);
-        queryParameters.put(TestServerWebServices.PARAM_ASYNC, async);
-        return queryParameters;
+        testMultithreadedNestedSpans(TestServerWebServices.REST_NESTED, numberOfCalls, nestDepth, nestBreadth, failNest, async);
     }
 
     /**
@@ -751,65 +550,6 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
         );
         assertEqualTrees(spans, expectedTree);
     }
-
-    /**
-     * The expected nested span layout.
-     * @param spanKind Span kind
-     * @param uniqueId The unique ID of the request.
-     * @param nestDepth Nest depth
-     * @param nestBreadth Nest breadth
-     * @param failNest Whether to fail the nested call.
-     * @param isFailed Whether this request is expected to fail.
-     * @param async Whether to execute asynchronously.
-     * @return Span for the nested call.
-     */
-    private TestSpan getExpectedNestedServerSpan(String spanKind, int uniqueId,
-            int nestDepth, int nestBreadth, boolean failNest,
-            boolean isFailed, boolean async) {
-        String operationName;
-        Map<String, Object> expectedTags;
-
-        if (isFailed) {
-            operationName = getOperationName(
-                spanKind,
-                HttpMethod.GET,
-                TestServerWebServices.class,
-                getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_ERROR)
-            );
-            expectedTags = getExpectedSpanTagsForError(TestServerWebServices.REST_ERROR, spanKind);
-        }
-        else {
-            Map<String, Object> queryParameters = new HashMap<>();
-            queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
-            queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
-            queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
-            queryParameters.put(TestServerWebServices.PARAM_FAIL_NEST, failNest);
-            queryParameters.put(TestServerWebServices.PARAM_ASYNC, async);
-
-            operationName = getOperationName(
-                spanKind,
-                HttpMethod.GET,
-                TestServerWebServices.class,
-                getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_NESTED)
-            );
-            expectedTags = getExpectedSpanTags(
-                spanKind,
-                HttpMethod.GET,
-                TestServerWebServices.REST_TEST_SERVICE_PATH,
-                TestServerWebServices.REST_NESTED,
-                queryParameters,
-                Status.OK.getStatusCode(),
-                JAXRS_COMPONENT
-            );
-        }
-
-        return new TestSpan(
-            operationName,
-            expectedTags,
-            Collections.emptyList()
-        );
-    }
-
 
     /**
      * Create a tags collection for expected span tags of a local span.

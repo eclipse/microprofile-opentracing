@@ -48,6 +48,7 @@ import org.eclipse.microprofile.opentracing.Traced;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 
 /**
  * Test JAXRS web services.
@@ -119,6 +120,11 @@ public class TestServerWebServices {
      * Web service endpoint that will call itself some number of times.
      */
     public static final String REST_NESTED = "nested";
+
+    /**
+     * Web service endpoint that will call itself some number of times.
+     */
+    public static final String REST_NESTED_MP_REST_CLIENT = "nestedMpRestClient";
 
     /**
      * Query parameter for the number of nested calls.
@@ -369,6 +375,27 @@ public class TestServerWebServices {
         return Response.ok().build();
     }
 
+    @GET
+    @Path(REST_NESTED_MP_REST_CLIENT)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response nestedMpRestClient(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
+        @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
+        @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
+        @QueryParam(PARAM_FAIL_NEST) boolean failNest,
+        @QueryParam(PARAM_ASYNC) boolean async) throws MalformedURLException {
+          if (nestDepth > 0) {
+              for (int i = 0; i < nestBreadth; i++) {
+                  if (async) {
+                      // TODO once smallrye supports 1.1
+                  }
+                  else {
+                      executeNestedMpRestClient( nestDepth - 1, 1, uniqueID, false, async);
+                  }
+              }
+          }
+          return Response.ok().build();
+    }
+
     /**
      * Endpoint which creates local span.
      * @return OK response
@@ -382,6 +409,16 @@ public class TestServerWebServices {
             Status.OK.getStatusCode() : Status.NO_CONTENT.getStatusCode()).build();
     }
 
+    private void executeNestedMpRestClient(int depth, int breath, String id, boolean failNest, boolean async)
+        throws MalformedURLException {
+        URL baseUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        System.out.println("nested base URL "  + baseUrl.toString());
+        ClientServices clientServices = RestClientBuilder.newBuilder()
+            .baseUrl(baseUrl)
+            .build(ClientServices.class);
+        clientServices.executeNested(depth, breath, async, id, failNest)
+            .close();
+    }
 
     /**
      * Execute a nested web service call.
@@ -403,6 +440,25 @@ public class TestServerWebServices {
         Client restClient = ClientTracingRegistrar.configure(ClientBuilder.newBuilder()).build();
         WebTarget target = restClient.target(requestUrl);
         return target.request().async().get();
+    }
+
+
+    public URL baseUrl() {
+        String incomingUrl = uri.getAbsolutePath().toString();
+        int i = incomingUrl.indexOf(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT);
+        if (i == -1) {
+            throw new RuntimeException("Expecting "
+                + TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
+                + " in " + incomingUrl);
+        }
+        URL incomingURL;
+        try {
+            incomingURL = new URL(incomingUrl.substring(0, i));
+        }
+        catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+        return incomingURL;
     }
 
     /**
@@ -437,15 +493,6 @@ public class TestServerWebServices {
         }
 
         return result;
-    }
-
-    /**
-     * Potentially print a debug message.
-     * @param message Debug message.
-     */
-    @SuppressWarnings("unused")
-    private void debug(String message) {
-        System.out.println(message);
     }
 
     /**

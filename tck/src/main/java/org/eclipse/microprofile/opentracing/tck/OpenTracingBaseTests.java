@@ -23,9 +23,18 @@ import io.opentracing.tag.Tags;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
@@ -40,6 +49,7 @@ import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
 import org.eclipse.microprofile.opentracing.tck.tracer.ConsumableTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
+import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree.TreeNode;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestTracer;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.arquillian.testng.Arquillian;
@@ -127,17 +137,6 @@ public abstract class OpenTracingBaseTests extends Arquillian {
     }
 
     /**
-     * Make a web service call to clear the server's Tracer.
-     */
-    private void clearTracer() {
-        Client client = ClientBuilder.newClient();
-        String url = getWebServiceURL(TracerWebService.REST_TRACER_SERVICE_PATH,
-            TracerWebService.REST_CLEAR_TRACER);
-        Response delete = client.target(url).request().delete();
-        delete.close();
-    }
-
-    /**
      * Execute a remote web service and return the content.
      * @param service Web service path
      * @param relativePath Web service endpoint
@@ -176,42 +175,26 @@ public abstract class OpenTracingBaseTests extends Arquillian {
     }
 
     /**
-     * Assert the response status equals the expected status.
-     * @param expectedStatus Expected status code.
-     * @param response The response object.
+     * Execute a remote web service and return the span tree.
+     * @return TestSpanTree
      */
-    protected void assertResponseStatus(Status expectedStatus,
-        Response response) {
-        Assert.assertEquals(response.getStatus(), expectedStatus.getStatusCode());
-    }
-
-    /**
-     * Execute a remote web service asynchronously and return a wrapper around a Future to the Response
-     * @param service Web service path
-     * @param relativePath Web service endpoint
-     * @param queryParameters Query parameters.
-     * @param expectedStatus Expected HTTP status.
-     * @return Future for a Response
-     */
-    protected Future<Response> executeRemoteWebServiceRawAsync(final String service, final String relativePath,
-        Map<String, Object> queryParameters, Status expectedStatus) {
-        Client client = ClientBuilder.newClient();
-        String url = getWebServiceURL(service, relativePath, queryParameters);
-
-        debug("Executing " + url);
-
-        WebTarget target = client.target(url);
-        return target.request().async().get();
-    }
-
-    /**
-     * Execute a remote web service and return the Tracer.
-     * @return Tracer
-     */
-    protected TestTracer executeRemoteWebServiceTracer() {
-        return executeRemoteWebServiceRaw(
+    protected TestSpanTree executeRemoteWebServiceTracerTree() {
+        TestSpanTree testSpanTree = executeRemoteWebServiceRaw(
             TracerWebService.REST_TRACER_SERVICE_PATH, TracerWebService.REST_GET_TRACER, Status.OK)
-            .readEntity(TestTracer.class);
+            .readEntity(TestTracer.class).spanTree();
+        debug("Tracer returned " + testSpanTree);
+        return testSpanTree;
+    }
+
+    /**
+     * Make a web service call to clear the server's Tracer.
+     */
+    private void clearTracer() {
+        Client client = ClientBuilder.newClient();
+        String url = getWebServiceURL(TracerWebService.REST_TRACER_SERVICE_PATH,
+            TracerWebService.REST_CLEAR_TRACER);
+        Response delete = client.target(url).request().delete();
+        delete.close();
     }
 
     /**
@@ -285,19 +268,6 @@ public abstract class OpenTracingBaseTests extends Arquillian {
     }
     
     /**
-     * Execute a remote web service and return the span tree.
-     * @return TestSpanTree
-     */
-    protected TestSpanTree executeRemoteWebServiceTracerTree() {
-        TestSpanTree result = executeRemoteWebServiceTracer().spanTree();
-
-        debug("Tracer returned " + result);
-
-        return result;
-    }
-
-
-    /**
      * Print debug message to target/surefire-reports/testng-results.xml.
      *
      * @param message The debug message.
@@ -313,6 +283,24 @@ public abstract class OpenTracingBaseTests extends Arquillian {
      */
     protected int getRandomNumber() {
         return idCounter.incrementAndGet();
+    }
+
+
+    /**
+     * Get REST endpoint java method based on the mapping value in {@link Path} annotation.
+     *
+     * @param clazz class of the endpoint.
+     * @param mapping endpoint mapping.
+     * @return endpoint method or null if not found.
+     */
+    protected Method getEndpointMethod(Class<?> clazz, String mapping) {
+        for (Method method: clazz.getMethods()) {
+            Path methodPath = method.getAnnotation(Path.class);
+            if (methodPath != null && mapping.equals(methodPath.value())) {
+                return method;
+            }
+        }
+        return null;
     }
 
     /**
@@ -333,23 +321,6 @@ public abstract class OpenTracingBaseTests extends Arquillian {
         else {
             throw new RuntimeException("Span kind " + spanKind + " not implemented");
         }
-    }
-
-    /**
-     * Get REST endpoint java method based on the mapping value in {@link Path} annotation.
-     *
-     * @param clazz class of the endpoint.
-     * @param mapping endpoint mapping.
-     * @return endpoint method or null if not found.
-     */
-    protected Method getEndpointMethod(Class<?> clazz, String mapping) {
-        for (Method method: clazz.getMethods()) {
-            Path methodPath = method.getAnnotation(Path.class);
-            if (methodPath != null && mapping.equals(methodPath.value())) {
-                return method;
-            }
-        }
-        return null;
     }
 
     /**
@@ -394,5 +365,219 @@ public abstract class OpenTracingBaseTests extends Arquillian {
             JAXRS_COMPONENT
         );
         return expectedTags;
+    }
+
+    /**
+     * Do the actual testing and assertion of a nested call.
+     * @param uniqueId Some unique ID.
+     * @param nestDepth How deep to nest the calls.
+     * @param nestBreadth Breadth of first level of nested calls.
+     * @param failNest Whether to fail the nested call.
+     * @param async Whether to execute nested requests asynchronously.
+     */
+    protected void testNestedSpans(String path, int nestDepth, int nestBreadth,
+        int uniqueId, boolean failNest, boolean async) {
+        executeNested(path, uniqueId, nestDepth, nestBreadth, failNest, async);
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        TestSpanTree expectedTree = new TestSpanTree(createExpectedNestTree(path, uniqueId, nestBreadth, failNest, async));
+
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * @param numberOfCalls Number of total web requests.
+     * @param nestDepth How deep to nest the calls.
+     * @param nestBreadth Breadth of first level of nested calls.
+     * @param failNest Whether to fail the nested call.
+     * @param async Whether to execute nested requests asynchronously.
+     * @throws InterruptedException Problem executing web service.
+     * @throws ExecutionException Thread pool problem.
+     */
+    protected void testMultithreadedNestedSpans(String path, int numberOfCalls, int nestDepth,
+        int nestBreadth, boolean failNest, boolean async)
+        throws InterruptedException, ExecutionException {
+        int processors = Runtime.getRuntime().availableProcessors();
+        ExecutorService executorService = Executors.newFixedThreadPool(processors);
+        List<Future<?>> futures = new ArrayList<>(numberOfCalls);
+        Set<Integer> uniqueIds = ConcurrentHashMap.newKeySet();
+        for (int i = 0; i < numberOfCalls; i++) {
+            futures.add(executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    int uniqueId = getRandomNumber();
+                    uniqueIds.add(uniqueId);
+                    executeNested(path, uniqueId, nestDepth, nestBreadth, failNest, async);
+                }
+            }));
+        }
+
+        // wait to finish all calls
+        for (Future<?> future: futures) {
+            future.get();
+        }
+
+        executorService.awaitTermination(1, TimeUnit.SECONDS);
+        executorService.shutdown();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        List<TreeNode<TestSpan>> rootSpans = spans.getRootSpans();
+
+        // If this assertion fails, it means that the number of returned
+        // root spans doesn't equal the number of web service calls.
+        Assert.assertEquals(rootSpans.size(), numberOfCalls);
+
+        for (TreeNode<TestSpan> rootSpan: rootSpans) {
+
+            // Extract the unique ID from the root span's URL:
+            String url = (String) rootSpan.getData().getTags().get(Tags.HTTP_URL.getKey());
+            int i = url.indexOf(TestServerWebServices.PARAM_UNIQUE_ID);
+            Assert.assertNotEquals(i, -1);
+            String uniqueIdStr = url.substring(i + TestServerWebServices.PARAM_UNIQUE_ID.length() + 1);
+            i = uniqueIdStr.indexOf('&');
+            if (i != -1) {
+                uniqueIdStr = uniqueIdStr.substring(0, i);
+            }
+            int uniqueId = Integer.parseInt(uniqueIdStr);
+
+            // If this assertion fails, it means that the unique ID
+            // in the root span URL doesn't match any of the
+            // unique IDs that we sent in the requests above.
+            boolean removeResult = uniqueIds.remove(uniqueId);
+
+            if (!removeResult) {
+                debug("Unique ID " + uniqueId + " not found in request list. Span: " + rootSpan);
+            }
+
+            Assert.assertTrue(removeResult);
+
+            TreeNode<TestSpan> expectedTree = createExpectedNestTree(path, uniqueId, nestBreadth, failNest, async);
+            assertEqualTrees(rootSpan, expectedTree);
+        }
+    }
+
+    /**
+     * Execute the nested web service.
+     * @param uniqueId Some unique ID.
+     * @param nestDepth How deep to nest the calls.
+     * @param nestBreadth Breadth of first level of nested calls.
+     * @param failNest Whether to fail the nested call.
+     * @param async Whether to execute nested requests asynchronously.
+     */
+    protected void executeNested(String path, int uniqueId, int nestDepth, int nestBreadth, boolean failNest, boolean async) {
+        Map<String, Object> queryParameters = getNestedQueryParameters(uniqueId,
+            nestDepth, nestBreadth, failNest, async);
+
+        Response response = executeRemoteWebServiceRaw(
+            TestServerWebServices.REST_TEST_SERVICE_PATH,
+            path,
+            queryParameters,
+            Status.OK
+        );
+        response.close();
+    }
+
+    /**
+     * @param uniqueId Some unique ID.
+     * @param nestDepth How deep to nest the calls.
+     * @param nestBreadth Breadth of first level of nested calls.
+     * @param failNest Whether to fail the nested call.
+     * @param async Whether to execute nested requests asynchronously.
+     * @return Query parameters map.
+     */
+    private Map<String, Object> getNestedQueryParameters(int uniqueId,
+        int nestDepth, int nestBreadth, boolean failNest, boolean async) {
+        Map<String, Object> queryParameters = new HashMap<>();
+        queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
+        queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
+        queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
+        queryParameters.put(TestServerWebServices.PARAM_FAIL_NEST, failNest);
+        queryParameters.put(TestServerWebServices.PARAM_ASYNC, async);
+        return queryParameters;
+    }
+
+    /**
+     * Create the expected span tree to assert.
+     * @param uniqueId Unique ID of the request.
+     * @param nestBreadth Nesting breadth.
+     * @param failNest Whether to fail the nested call.
+     * @param async Whether to execute nested requests asynchronously.
+     * @return The expected span tree.
+     */
+    private TreeNode<TestSpan> createExpectedNestTree(String path, int uniqueId, int nestBreadth, boolean failNest, boolean async) {
+        @SuppressWarnings("unchecked")
+        TreeNode<TestSpan>[] children = (TreeNode<TestSpan>[]) new TreeNode<?>[nestBreadth];
+        for (int i = 0; i < nestBreadth; i++) {
+            children[i] =
+                new TreeNode<>(
+                    getExpectedNestedServerSpan(path, Tags.SPAN_KIND_CLIENT, uniqueId, 0, 1, false, failNest, false),
+                    new TreeNode<>(
+                        getExpectedNestedServerSpan(path, Tags.SPAN_KIND_SERVER, uniqueId, 0, 1, false, failNest, false)
+                    )
+                );
+        }
+        return new TreeNode<>(
+            getExpectedNestedServerSpan(path, Tags.SPAN_KIND_SERVER, uniqueId, 1, nestBreadth, failNest, false, async),
+            children
+        );
+    }
+
+    /**
+     * The expected nested span layout.
+     * @param spanKind Span kind
+     * @param uniqueId The unique ID of the request.
+     * @param nestDepth Nest depth
+     * @param nestBreadth Nest breadth
+     * @param failNest Whether to fail the nested call.
+     * @param isFailed Whether this request is expected to fail.
+     * @param async Whether to execute asynchronously.
+     * @return Span for the nested call.
+     */
+    private TestSpan getExpectedNestedServerSpan(String path, String spanKind, int uniqueId,
+        int nestDepth, int nestBreadth, boolean failNest,
+        boolean isFailed, boolean async) {
+        String operationName;
+        Map<String, Object> expectedTags;
+
+        if (isFailed) {
+            operationName = getOperationName(
+                spanKind,
+                HttpMethod.GET,
+                TestServerWebServices.class,
+                getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_ERROR)
+            );
+            expectedTags = getExpectedSpanTagsForError(TestServerWebServices.REST_ERROR, spanKind);
+        }
+        else {
+            Map<String, Object> queryParameters = new HashMap<>();
+            queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
+            queryParameters.put(TestServerWebServices.PARAM_NEST_DEPTH, nestDepth);
+            queryParameters.put(TestServerWebServices.PARAM_NEST_BREADTH, nestBreadth);
+            queryParameters.put(TestServerWebServices.PARAM_FAIL_NEST, failNest);
+            queryParameters.put(TestServerWebServices.PARAM_ASYNC, async);
+
+            operationName = getOperationName(
+                spanKind,
+                HttpMethod.GET,
+                TestServerWebServices.class,
+                getEndpointMethod(TestServerWebServices.class, path)
+            );
+            expectedTags = getExpectedSpanTags(
+                spanKind,
+                HttpMethod.GET,
+                TestServerWebServices.REST_TEST_SERVICE_PATH,
+                path,
+                queryParameters,
+                Status.OK.getStatusCode(),
+                JAXRS_COMPONENT
+            );
+        }
+
+        return new TestSpan(
+            operationName,
+            expectedTags,
+            Collections.emptyList()
+        );
     }
 }
