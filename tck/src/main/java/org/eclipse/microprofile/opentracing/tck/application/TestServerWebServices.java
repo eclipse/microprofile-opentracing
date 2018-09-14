@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -382,15 +383,11 @@ public class TestServerWebServices {
         @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
         @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
         @QueryParam(PARAM_FAIL_NEST) boolean failNest,
-        @QueryParam(PARAM_ASYNC) boolean async) throws MalformedURLException {
+        @QueryParam(PARAM_ASYNC) boolean async)
+        throws MalformedURLException, ExecutionException, InterruptedException {
           if (nestDepth > 0) {
               for (int i = 0; i < nestBreadth; i++) {
-                  if (async) {
-                      // TODO once smallrye supports 1.1
-                  }
-                  else {
-                      executeNestedMpRestClient( nestDepth - 1, 1, uniqueID, false, async);
-                  }
+                  executeNestedMpRestClient( nestDepth - 1, 1, uniqueID, failNest, async);
               }
           }
           return Response.ok().build();
@@ -410,14 +407,26 @@ public class TestServerWebServices {
     }
 
     private void executeNestedMpRestClient(int depth, int breath, String id, boolean failNest, boolean async)
-        throws MalformedURLException {
+        throws MalformedURLException, InterruptedException, ExecutionException {
         URL baseUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
-        System.out.println("nested base URL "  + baseUrl.toString());
         ClientServices clientServices = RestClientBuilder.newBuilder()
             .baseUrl(baseUrl)
             .build(ClientServices.class);
-        clientServices.executeNested(depth, breath, async, id, failNest)
-            .close();
+        if (async) {
+            CompletionStage<Void> completionStage = failNest
+                ? clientServices.asyncError() : clientServices.executeNestedAsync(depth, breath, async, id, false);
+            completionStage.toCompletableFuture()
+                .get();
+        }
+        else {
+            if (failNest) {
+                clientServices.error();
+            }
+            else {
+                clientServices.executeNested(depth, breath, async, id, failNest)
+                    .close();
+            }
+        }
     }
 
     /**

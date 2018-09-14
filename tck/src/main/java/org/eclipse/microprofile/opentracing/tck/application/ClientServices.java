@@ -25,6 +25,7 @@ import static org.eclipse.microprofile.opentracing.tck.application.TestServerWeb
 import static org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices.PARAM_NEST_DEPTH;
 import static org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices.PARAM_UNIQUE_ID;
 
+import java.util.concurrent.CompletionStage;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
@@ -43,4 +44,20 @@ public interface ClientServices {
         @QueryParam(PARAM_ASYNC) boolean async,
         @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
         @QueryParam(PARAM_FAIL_NEST) boolean failNest);
+
+    @GET
+    @Path(TestServerWebServices.REST_NESTED_MP_REST_CLIENT)
+    CompletionStage<Void> executeNestedAsync(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
+        @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
+        @QueryParam(PARAM_ASYNC) boolean async,
+        @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
+        @QueryParam(PARAM_FAIL_NEST) boolean failNest);
+
+    @GET
+    @Path(TestServerWebServices.REST_ERROR)
+    void error();
+
+    @GET
+    @Path(TestServerWebServices.REST_ERROR)
+    CompletionStage<Void> asyncError();
 }

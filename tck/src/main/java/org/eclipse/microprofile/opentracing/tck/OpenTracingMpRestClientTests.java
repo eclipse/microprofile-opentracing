@@ -52,6 +52,8 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
 
     /**
      * Test a web service call that makes nested calls with a client failure.
+     *
+     * TODO could not test with SmallRye due to https://github.com/smallrye/smallrye-rest-client/issues/11
      */
 //    @Test
 //    @RunAsClient
@@ -71,6 +73,8 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
      * IDs are correct.
      * @throws InterruptedException Problem executing web service.
      * @throws ExecutionException Thread pool problem.
+     *
+     * TODO smallrye does not support async spec yet!
      */
 //    @Test
 //    @RunAsClient
@@ -88,6 +92,8 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
      * Same as testMultithreadedNestedSpans but asynchronous client and nested requests.
      * @throws InterruptedException Problem executing web service.
      * @throws ExecutionException Thread pool problem.
+     *
+     * TODO smallrye does not support async spec yet!
      */
 //    @Test
 //    @RunAsClient
