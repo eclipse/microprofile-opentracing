@@ -74,10 +74,9 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
      * @throws InterruptedException Problem executing web service.
      * @throws ExecutionException Thread pool problem.
      *
-     * TODO smallrye does not support async spec yet!
      */
-//    @Test
-//    @RunAsClient
+    @Test
+    @RunAsClient
     private void testMultithreadedNestedSpans() throws ExecutionException, InterruptedException {
         int numberOfCalls = 100;
         int nestDepth = 1;
@@ -93,7 +92,7 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
      * @throws InterruptedException Problem executing web service.
      * @throws ExecutionException Thread pool problem.
      *
-     * TODO smallrye does not support async spec yet!
+     * TODO smallrye does not support async spec (1.1) yet https://github.com/smallrye/smallrye-rest-client/issues/6
      */
 //    @Test
 //    @RunAsClient
