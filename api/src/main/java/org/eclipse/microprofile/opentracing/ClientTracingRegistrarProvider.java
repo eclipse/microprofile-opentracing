@@ -21,6 +21,7 @@ package org.eclipse.microprofile.opentracing;
 
 import java.util.concurrent.ExecutorService;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Configurable;
 
 /**
  * Implementation of this interface will be used to configure {@link ClientBuilder}
@@ -40,6 +41,7 @@ public interface ClientTracingRegistrarProvider {
      *
      * @param clientBuilder Client builder to configure.
      * @return clientBuilder with tracing integration
+     * @deprecated use {@link #configure(Configurable)}
      */
     ClientBuilder configure(ClientBuilder clientBuilder);
 
@@ -49,6 +51,11 @@ public interface ClientTracingRegistrarProvider {
      * @param clientBuilder Client builder to configure.
      * @param executorService Executor service which will be added to the client builder.
      * @return clientBuilder with tracing integration
+     * @deprecated use {@link #configure(Configurable, ExecutorService)}
      */
     ClientBuilder configure(ClientBuilder clientBuilder, ExecutorService executorService);
+
+
+    <T extends Configurable> T  configure(T clientBuilder);
+    <T extends Configurable> T  configure(T clientBuilder, ExecutorService executorService);
 }

@@ -54,6 +54,7 @@ public class TestWebServicesApplication extends Application {
             TestServerWebServices.class,
             TestServerSkipAllWebServices.class,
             TestServerWebServicesWithOperationName.class,
+            TestClientRegistrarWebServices.class,
             WildcardClassService.class,
             JacksonJsonProvider.class));
     }
@@ -83,6 +84,10 @@ public class TestWebServicesApplication extends Application {
      * @return Query string.
      */
     public static String getQueryString(Map<String, Object> queryParameters) {
+        if (queryParameters.isEmpty()) {
+            return "";
+        }
+
         String result = "?";
 
         String prefix = null;
