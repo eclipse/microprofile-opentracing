@@ -22,6 +22,7 @@ package org.eclipse.microprofile.opentracing;
 import java.util.ServiceLoader;
 import java.util.concurrent.ExecutorService;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Configurable;
 
 /**
  * This class registers tracing components into {@link ClientBuilder}.
@@ -61,6 +62,36 @@ public class ClientTracingRegistrar {
      * @return clientBuilder with tracing integration
      */
     public static ClientBuilder configure(ClientBuilder clientBuilder, ExecutorService executorService) {
+        for(ClientTracingRegistrarProvider registrar: ServiceLoader.load(ClientTracingRegistrarProvider.class)) {
+            return registrar.configure(clientBuilder, executorService);
+        }
+        return clientBuilder;
+    }
+
+    /**
+     *  Register tracing components into client builder instance.
+     *
+     * @param clientBuilder client builder
+     * @param <T> typically {@link ClientBuilder}. Behaviour for {@link javax.ws.rs.client.WebTarget} is undefined.
+     * @return clientBuilder with tracing integration
+     */
+    public static <T extends Configurable> T configure(T clientBuilder) {
+        for(ClientTracingRegistrarProvider registrar: ServiceLoader.load(ClientTracingRegistrarProvider.class)) {
+            return registrar.configure(clientBuilder);
+        }
+        return clientBuilder;
+    }
+
+    /**
+     *  Register tracing components into client builder instance.
+     *
+     * @param clientBuilder client builder
+     * @param executorService executorService which will be added to the client. Note that this overrides
+     *      executor service added previously to the client.
+     * @param <T> typically {@link ClientBuilder}. Behaviour for {@link javax.ws.rs.client.WebTarget} is undefined.
+     * @return clientBuilder with tracing integration
+     */
+    public static <T extends Configurable> T configure(T clientBuilder, ExecutorService executorService) {
         for(ClientTracingRegistrarProvider registrar: ServiceLoader.load(ClientTracingRegistrarProvider.class)) {
             return registrar.configure(clientBuilder, executorService);
         }
