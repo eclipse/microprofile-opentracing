@@ -50,9 +50,7 @@
 
     <developers>
         <developer>
-            <id>contributors</id>
-            <name>MicroProfile OpenTracing Forum</name>
-            <email>microprofile@googlegroups.com</email>
+            <name>MicroProfile Community</name>
             <url>https://groups.google.com/forum/#!forum/microprofile</url>
         </developer>
     </developers>
