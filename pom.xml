@@ -53,6 +53,12 @@
             <name>MicroProfile Community</name>
             <url>https://groups.google.com/forum/#!forum/microprofile</url>
         </developer>
+        <developer>
+            <name>Steve Fontes</name>
+            <url>https://github.com/Steve-Fontes</url>
+            <organization>IBM</organization>
+            <organizationUrl>https://www.ibm.com</organizationUrl>
+        </developer>
     </developers>
 
     <organization>
