@@ -25,8 +25,8 @@
     </parent>
 
     <artifactId>microprofile-opentracing-api</artifactId>
-    <name>MicroProfile Opentracing API</name>
-    <description>Opentracing APIs for MicroProfile :: API</description>
+    <name>MicroProfile OpenTracing API</name>
+    <description>OpenTracing behaviors and APIs for MicroProfile :: API</description>
     <dependencies>
         <dependency>
             <groupId>org.osgi</groupId>

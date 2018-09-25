@@ -21,8 +21,8 @@
     <artifactId>microprofile-opentracing-parent</artifactId>
     <version>1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>MicroProfile Opentracing</name>
-    <description>Specification for opentracing behavior in Microprofile</description>
+    <name>MicroProfile OpenTracing</name>
+    <description>Specification for OpenTracing behavior in MicroProfile</description>
     <url>http://microprofile.io</url>
 
     <properties>
@@ -49,6 +49,10 @@
     </licenses>
 
     <developers>
+        <developer>
+            <name>MicroProfile Community</name>
+            <url>https://groups.google.com/forum/#!forum/microprofile</url>
+        </developer>
         <developer>
             <name>Steve Fontes</name>
             <url>https://github.com/Steve-Fontes</url>
