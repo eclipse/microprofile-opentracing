@@ -28,7 +28,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 /**
  * @author Pavol Loffay
  */
-public class OpentracingClassMethodNameClientTests extends OpenTracingClientBaseTests {
+public class OpenTracingClassMethodNameClientTests extends OpenTracingClientBaseTests {
 
     public static class TestConfiguration implements ConfigSource {
         private Map<String, String> propMap = new HashMap<>();

@@ -31,7 +31,6 @@ To enable the tests in your project you need to add the following dependency to 
 <dependency>
     <groupId>org.eclipse.microprofile.opentracing</groupId>
     <artifactId>microprofile-opentracing-tck</artifactId>
-    <version>1.0-SNAPSHOT</version>
     <scope>test</scope>
 </dependency>
 ----
