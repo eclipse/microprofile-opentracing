@@ -25,7 +25,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 /**
  * @author Pavol Loffay
  */
-public class OpentracingDefaultClientTests extends OpenTracingClientBaseTests {
+public class OpenTracingDefaultClientTests extends OpenTracingClientBaseTests {
 
     @Deployment
     public static WebArchive createDeployment() {
