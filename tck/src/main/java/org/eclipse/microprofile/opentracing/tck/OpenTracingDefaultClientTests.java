@@ -19,43 +19,16 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 /**
  * @author Pavol Loffay
  */
-public class OpentracingClassMethodNameClientTests extends OpenTracingClientBaseTests {
-
-    public static class TestConfiguration implements ConfigSource {
-        private Map<String, String> propMap = new HashMap<>();
-        {
-            propMap.put("mp.opentracing.server.operation-name-provider", "class-method");
-        }
-
-        @Override
-        public Map<String, String> getProperties() {
-            return propMap;
-        }
-
-        @Override
-        public String getValue(String s) {
-            return propMap.get(s);
-        }
-
-        @Override
-        public String getName() {
-            return this.getClass().getName();
-        }
-    }
+public class OpenTracingDefaultClientTests extends OpenTracingClientBaseTests {
 
     @Deployment
     public static WebArchive createDeployment() {
-        return OpenTracingBaseTests.createDeployment()
-            .addAsServiceProvider(ConfigSource.class, TestConfiguration.class);
+        return OpenTracingBaseTests.createDeployment();
     }
-
 }
