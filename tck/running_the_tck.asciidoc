@@ -15,10 +15,10 @@
 // limitations under the License.
 //
 
-= Running the Microprofile OpenTracing TCK
+= Running the MicroProfile-OpenTracing TCK
 
-Any Microprofile 1.1 and higher release must pass this test suite.
-The TCK uses `testng`
+Any implementation must pass this test suite.
+The tests expects the test app to be deployed on `/opentracing` root context path.
 
 == Dependencies
 

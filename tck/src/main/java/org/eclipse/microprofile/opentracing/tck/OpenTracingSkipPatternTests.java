@@ -45,7 +45,7 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
         private Map<String, String> propMap = new HashMap<>();
 
         {
-            propMap.put("mp.opentracing.server.skip-pattern", "/skipAll/.*|/testServices/skipSimple");
+            propMap.put("mp.opentracing.server.skip-pattern", "/opentracing/rest/skipAll/.*|/opentracing/rest/testServices/skipSimple");
         }
 
         @Override
