@@ -190,7 +190,7 @@ the method or class is annotated with `@Traced`. The configuration does not disa
 request made from the disabled server endpoint.
 
 The skip pattern is specified as a string with key `mp.opentracing.server.skip-pattern` which has to be
-compliant with `java.util.regex.Pattern`. An example skip pattern might be `mp.opentracing.server.skip-pattern/context/=/health|/metrics.*`
+compliant with `java.util.regex.Pattern`. An example skip pattern might be `mp.opentracing.server.skip-pattern=/app1/foo|/app2/bar.*`
 
 The default value of the skip pattern excludes tracing for default endpoints defined by MicroProfile Health, Metrics and OpenAPI specification.
 
