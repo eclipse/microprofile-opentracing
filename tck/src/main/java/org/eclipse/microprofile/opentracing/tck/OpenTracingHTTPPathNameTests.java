@@ -75,7 +75,7 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
     @Override
     protected String getOperationName(String spanKind, String httpMethod, Class<?> clazz, Method method) {
         if (spanKind.equals(Tags.SPAN_KIND_SERVER)) {
-            StringBuilder operationName = new StringBuilder();
+            StringBuilder operationName = new StringBuilder(httpMethod.toUpperCase() + ":");
             Path classPath = clazz.getAnnotation(Path.class);
             if (classPath == null) {
                 throw new IllegalArgumentException("Supplied clazz is not JAX-RS resource");
