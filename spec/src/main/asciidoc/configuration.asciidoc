@@ -21,7 +21,9 @@ MicroProfile OpenTracing project leverages MicroProfile Config specification to 
 all supported configuration options. It means that vendor implementations must also be compliant with
 the Config specification.
 
-All configuration keys supported by this project start with `mp.opentracing`.
+All configuration keys supported by this project start with `mp.opentracing`. Refer to the Config
+specification for precedence of config sources and replacement of illegal characters such as
+`.` and `-` to `_` when using environmental variables.
 
 === Configuration items
 
