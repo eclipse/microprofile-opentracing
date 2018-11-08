@@ -161,7 +161,7 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
     @RunAsClient
     private void testMetricsBaseNotTraced() {
         Client client = ClientBuilder.newClient();
-        String url = String.format("%s/metrics/base", deploymentURL.toString());
+        String url = String.format("%s/metrics/base", baseUrl());
         debug("Executing " + url);
         client.target(url).request().get();
 
