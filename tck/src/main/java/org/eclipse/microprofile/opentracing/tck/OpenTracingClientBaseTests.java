@@ -404,7 +404,7 @@ public abstract class OpenTracingClientBaseTests extends OpenTracingBaseTests {
                 )
             )
         );
-        assertEqualTrees(spans, expectedTree);
+        assertEqualErrorTrees(spans, expectedTree);
     }
 
     /**

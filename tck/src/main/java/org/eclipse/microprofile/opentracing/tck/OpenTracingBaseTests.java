@@ -217,6 +217,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
     /**
      * This wrapper method allows for potential post-processing, such as
      * removing tags that we don't care to compare in {@code returnedTree}.
+     * This method removes error related keys.
      *
      * @param returnedTree The returned tree from the web service.
      * @param expectedTree The simulated tree that we expect.
@@ -227,25 +228,46 @@ public abstract class OpenTracingBaseTests extends Arquillian {
         // It's okay if the returnedTree has tags other than the ones we
         // want to compare, so just remove those
         returnedTree.visitTree(span -> {
-            if (Tags.SPAN_KIND_SERVER.equals(span.getTags().get(Tags.SPAN_KIND.getKey()))) {
-                span.getTags().keySet()
-                    .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
-                        && !key.equals(Tags.HTTP_METHOD.getKey())
-                        && !key.equals(Tags.HTTP_URL.getKey())
-                        && !key.equals(Tags.HTTP_STATUS.getKey())
-                        && !key.equals(Tags.COMPONENT.getKey())
-                        && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY));
-            }
-            else {
-                span.getTags().keySet()
-                    .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
-                        && !key.equals(Tags.HTTP_METHOD.getKey())
-                        && !key.equals(Tags.HTTP_URL.getKey())
-                        && !key.equals(Tags.HTTP_STATUS.getKey())
-                        && !key.equals(Tags.COMPONENT.getKey())
-                        && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)
-                        && !key.equals(Tags.ERROR.getKey()));
-            }
+            span.getTags().keySet()
+                .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
+                    && !key.equals(Tags.HTTP_METHOD.getKey())
+                    && !key.equals(Tags.HTTP_URL.getKey())
+                    && !key.equals(Tags.HTTP_STATUS.getKey())
+                    && !key.equals(Tags.COMPONENT.getKey())
+                    && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY));
+        });
+
+        // It's okay if the returnedTree has log entries other than the ones we
+        // want to compare, so just remove those
+        returnedTree.visitTree(span -> span.getLogEntries()
+                .removeIf(logEntry -> true));
+        Assert.assertEquals(returnedTree, expectedTree);
+    }
+
+    
+    /**
+     * This wrapper method allows for potential post-processing, such as
+     * removing tags that we don't care to compare in {@code returnedTree}.
+     * This method keeps the error related keys.
+     * 
+     *
+     * @param returnedTree The returned tree from the web service.
+     * @param expectedTree The simulated tree that we expect.
+     */
+    protected void assertEqualErrorTrees(ConsumableTree<TestSpan> returnedTree,
+        ConsumableTree<TestSpan> expectedTree) {
+
+        // It's okay if the returnedTree has tags other than the ones we
+        // want to compare, so just remove those
+        returnedTree.visitTree(span -> {
+            span.getTags().keySet()
+                .removeIf(key -> !key.equals(Tags.SPAN_KIND.getKey())
+                    && !key.equals(Tags.HTTP_METHOD.getKey())
+                    && !key.equals(Tags.HTTP_URL.getKey())
+                    && !key.equals(Tags.HTTP_STATUS.getKey())
+                    && !key.equals(Tags.COMPONENT.getKey())
+                    && !key.equals(TestServerWebServices.LOCAL_SPAN_TAG_KEY)
+                    && !key.equals(Tags.ERROR.getKey()));
         });
 
         // It's okay if the returnedTree has log entries other than the ones we
@@ -261,7 +283,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
 
         Assert.assertEquals(returnedTree, expectedTree);
     }
-
+    
     /**
      * Execute a remote web service and return the span tree.
      * @return TestSpanTree
@@ -371,7 +393,6 @@ public abstract class OpenTracingBaseTests extends Arquillian {
             Status.INTERNAL_SERVER_ERROR.getStatusCode(),
             JAXRS_COMPONENT
         );
-
         return expectedTags;
     }
 }
