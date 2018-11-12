@@ -19,6 +19,16 @@
 
 :numbered!:
 
+=== Release 1.2.1
+
+* Split tree equals in TCK and remove logs from server spans (https://github.com/eclipse/microprofile-opentracing/pull/132[#132])
+* Remove servlets from TCK and use context root to test MP Metrics, OpenAPI, Health URLs (https://github.com/eclipse/microprofile-opentracing/pull/127[#127])
+* Clarified default skip pattern value (https://github.com/eclipse/microprofile-opentracing/pull/126[#126])
+* Added HTTP method to http-path operation name (https://github.com/eclipse/microprofile-opentracing/pull/125[#125])
+* Added tests for `ClientTracingRegistrar` (https://github.com/eclipse/microprofile-opentracing/pull/105[#105])
+* Update metadata in `pom.xml` (https://github.com/eclipse/microprofile-opentracing/pull/101[#101])
+* Renamed test class to match OpenTracing (https://github.com/eclipse/microprofile-opentracing/pull/106[#106])
+
 === Release 1.2
 
 * By default will not trace endpoints associated with MicroProfile Metrics, Health and OpenAPI (https://github.com/eclipse/microprofile-opentracing/pull/95[#95])
