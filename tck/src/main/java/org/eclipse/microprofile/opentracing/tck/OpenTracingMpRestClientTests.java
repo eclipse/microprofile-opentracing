@@ -19,8 +19,15 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
+import io.opentracing.tag.Tags;
+import java.util.Collections;
 import java.util.concurrent.ExecutionException;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Response.Status;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
+import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
+import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
+import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree.TreeNode;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -51,22 +58,6 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
     }
 
     /**
-     * Test a web service call that makes nested calls with a client failure.
-     *
-     * TODO could not test with SmallRye due to https://github.com/smallrye/smallrye-rest-client/issues/11
-     */
-//    @Test
-//    @RunAsClient
-    private void testNestedSpansWithClientFailure() {
-        int nestDepth = 1;
-        int nestBreadth = 2;
-        int uniqueId = getRandomNumber();
-        boolean failNest = true;
-        boolean async = false;
-        testNestedSpans(TestServerWebServices.REST_NESTED_MP_REST_CLIENT, nestDepth, nestBreadth, uniqueId, failNest, async);
-    }
-
-    /**
      * Test the nested web service concurrently. A unique ID is generated
      * in the URL of each request and propagated down the nested spans.
      * We extract this out of the resulting spans and ensure the unique
@@ -92,10 +83,9 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
      * @throws InterruptedException Problem executing web service.
      * @throws ExecutionException Thread pool problem.
      *
-     * TODO smallrye does not support async spec (1.1) yet https://github.com/smallrye/smallrye-rest-client/issues/6
      */
-//    @Test
-//    @RunAsClient
+    @Test
+    @RunAsClient
     private void testMultithreadedNestedSpansAsync() throws ExecutionException, InterruptedException {
         int numberOfCalls = 100;
         int nestDepth = 1;
@@ -104,5 +94,68 @@ public class OpenTracingMpRestClientTests extends OpenTracingBaseTests {
         boolean async = true;
 
         testMultithreadedNestedSpans(TestServerWebServices.REST_NESTED_MP_REST_CLIENT, numberOfCalls, nestDepth, nestBreadth, failNest, async);
+    }
+
+    @Test
+    @RunAsClient
+    private void testClientNotTraced() {
+        testNotTraced(TestServerWebServices.REST_MP_REST_CLIENT_DISABLED_TRACING);
+    }
+
+    @Test
+    @RunAsClient
+    private void testMethodNotTraced() {
+        testNotTraced(TestServerWebServices.REST_MP_REST_CLIENT_DISABLED_TRACING_METHOD);
+    }
+
+    private void testNotTraced(String service) {
+        executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH, service, Status.OK)
+            .close();
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        getEndpointMethod(TestServerWebServices.class, TestServerWebServices.REST_SIMPLE_TEST)
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        TestServerWebServices.REST_SIMPLE_TEST,
+                        null,
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
+                    ),
+                    Collections.emptyList()
+                )
+            ),
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.class,
+                        getEndpointMethod(TestServerWebServices.class, service)
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        TestServerWebServices.REST_TEST_SERVICE_PATH,
+                        service,
+                        null,
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
+                    ),
+                    Collections.emptyList()
+                ))
+        );
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+        assertEqualTrees(spans, expectedTree);
+
     }
 }

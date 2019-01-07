@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.inject.Inject;
@@ -126,6 +127,16 @@ public class TestServerWebServices {
      * Web service endpoint that will call itself some number of times.
      */
     public static final String REST_NESTED_MP_REST_CLIENT = "nestedMpRestClient";
+
+    /**
+     * Web service endpoint that uses rest client with disabled tracing.
+     */
+    public static final String REST_MP_REST_CLIENT_DISABLED_TRACING = "restClientTracingDisabled";
+
+    /**
+     * Web service endpoint that uses rest client with disabled tracing.
+     */
+    public static final String REST_MP_REST_CLIENT_DISABLED_TRACING_METHOD = "restClientMethodTracingDisabled";
 
     /**
      * Query parameter for the number of nested calls.
@@ -351,7 +362,7 @@ public class TestServerWebServices {
                 nestParameters.put(PARAM_NEST_BREADTH, 1);
                 nestParameters.put(PARAM_UNIQUE_ID, uniqueID);
                 nestParameters.put(PARAM_FAIL_NEST, false);
-                nestParameters.put(PARAM_ASYNC, false);
+                nestParameters.put(PARAM_ASYNC, async);
             }
 
             String requestUrl = getRequestPath(
@@ -393,6 +404,30 @@ public class TestServerWebServices {
           return Response.ok().build();
     }
 
+    @GET
+    @Path(REST_MP_REST_CLIENT_DISABLED_TRACING)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response restClientTracingDisabled() throws MalformedURLException {
+        URL webServicesUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        ClientServicesTracingDisabled client = RestClientBuilder.newBuilder()
+            .baseUrl(webServicesUrl)
+            .build(ClientServicesTracingDisabled.class);
+        client.restSimpleTest();
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path(REST_MP_REST_CLIENT_DISABLED_TRACING_METHOD)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response restClientMethodTracingDisabled() throws MalformedURLException {
+        URL webServicesUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        ClientServices client = RestClientBuilder.newBuilder()
+            .baseUrl(webServicesUrl)
+            .build(ClientServices.class);
+        client.disabledTracing();
+        return Response.ok().build();
+    }
+
     /**
      * Endpoint which creates local span.
      * @return OK response
@@ -408,12 +443,13 @@ public class TestServerWebServices {
 
     private void executeNestedMpRestClient(int depth, int breath, String id, boolean failNest, boolean async)
         throws MalformedURLException, InterruptedException, ExecutionException {
-        URL baseUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        URL webServicesUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
         ClientServices clientServices = RestClientBuilder.newBuilder()
-            .baseUrl(baseUrl)
+            .baseUrl(webServicesUrl)
+            .executorService(Executors.newFixedThreadPool(50))
             .build(ClientServices.class);
         if (async) {
-            CompletionStage<Void> completionStage = failNest
+            CompletionStage<Response> completionStage = failNest
                 ? clientServices.asyncError() : clientServices.executeNestedAsync(depth, breath, async, id, false);
             completionStage.toCompletableFuture()
                 .get();

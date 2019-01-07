@@ -30,6 +30,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+import org.eclipse.microprofile.opentracing.Traced;
 
 /**
  * @author Pavol Loffay
@@ -47,7 +48,7 @@ public interface ClientServices {
 
     @GET
     @Path(TestServerWebServices.REST_NESTED_MP_REST_CLIENT)
-    CompletionStage<Void> executeNestedAsync(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
+    CompletionStage<Response> executeNestedAsync(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
         @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
         @QueryParam(PARAM_ASYNC) boolean async,
         @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
@@ -59,5 +60,11 @@ public interface ClientServices {
 
     @GET
     @Path(TestServerWebServices.REST_ERROR)
-    CompletionStage<Void> asyncError();
+    CompletionStage<Response> asyncError();
+
+
+    @GET
+    @Traced(false)
+    @Path(TestServerWebServices.REST_SIMPLE_TEST)
+    Response disabledTracing();
 }

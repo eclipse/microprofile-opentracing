@@ -511,9 +511,9 @@ public abstract class OpenTracingBaseTests extends Arquillian {
         for (int i = 0; i < nestBreadth; i++) {
             children[i] =
                 new TreeNode<>(
-                    getExpectedNestedServerSpan(path, Tags.SPAN_KIND_CLIENT, uniqueId, 0, 1, false, failNest, false),
+                    getExpectedNestedServerSpan(path, Tags.SPAN_KIND_CLIENT, uniqueId, 0, 1, false, failNest, async),
                     new TreeNode<>(
-                        getExpectedNestedServerSpan(path, Tags.SPAN_KIND_SERVER, uniqueId, 0, 1, false, failNest, false)
+                        getExpectedNestedServerSpan(path, Tags.SPAN_KIND_SERVER, uniqueId, 0, 1, false, failNest, async)
                     )
                 );
         }
