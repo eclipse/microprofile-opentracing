@@ -168,8 +168,9 @@ Tracing in `javax.ws.rs.client.Client` has to be explicitly enabled by invoking
 The implementation might enable client tracing globally, in this case explicit configuration has no effect.
 
 ===== MicroProfile Rest Client
-Tracing for MicroProfile Rest Client is by default globally enabled and can be disabled by
-specifying `@Traced(false)` on the client interface or method.
+Tracing for MicroProfile Rest Client is by default globally enabled and it can be disabled by
+specifying `@Traced(false)` on the client interface or method. When it is specified on the client's
+interface tracing is disabled for all methods.
 
 ===== Client Span name
 The default operation name of the new Span for the outgoing request is
