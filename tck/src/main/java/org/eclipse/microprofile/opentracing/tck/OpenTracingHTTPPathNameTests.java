@@ -103,7 +103,7 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
      */
     @Test
     @RunAsClient
-    private void testWildcard() throws InterruptedException {
+    private void testWildcard() {
         Response response = executeRemoteWebServiceRaw("wildcard/10/foo",
             "getFoo/ten", Status.OK);
         response.close();
@@ -124,6 +124,43 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
                         HttpMethod.GET,
                         "wildcard/10/foo",
                         "getFoo/ten",
+                        null,
+                        Status.OK.getStatusCode(),
+                        JAXRS_COMPONENT
+                    ),
+                    Collections.emptyList()
+                )
+            )
+        );
+        assertEqualTrees(spans, expectedTree);
+    }
+
+    /**
+     * Test that server endpoint is adding standard tags
+     */
+    @Test
+    @RunAsClient
+    private void testTwoSameParams() {
+        Response response = executeRemoteWebServiceRaw("wildcard/1/foo",
+            "twoIds/1/1", Status.OK);
+        response.close();
+
+        TestSpanTree spans = executeRemoteWebServiceTracerTree();
+
+        TestSpanTree expectedTree = new TestSpanTree(
+            new TreeNode<>(
+                new TestSpan(
+                    getOperationName(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        WildcardClassService.class,
+                        getEndpointMethod(WildcardClassService.class, WildcardClassService.REST_TWO_IDS)
+                    ),
+                    getExpectedSpanTags(
+                        Tags.SPAN_KIND_SERVER,
+                        HttpMethod.GET,
+                        "wildcard/1/foo",
+                        "twoIds/1/1",
                         null,
                         Status.OK.getStatusCode(),
                         JAXRS_COMPONENT

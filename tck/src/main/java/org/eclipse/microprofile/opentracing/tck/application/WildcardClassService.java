@@ -31,10 +31,17 @@ import javax.ws.rs.core.Response;
 public class WildcardClassService {
     public static final String REST_SERVICE_PATH = "/wildcard/{id}/foo";
     public static final String REST_FOO_PATH = "/getFoo/{name}";
+    public static final String REST_TWO_IDS = "/twoIds/{aaa: \\d+}/{bbb: \\w+}";
 
     @GET
     @Path(REST_FOO_PATH)
     public Response getFoo(@PathParam("id") String id, @PathParam("name") String name) {
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path(REST_TWO_IDS)
+    public Response getTwoParams(@PathParam("id") String id, @PathParam("aaa") String first, @PathParam("bbb") String second) {
         return Response.ok().build();
     }
 }
