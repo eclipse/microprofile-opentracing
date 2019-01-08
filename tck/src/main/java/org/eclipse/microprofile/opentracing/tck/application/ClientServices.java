@@ -62,7 +62,6 @@ public interface ClientServices {
     @Path(TestServerWebServices.REST_ERROR)
     CompletionStage<Response> asyncError();
 
-
     @GET
     @Traced(false)
     @Path(TestServerWebServices.REST_SIMPLE_TEST)
