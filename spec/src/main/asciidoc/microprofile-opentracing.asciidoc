@@ -135,8 +135,8 @@ The implementation has to provide two operation name providers:
 * `class-method` - the provider for the default operation name.
 * `http-path` - the operation name has the following form
 `<HTTP method>:<@Path value of endpoint's class>/<@Path value of endpoint's method>`.
-For example if the class is annotated with `@Path("service")` and method `@Path("endpoint\{id: \\d+}")` then
-the operation name is `GET:/service/endpoint\{id: \\d+}`.
+For example if the class is annotated with `@Path("service")` and method `@Path("endpoint/{id: \\d+}")` then
+the operation name is `GET:/service/endpoint/{id: \\d+}`.
 
 If no operation name provider is specified then `class-method` is used.
 
