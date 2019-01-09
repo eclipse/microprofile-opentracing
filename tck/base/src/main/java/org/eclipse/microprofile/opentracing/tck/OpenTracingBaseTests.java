@@ -65,7 +65,7 @@ import org.testng.annotations.BeforeMethod;
  * @author Pavol Loffay
  */
 public abstract class OpenTracingBaseTests extends Arquillian {
-    static final String JAXRS_COMPONENT = "jaxrs";
+    public static final String JAXRS_COMPONENT = "jaxrs";
     private final AtomicInteger idCounter = new AtomicInteger(0);
 
     /**
@@ -486,7 +486,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
      * @param async Whether to execute nested requests asynchronously.
      * @return Query parameters map.
      */
-    private Map<String, Object> getNestedQueryParameters(int uniqueId,
+    protected Map<String, Object> getNestedQueryParameters(int uniqueId,
         int nestDepth, int nestBreadth, boolean failNest, boolean async) {
         Map<String, Object> queryParameters = new HashMap<>();
         queryParameters.put(TestServerWebServices.PARAM_UNIQUE_ID, uniqueId);
@@ -534,7 +534,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
      * @param async Whether to execute asynchronously.
      * @return Span for the nested call.
      */
-    private TestSpan getExpectedNestedServerSpan(String path, String spanKind, int uniqueId,
+    protected TestSpan getExpectedNestedServerSpan(String path, String spanKind, int uniqueId,
         int nestDepth, int nestBreadth, boolean failNest,
         boolean isFailed, boolean async) {
         String operationName;

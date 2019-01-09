@@ -17,12 +17,13 @@
  * limitations under the License.
  */
 
-package org.eclipse.microprofile.opentracing.tck.application;
+package org.eclipse.microprofile.opentracing.tck.rest.client;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.opentracing.Traced;
+import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 
 /**
  * @author Pavol Loffay

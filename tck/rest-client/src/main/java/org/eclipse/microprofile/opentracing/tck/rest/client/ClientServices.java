@@ -17,13 +17,14 @@
  * limitations under the License.
  */
 
-package org.eclipse.microprofile.opentracing.tck.application;
+package org.eclipse.microprofile.opentracing.tck.rest.client;
 
 import static org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices.PARAM_ASYNC;
 import static org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices.PARAM_FAIL_NEST;
 import static org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices.PARAM_NEST_BREADTH;
 import static org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices.PARAM_NEST_DEPTH;
 import static org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices.PARAM_UNIQUE_ID;
+import static org.eclipse.microprofile.opentracing.tck.rest.client.RestClientServices.REST_NESTED_MP_REST_CLIENT;
 
 import java.util.concurrent.CompletionStage;
 import javax.ws.rs.GET;
@@ -31,6 +32,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.opentracing.Traced;
+import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 
 /**
  * @author Pavol Loffay
@@ -39,7 +41,7 @@ import org.eclipse.microprofile.opentracing.Traced;
 public interface ClientServices {
 
     @GET
-    @Path(TestServerWebServices.REST_NESTED_MP_REST_CLIENT)
+    @Path(REST_NESTED_MP_REST_CLIENT)
     Response executeNested(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
         @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
         @QueryParam(PARAM_ASYNC) boolean async,
@@ -47,20 +49,13 @@ public interface ClientServices {
         @QueryParam(PARAM_FAIL_NEST) boolean failNest);
 
     @GET
-    @Path(TestServerWebServices.REST_NESTED_MP_REST_CLIENT)
+    @Path(REST_NESTED_MP_REST_CLIENT)
     CompletionStage<Response> executeNestedAsync(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
         @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
         @QueryParam(PARAM_ASYNC) boolean async,
         @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
         @QueryParam(PARAM_FAIL_NEST) boolean failNest);
 
-    @GET
-    @Path(TestServerWebServices.REST_ERROR)
-    void error();
-
-    @GET
-    @Path(TestServerWebServices.REST_ERROR)
-    CompletionStage<Response> asyncError();
 
     @GET
     @Traced(false)
