@@ -408,7 +408,7 @@ public class TestServerWebServices {
     @Path(REST_MP_REST_CLIENT_DISABLED_TRACING)
     @Produces(MediaType.TEXT_PLAIN)
     public Response restClientTracingDisabled() throws MalformedURLException {
-        URL webServicesUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
         ClientServicesTracingDisabled client = RestClientBuilder.newBuilder()
             .baseUrl(webServicesUrl)
             .build(ClientServicesTracingDisabled.class);
@@ -420,7 +420,7 @@ public class TestServerWebServices {
     @Path(REST_MP_REST_CLIENT_DISABLED_TRACING_METHOD)
     @Produces(MediaType.TEXT_PLAIN)
     public Response restClientMethodTracingDisabled() throws MalformedURLException {
-        URL webServicesUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
         ClientServices client = RestClientBuilder.newBuilder()
             .baseUrl(webServicesUrl)
             .build(ClientServices.class);
@@ -443,7 +443,7 @@ public class TestServerWebServices {
 
     private void executeNestedMpRestClient(int depth, int breath, String id, boolean failNest, boolean async)
         throws MalformedURLException, InterruptedException, ExecutionException {
-        URL webServicesUrl = new URL(baseUrl().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
         ClientServices clientServices = RestClientBuilder.newBuilder()
             .baseUrl(webServicesUrl)
             .executorService(Executors.newFixedThreadPool(50))
@@ -488,17 +488,17 @@ public class TestServerWebServices {
     }
 
 
-    public URL baseUrl() {
-        String incomingUrl = uri.getAbsolutePath().toString();
-        int i = incomingUrl.indexOf(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT);
+    public URL getBaseURL() {
+        String incomingURLValue = uri.getAbsolutePath().toString();
+        int i = incomingURLValue.indexOf(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT);
         if (i == -1) {
             throw new RuntimeException("Expecting "
                 + TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
-                + " in " + incomingUrl);
+                + " in " + incomingURLValue);
         }
         URL incomingURL;
         try {
-            incomingURL = new URL(incomingUrl.substring(0, i));
+            incomingURL = new URL(incomingURLValue.substring(0, i));
         }
         catch (MalformedURLException e) {
             throw new RuntimeException(e);
