@@ -24,7 +24,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.inject.Inject;
@@ -48,6 +50,7 @@ import org.eclipse.microprofile.opentracing.Traced;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import org.eclipse.microprofile.rest.client.RestClientBuilder;
 
 /**
  * Test JAXRS web services.
@@ -119,6 +122,21 @@ public class TestServerWebServices {
      * Web service endpoint that will call itself some number of times.
      */
     public static final String REST_NESTED = "nested";
+
+    /**
+     * Web service endpoint that will call itself some number of times.
+     */
+    public static final String REST_NESTED_MP_REST_CLIENT = "nestedMpRestClient";
+
+    /**
+     * Web service endpoint that uses rest client with disabled tracing.
+     */
+    public static final String REST_MP_REST_CLIENT_DISABLED_TRACING = "restClientTracingDisabled";
+
+    /**
+     * Web service endpoint that uses rest client with disabled tracing.
+     */
+    public static final String REST_MP_REST_CLIENT_DISABLED_TRACING_METHOD = "restClientMethodTracingDisabled";
 
     /**
      * Query parameter for the number of nested calls.
@@ -344,7 +362,7 @@ public class TestServerWebServices {
                 nestParameters.put(PARAM_NEST_BREADTH, 1);
                 nestParameters.put(PARAM_UNIQUE_ID, uniqueID);
                 nestParameters.put(PARAM_FAIL_NEST, false);
-                nestParameters.put(PARAM_ASYNC, false);
+                nestParameters.put(PARAM_ASYNC, async);
             }
 
             String requestUrl = getRequestPath(
@@ -369,6 +387,47 @@ public class TestServerWebServices {
         return Response.ok().build();
     }
 
+    @GET
+    @Path(REST_NESTED_MP_REST_CLIENT)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response nestedMpRestClient(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
+        @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
+        @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
+        @QueryParam(PARAM_FAIL_NEST) boolean failNest,
+        @QueryParam(PARAM_ASYNC) boolean async)
+        throws MalformedURLException, ExecutionException, InterruptedException {
+          if (nestDepth > 0) {
+              for (int i = 0; i < nestBreadth; i++) {
+                  executeNestedMpRestClient( nestDepth - 1, 1, uniqueID, failNest, async);
+              }
+          }
+          return Response.ok().build();
+    }
+
+    @GET
+    @Path(REST_MP_REST_CLIENT_DISABLED_TRACING)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response restClientTracingDisabled() throws MalformedURLException {
+        URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        ClientServicesTracingDisabled client = RestClientBuilder.newBuilder()
+            .baseUrl(webServicesUrl)
+            .build(ClientServicesTracingDisabled.class);
+        client.restSimpleTest();
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path(REST_MP_REST_CLIENT_DISABLED_TRACING_METHOD)
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response restClientMethodTracingDisabled() throws MalformedURLException {
+        URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        ClientServices client = RestClientBuilder.newBuilder()
+            .baseUrl(webServicesUrl)
+            .build(ClientServices.class);
+        client.disabledTracing();
+        return Response.ok().build();
+    }
+
     /**
      * Endpoint which creates local span.
      * @return OK response
@@ -382,6 +441,29 @@ public class TestServerWebServices {
             Status.OK.getStatusCode() : Status.NO_CONTENT.getStatusCode()).build();
     }
 
+    private void executeNestedMpRestClient(int depth, int breath, String id, boolean failNest, boolean async)
+        throws MalformedURLException, InterruptedException, ExecutionException {
+        URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
+        ClientServices clientServices = RestClientBuilder.newBuilder()
+            .baseUrl(webServicesUrl)
+            .executorService(Executors.newFixedThreadPool(50))
+            .build(ClientServices.class);
+        if (async) {
+            CompletionStage<Response> completionStage = failNest
+                ? clientServices.asyncError() : clientServices.executeNestedAsync(depth, breath, async, id, false);
+            completionStage.toCompletableFuture()
+                .get();
+        }
+        else {
+            if (failNest) {
+                clientServices.error();
+            }
+            else {
+                clientServices.executeNested(depth, breath, async, id, failNest)
+                    .close();
+            }
+        }
+    }
 
     /**
      * Execute a nested web service call.
@@ -403,6 +485,25 @@ public class TestServerWebServices {
         Client restClient = ClientTracingRegistrar.configure(ClientBuilder.newBuilder()).build();
         WebTarget target = restClient.target(requestUrl);
         return target.request().async().get();
+    }
+
+
+    public URL getBaseURL() {
+        String incomingURLValue = uri.getAbsolutePath().toString();
+        int i = incomingURLValue.indexOf(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT);
+        if (i == -1) {
+            throw new RuntimeException("Expecting "
+                + TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
+                + " in " + incomingURLValue);
+        }
+        URL incomingURL;
+        try {
+            incomingURL = new URL(incomingURLValue.substring(0, i));
+        }
+        catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+        return incomingURL;
     }
 
     /**
@@ -437,15 +538,6 @@ public class TestServerWebServices {
         }
 
         return result;
-    }
-
-    /**
-     * Potentially print a debug message.
-     * @param message Debug message.
-     */
-    @SuppressWarnings("unused")
-    private void debug(String message) {
-        System.out.println(message);
     }
 
     /**

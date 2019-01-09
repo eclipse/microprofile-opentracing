@@ -156,11 +156,21 @@ Spans created for incoming requests will have the following tags added by defaul
 If there is an exception object available the implementation SHOULD also add logs `event=error` and `error.object=<error object instance>` to the active span.
 
 ==== Span creation and injection for outbound requests
+Tracing of client requests is supported for `javax.ws.rs.client.Client` and MicroProfile Rest Client.
+
+When a request is sent from a traced client, a new Span is created and its SpanContext is injected
+in the outbound request for propagation downstream. The new Span will be a child of the active Span
+if an active Span exists. The new Span will be finished when the outbound request is completed.
+
+===== JAX-RS Client
 Tracing in `javax.ws.rs.client.Client` has to be explicitly enabled by invoking
 `org.eclipse.microprofile.opentracing.ClientTracingRegistrar.configure(ClientBuilder clientBuilder)`.
 The implementation might enable client tracing globally, in this case explicit configuration has no effect.
 
-When a request is sent from a JAX-RS `javax.ws.rs.client.Client`, a new Span is created and its SpanContext is injected in the outbound request for propagation downstream. The new Span will be a child of the active Span if an active Span exists. The new Span will be finished when the outbound request is completed.
+===== MicroProfile Rest Client
+Tracing for MicroProfile Rest Client is by default globally enabled and it can be disabled by
+specifying `@Traced(false)` on the client interface or method. When it is specified on the client's
+interface tracing is disabled for all methods.
 
 ===== Client Span name
 The default operation name of the new Span for the outgoing request is
