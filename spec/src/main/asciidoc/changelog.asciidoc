@@ -19,6 +19,11 @@
 
 :numbered!:
 
+=== Release 1.3
+
+* Instrument MicroProfile Rest Client (https://github.com/eclipse/microprofile-opentracing/pull/102[#102])
+* Clarify http-path when path contains regular expressions (https://github.com/eclipse/microprofile-opentracing/pull/136[#136])
+
 === Release 1.2.1
 
 * Split tree equals in TCK and remove logs from server spans (https://github.com/eclipse/microprofile-opentracing/pull/132[#132])
