@@ -33,6 +33,11 @@ To enable the tests in your project you need to add the following dependency to 
     <artifactId>microprofile-opentracing-tck</artifactId>
     <scope>test</scope>
 </dependency>
+<dependency>
+    <groupId>org.eclipse.microprofile.opentracing</groupId>
+    <artifactId>microprofile-opentracing-tck-rest-client</artifactId>
+    <scope>test</scope>
+</dependency>
 ----
 
 == Declaring the Tests to run
