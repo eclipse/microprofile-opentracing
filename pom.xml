@@ -34,7 +34,7 @@
         <autorelease>false</autorelease>
 
         <version.mp.config>1.3</version.mp.config>
-        <version.mp.rest.client>1.2-m2</version.mp.rest.client>
+        <version.mp.rest.client>1.2-RC1</version.mp.rest.client>
         <!-- Versions of API dependencies -->
         <osgi-annotation.version>1.0.0</osgi-annotation.version>
 
