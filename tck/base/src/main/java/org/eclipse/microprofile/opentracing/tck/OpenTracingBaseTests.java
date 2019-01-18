@@ -43,8 +43,8 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import org.eclipse.microprofile.opentracing.tck.application.ApplicationUtils;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
-import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
 import org.eclipse.microprofile.opentracing.tck.tracer.ConsumableTree;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
@@ -128,10 +128,10 @@ public abstract class OpenTracingBaseTests extends Arquillian {
      * @return Web service URL
      */
     protected String getWebServiceURL(final String service, final String relativePath, Map<String, Object> queryParameters) {
-        String url = TestWebServicesApplication
+        String url = ApplicationUtils
             .getWebServiceURL(deploymentURL, service, relativePath);
         if (queryParameters != null) {
-            url += TestWebServicesApplication.getQueryString(queryParameters);
+            url += ApplicationUtils.getQueryString(queryParameters);
         }
         return url;
     }

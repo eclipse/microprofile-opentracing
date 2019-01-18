@@ -18,14 +18,8 @@
  */
 package org.eclipse.microprofile.opentracing.tck.application;
 
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.ApplicationPath;
@@ -36,13 +30,8 @@ import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 /**
  * Test web services JAXRS application.
  */
-@ApplicationPath(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT)
+@ApplicationPath(ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT)
 public class TestWebServicesApplication extends Application {
-
-    /**
-     * The context root of JAXRS web services.
-     */
-    public static final String TEST_WEB_SERVICES_CONTEXT_ROOT = "rest";
 
     /**
      * {@inheritDoc}
@@ -57,82 +46,5 @@ public class TestWebServicesApplication extends Application {
             TestClientRegistrarWebServices.class,
             WildcardClassService.class,
             JacksonJsonProvider.class));
-    }
-
-    /**
-     * Create web service URL.
-     * @param baseUri Base URI.
-     * @param service Web service path
-     * @param relativePath Web service endpoint
-     * @return Web service URL
-     */
-    public static String getWebServiceURL(final URL baseUri,
-            final String service, final String relativePath) {
-        try {
-            return new URL(baseUri,
-                    TEST_WEB_SERVICES_CONTEXT_ROOT + "/"
-                            + service + "/" + relativePath).toString();
-        }
-        catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Convert a map into a query string.
-     * @param queryParameters Map to convert.
-     * @return Query string.
-     */
-    public static String getQueryString(Map<String, Object> queryParameters) {
-        if (queryParameters.isEmpty()) {
-            return "";
-        }
-
-        String result = "?";
-
-        String prefix = null;
-        for (Map.Entry<String, Object> parmEntry : queryParameters
-                .entrySet()) {
-            String parmName = parmEntry.getKey();
-            Object parmValue = parmEntry.getValue();
-
-            if (prefix != null) {
-                result += prefix;
-            }
-            else {
-                prefix = "&";
-            }
-
-            result += urlEncode(parmName);
-
-            if (parmValue != null) {
-                result += "=";
-                result += urlEncode(parmValue.toString());
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * URL-encode {@code text}.
-     * @param text Text to encode.
-     * @return Encoded text.
-     */
-    public static String urlEncode(String text) {
-        try {
-            return URLEncoder.encode(text, StandardCharsets.UTF_8.name());
-        }
-        catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Create an example RuntimeException used by a web service.
-     * @return New RuntimeException.
-     */
-    public static RuntimeException createExampleRuntimeException() {
-        return new RuntimeException("Example runtime exception");
     }
 }
