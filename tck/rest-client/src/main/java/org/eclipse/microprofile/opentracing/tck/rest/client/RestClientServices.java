@@ -39,8 +39,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import org.eclipse.microprofile.opentracing.tck.application.ApplicationUtils;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
-import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 
 /**
@@ -134,10 +134,10 @@ public class RestClientServices {
 
     private URL getBaseURL() {
         String incomingURLValue = uri.getAbsolutePath().toString();
-        int i = incomingURLValue.indexOf(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT);
+        int i = incomingURLValue.indexOf(ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT);
         if (i == -1) {
             throw new RuntimeException("Expecting "
-                + TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
+                + ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT
                 + " in " + incomingURLValue);
         }
         URL incomingURL;

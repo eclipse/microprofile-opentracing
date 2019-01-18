@@ -66,6 +66,6 @@ public class TestAnnotatedClass {
      */
     public void annotatedClassMethodImplicitlyTracedWithException() {
         System.out.println("Called annotatedClassMethodImplicitlyTracedWithException");
-        throw TestWebServicesApplication.createExampleRuntimeException();
+        throw ApplicationUtils.createExampleRuntimeException();
     }
 }

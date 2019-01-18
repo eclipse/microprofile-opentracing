@@ -236,7 +236,7 @@ public class TestServerWebServices {
     @Path(REST_EXCEPTION)
     @Produces(MediaType.TEXT_PLAIN)
     public Response exception() {
-        throw TestWebServicesApplication.createExampleRuntimeException();
+        throw ApplicationUtils.createExampleRuntimeException();
     }
 
     /**
@@ -417,10 +417,10 @@ public class TestServerWebServices {
             Map<String, Object> requestParameters) {
 
         String incomingUrl = uri.getAbsolutePath().toString();
-        int i = incomingUrl.indexOf(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT);
+        int i = incomingUrl.indexOf(ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT);
         if (i == -1) {
             throw new RuntimeException("Expecting "
-                    + TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT
+                    + ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT
                     + " in " + incomingUrl);
         }
         URL incomingURL;
@@ -430,10 +430,10 @@ public class TestServerWebServices {
         catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
-        String result = TestWebServicesApplication.getWebServiceURL(incomingURL, servicePath, endpointPath);
+        String result = ApplicationUtils.getWebServiceURL(incomingURL, servicePath, endpointPath);
 
         if ((requestParameters != null) && !requestParameters.isEmpty()) {
-            result += TestWebServicesApplication.getQueryString(requestParameters);
+            result += ApplicationUtils.getQueryString(requestParameters);
         }
 
         return result;

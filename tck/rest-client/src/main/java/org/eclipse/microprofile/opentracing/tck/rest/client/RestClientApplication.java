@@ -19,20 +19,40 @@
 
 package org.eclipse.microprofile.opentracing.tck.rest.client;
 
+import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 import javax.ws.rs.ApplicationPath;
-import org.eclipse.microprofile.opentracing.tck.application.TestWebServicesApplication;
+import javax.ws.rs.core.Application;
+import org.eclipse.microprofile.opentracing.tck.application.ApplicationUtils;
+import org.eclipse.microprofile.opentracing.tck.application.TestClientRegistrarWebServices;
+import org.eclipse.microprofile.opentracing.tck.application.TestServerSkipAllWebServices;
+import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
+import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServicesWithOperationName;
+import org.eclipse.microprofile.opentracing.tck.application.TracerWebService;
+import org.eclipse.microprofile.opentracing.tck.application.WildcardClassService;
 
 /**
  * @author Pavol Loffay
+ *
+ * Note that we cannot extend TestWebServicesApplication. We remove it from the deployment
+ * and map a this JAX-RS map to its URL.
+ *
  */
-@ApplicationPath(TestWebServicesApplication.TEST_WEB_SERVICES_CONTEXT_ROOT)
-public class RestClientApplication extends TestWebServicesApplication {
+@ApplicationPath(ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT)
+public class RestClientApplication extends Application {
 
     @Override
     public Set<Class<?>> getClasses() {
-        Set<Class<?>> classes = super.getClasses();
-        classes.add(RestClientServices.class);
-        return classes;
+        return new HashSet<>(Arrays.asList(
+            TracerWebService.class,
+            TestServerWebServices.class,
+            TestServerSkipAllWebServices.class,
+            TestServerWebServicesWithOperationName.class,
+            TestClientRegistrarWebServices.class,
+            WildcardClassService.class,
+            RestClientServices.class,
+            JacksonJsonProvider.class));
     }
 }
