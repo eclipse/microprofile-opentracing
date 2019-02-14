@@ -21,6 +21,8 @@ package org.eclipse.microprofile.opentracing.tck.rest.client;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
@@ -34,5 +36,6 @@ public interface ClientServicesTracingDisabled {
 
     @GET
     @Path(TestServerWebServices.REST_SIMPLE_TEST)
+    @Produces(MediaType.TEXT_PLAIN)
     Response restSimpleTest();
 }

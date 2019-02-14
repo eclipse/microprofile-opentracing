@@ -29,7 +29,9 @@ import static org.eclipse.microprofile.opentracing.tck.rest.client.RestClientSer
 import java.util.concurrent.CompletionStage;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
@@ -42,6 +44,7 @@ public interface ClientServices {
 
     @GET
     @Path(REST_NESTED_MP_REST_CLIENT)
+    @Produces(MediaType.TEXT_PLAIN)
     Response executeNested(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
         @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
         @QueryParam(PARAM_ASYNC) boolean async,
@@ -50,6 +53,7 @@ public interface ClientServices {
 
     @GET
     @Path(REST_NESTED_MP_REST_CLIENT)
+    @Produces(MediaType.TEXT_PLAIN)
     CompletionStage<Response> executeNestedAsync(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
         @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
         @QueryParam(PARAM_ASYNC) boolean async,
@@ -60,5 +64,6 @@ public interface ClientServices {
     @GET
     @Traced(false)
     @Path(TestServerWebServices.REST_SIMPLE_TEST)
+    @Produces(MediaType.TEXT_PLAIN)
     Response disabledTracing();
 }
