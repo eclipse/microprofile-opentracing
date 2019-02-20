@@ -18,7 +18,15 @@
 //
 # MicroProfile OpenTracing
 
-== How to contribute
+The MicroProfile OpenTracing specification defines behaviors and an API for accessing
+an OpenTracing compliant Tracer object within your JAX-RS application.
+The behaviors specify how incoming and outgoing requests will have OpenTracing
+Spans automatically created. The API defines how to explicitly disable or enable
+tracing for given endpoints.
+
+* For the current specification see link:https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing.asciidoc[microprofile-opentracing-spec].
+
+## How to contribute
 
 Do you want to contribute to this project? Here is what you can do:
 
@@ -28,17 +36,8 @@ Do you want to contribute to this project? Here is what you can do:
 * Join our https://calendar.google.com/calendar/embed?src=gbnbc373ga40n0tvbl88nkc3r4%40group.calendar.google.com[bi-weekly meeting] every second Wednesday at https://www.timeanddate.com/time/map/[16h00 GMT]. 
 ** https://docs.google.com/document/d/1TbeKThAd9Df6IS0S6lz_YsTmxpFqWRmCL2HjbrAyLPQ/edit#heading=h.t9s5gp6jb2g6[Minutes and Agenda].
 ** https://eclipse.zoom.us/j/949859967[Meeting room].
-
-
-The MicroProfile OpenTracing specification defines behaviors and an API for accessing
-an OpenTracing compliant Tracer object within your JAX-RS application.
-The behaviors specify how incoming and outgoing requests will have OpenTracing
-Spans automatically created. The API defines how to explicitly disable or enable
-tracing for given endpoints.
-
-* For the current specification see link:https://github.com/eclipse/microprofile-opentracing/blob/master/spec/src/main/asciidoc/microprofile-opentracing.asciidoc[microprofile-opentracing-spec].
-* For announcements and more discussions visit link:++https://groups.google.com/forum/#!forum/microprofile++[MicroProfile Google Groups], and filter on link:++https://groups.google.com/forum/#!searchin/microprofile/tag$3Adistributed-tracing$20OR$20tag$3Aopentracing%7Csort:date++[distributed-tracing or opentracing tags].
-* Join the discussion on Gitter: image:https://badges.gitter.im/eclipse/microprofile-opentracing.svg[link=https://gitter.im/eclipse/microprofile-opentracing]
+* Join the discussions on the https://groups.google.com/forum/#!forum/microprofile[MicroProfile Google Group]
+* https://microprofile.io/blog/[Contribute a blog post].
 
 ## Build
 
