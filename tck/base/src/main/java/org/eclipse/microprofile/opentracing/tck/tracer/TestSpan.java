@@ -18,6 +18,7 @@
  */
 package org.eclipse.microprofile.opentracing.tck.tracer;
 
+import io.opentracing.tag.Tag;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -255,6 +256,11 @@ public class TestSpan implements Span {
      */
     @Override
     public Span setTag(final String key, final Number value) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public <T> Span setTag(Tag<T> tag, T value) {
         throw new UnsupportedOperationException();
     }
 
