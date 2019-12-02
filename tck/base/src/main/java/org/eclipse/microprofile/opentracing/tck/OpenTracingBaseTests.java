@@ -22,6 +22,7 @@ package org.eclipse.microprofile.opentracing.tck;
 import io.opentracing.tag.Tags;
 import java.io.File;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -83,8 +84,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
 
         File[] files = Maven.resolver()
             .resolve(
-                "io.opentracing:opentracing-api:0.31.0",
-                "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
+                "io.opentracing:opentracing-api:0.31.0"
             )
             .withTransitivity().asFile();
 
@@ -227,12 +227,12 @@ public abstract class OpenTracingBaseTests extends Arquillian {
         Assert.assertEquals(returnedTree, expectedTree);
     }
 
-    
+
     /**
      * This wrapper method allows for potential post-processing, such as
      * removing tags that we don't care to compare in {@code returnedTree}.
      * This method keeps the error related keys.
-     * 
+     *
      *
      * @param returnedTree The returned tree from the web service.
      * @param expectedTree The simulated tree that we expect.
@@ -266,7 +266,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
 
         Assert.assertEquals(returnedTree, expectedTree);
     }
-    
+
     /**
      * Print debug message to target/surefire-reports/testng-results.xml.
      *
@@ -343,7 +343,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
         tags.put(Tags.SPAN_KIND.getKey(), spanKind);
         tags.put(Tags.HTTP_METHOD.getKey(), httpMethod);
         tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(service, relativePath, queryParameters));
-        tags.put(Tags.HTTP_STATUS.getKey(), httpStatus);
+        tags.put(Tags.HTTP_STATUS.getKey(), new BigDecimal(httpStatus));
         tags.put(Tags.COMPONENT.getKey(), component);
         return tags;
     }
