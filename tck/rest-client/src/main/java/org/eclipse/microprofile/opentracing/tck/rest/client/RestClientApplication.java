@@ -19,7 +19,6 @@
 
 package org.eclipse.microprofile.opentracing.tck.rest.client;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -52,7 +51,6 @@ public class RestClientApplication extends Application {
             TestServerWebServicesWithOperationName.class,
             TestClientRegistrarWebServices.class,
             WildcardClassService.class,
-            RestClientServices.class,
-            JacksonJsonProvider.class));
+            RestClientServices.class));
     }
 }
