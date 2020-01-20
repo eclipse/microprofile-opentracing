@@ -89,10 +89,11 @@ public class OpentracingClientTests extends Arquillian {
     @Deployment
     public static WebArchive createDeployment() {
 
-        File[] files = Maven.resolver()
+        File[] files = Maven.configureResolver()
+                .withRemoteRepo("Maven Central", "https://repo.maven.apache.org/maven2/", "default")
                 .resolve(
-                "io.opentracing:opentracing-api:0.30.0",
-                "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
+                    "io.opentracing:opentracing-api:0.30.0",
+                    "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
                 )
                 .withTransitivity().asFile();
 
@@ -103,7 +104,7 @@ public class OpentracingClientTests extends Arquillian {
 
         return war;
     }
-   
+
     /**
      * Before each test method, clear the tracer.
      * 
