@@ -81,12 +81,13 @@ public abstract class OpenTracingBaseTests extends Arquillian {
      */
     public static WebArchive createDeployment() {
 
-        File[] files = Maven.resolver()
-            .resolve(
-                "io.opentracing:opentracing-api:0.31.0",
-                "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
-            )
-            .withTransitivity().asFile();
+        File[] files = Maven.configureResolver()
+                .withRemoteRepo("Maven Central", "https://repo.maven.apache.org/maven2/", "default")
+                .resolve(
+                    "io.opentracing:opentracing-api:0.31.0",
+                    "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
+                )
+                .withTransitivity().asFile();
 
         WebArchive war = ShrinkWrap.create(WebArchive.class, "opentracing.war")
             .addPackages(true, OpenTracingClientBaseTests.class.getPackage())
