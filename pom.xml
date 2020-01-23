@@ -37,7 +37,7 @@
         <version.mp.rest.client>1.2</version.mp.rest.client>
         <!-- Versions of API dependencies -->
         <osgi-annotation.version>1.0.0</osgi-annotation.version>
-
+        <version.arquillian>1.6.0.Final</version.arquillian>
     </properties>
 
     <licenses>
@@ -124,7 +124,7 @@
             <dependency>
                 <groupId>org.jboss.arquillian</groupId>
                 <artifactId>arquillian-bom</artifactId>
-                <version>1.1.13.Final</version>
+                <version>${version.arquillian}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
