@@ -20,7 +20,6 @@
 package org.eclipse.microprofile.opentracing.tck;
 
 import io.opentracing.tag.Tags;
-import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ import org.jboss.arquillian.testng.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.BeforeMethod;
@@ -81,18 +79,9 @@ public abstract class OpenTracingBaseTests extends Arquillian {
      */
     public static WebArchive createDeployment() {
 
-        File[] files = Maven.configureResolver()
-                .withRemoteRepo("Maven Central", "https://repo.maven.apache.org/maven2/", "default")
-                .resolve(
-                    "io.opentracing:opentracing-api:0.31.0",
-                    "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
-                )
-                .withTransitivity().asFile();
-
         WebArchive war = ShrinkWrap.create(WebArchive.class, "opentracing.war")
             .addPackages(true, OpenTracingClientBaseTests.class.getPackage())
-            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-            .addAsLibraries(files);
+            .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 
         return war;
     }
