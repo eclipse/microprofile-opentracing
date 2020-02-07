@@ -31,8 +31,6 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
 /**
  * Test web services JAXRS application.
  */
@@ -52,8 +50,7 @@ public class TestWebServicesApplication extends Application {
         return new HashSet<>(Arrays.asList(
             TracerWebService.class,
             TestServerWebServices.class,
-            TestServerWebServicesWithOperationName.class,
-            JacksonJsonProvider.class));
+            TestServerWebServicesWithOperationName.class));
     }
 
     /**
