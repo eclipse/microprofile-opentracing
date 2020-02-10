@@ -81,6 +81,7 @@
                         <revnumber>${project.version}</revnumber>
                         <revremark>${revremark}</revremark>
                         <revdate>${revisiondate}</revdate>
+                        <opentracingversion>${version.opentracing}</opentracingversion>
                     </attributes>
                 </configuration>
             </plugin>

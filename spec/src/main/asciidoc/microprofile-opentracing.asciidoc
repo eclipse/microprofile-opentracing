@@ -94,6 +94,7 @@ This specification defines an easy way to allow an application running in a
 MicroProfile container to take advantage of distributed tracing by using an
 OpenTracing Tracer implementation. This document and implementations MUST comply with
 OpenTracing specification and semantic conventions if it is not defined otherwise.
+The currently used OpenTracing API version is {opentracingversion}.
 
 There are two operation modes
 

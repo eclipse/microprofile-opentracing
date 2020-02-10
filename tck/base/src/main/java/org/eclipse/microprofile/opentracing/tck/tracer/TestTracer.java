@@ -18,6 +18,7 @@
  */
 package org.eclipse.microprofile.opentracing.tck.tracer;
 
+import io.opentracing.Scope;
 import io.opentracing.ScopeManager;
 import io.opentracing.Span;
 import java.util.ArrayList;
@@ -79,6 +80,11 @@ public class TestTracer implements Tracer {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public Scope activateSpan(Span span) {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -102,6 +108,10 @@ public class TestTracer implements Tracer {
     @Override
     public <C> SpanContext extract(final Format<C> format, final C carrier) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() {
     }
 
     /**
