@@ -31,8 +31,6 @@ import java.util.Set;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
 /**
  * Test web services JAXRS application.
  */
@@ -55,8 +53,7 @@ public class TestWebServicesApplication extends Application {
             TestServerSkipAllWebServices.class,
             TestServerWebServicesWithOperationName.class,
             TestClientRegistrarWebServices.class,
-            WildcardClassService.class,
-            JacksonJsonProvider.class));
+            WildcardClassService.class));
     }
 
     /**
