@@ -19,7 +19,6 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
-import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,8 +32,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -62,7 +61,6 @@ import org.jboss.arquillian.testng.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.testng.Assert;
 import org.testng.Reporter;
 import org.testng.annotations.BeforeMethod;
@@ -89,18 +87,9 @@ public class OpentracingClientTests extends Arquillian {
     @Deployment
     public static WebArchive createDeployment() {
 
-        File[] files = Maven.configureResolver()
-                .withRemoteRepo("Maven Central", "https://repo.maven.apache.org/maven2/", "default")
-                .resolve(
-                    "io.opentracing:opentracing-api:0.30.0",
-                    "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.9.0"
-                )
-                .withTransitivity().asFile();
-
         WebArchive war = ShrinkWrap.create(WebArchive.class, "opentracing.war")
                 .addPackages(true, OpentracingClientTests.class.getPackage())
-                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-                .addAsLibraries(files);
+                .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml");
 
         return war;
     }
