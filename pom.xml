@@ -19,7 +19,7 @@
 
     <groupId>org.eclipse.microprofile.opentracing</groupId>
     <artifactId>microprofile-opentracing-parent</artifactId>
-    <version>1.3.3-SNAPSHOT</version>
+    <version>1.3.3</version>
     <packaging>pom</packaging>
     <name>MicroProfile OpenTracing</name>
     <description>Specification for OpenTracing behavior in MicroProfile</description>
@@ -76,7 +76,7 @@
         <connection>scm:git:https://github.com/eclipse/microprofile-opentracing.git</connection>
         <developerConnection>scm:git:git@github.com:eclipse/microprofile-opentracing.git</developerConnection>
         <url>https://github.com/eclipse/microprofile-opentracing</url>
-        <tag>HEAD</tag>
+        <tag>1.3.3</tag>
     </scm>
 
     <distributionManagement>
