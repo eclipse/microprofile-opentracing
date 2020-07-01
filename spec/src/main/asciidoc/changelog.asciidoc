@@ -19,6 +19,13 @@
 
 :numbered!:
 
+=== Release 2.0
+
+* Remove OpenTracing API from WAR in TCK (https://github.com/eclipse/microprofile-opentracing/pull/183[#183])
+* Update OpenTracing API to 0.33.0 (https://github.com/eclipse/microprofile-opentracing/pull/177[#177])
+* Update Arquillian version in TCK to 1.6.0 (https://github.com/eclipse/microprofile-opentracing/pull/168[#168])
+* Use Jakarta EE 8 APIs instead of Java EE 7 and remove dependency on Jackson (https://github.com/eclipse/microprofile-opentracing/pull/162[#162])
+
 === Release 1.3.1
 
 * Add return MIME type to Rest Client interface in TCK (https://github.com/eclipse/microprofile-opentracing/pull/145[#145])
