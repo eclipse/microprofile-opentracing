@@ -21,6 +21,7 @@
 
 === Release 2.0
 
+* Exclude transitive dependency on `javax.el-api` (https://github.com/eclipse/microprofile-opentracing/pull/196[#196])
 * Make OSGI dependency provided (https://github.com/eclipse/microprofile-opentracing/pull/190[#190])
 * Remove OpenTracing API from WAR in TCK (https://github.com/eclipse/microprofile-opentracing/pull/183[#183])
 * Update OpenTracing API to 0.33.0 (https://github.com/eclipse/microprofile-opentracing/pull/177[#177])
