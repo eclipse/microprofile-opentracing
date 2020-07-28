@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
@@ -63,6 +64,11 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
         @Override
         public String getName() {
             return this.getClass().getName();
+        }
+
+        @Override
+        public Set<String> getPropertyNames() {
+            return getProperties().keySet();
         }
     }
 
