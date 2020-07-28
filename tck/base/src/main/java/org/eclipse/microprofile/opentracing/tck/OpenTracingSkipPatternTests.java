@@ -21,6 +21,7 @@ package org.eclipse.microprofile.opentracing.tck;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
@@ -59,6 +60,11 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
         @Override
         public String getName() {
             return this.getClass().getName();
+        }
+
+        @Override
+        public Set<String> getPropertyNames() {
+            return getProperties().keySet();
         }
     }
 

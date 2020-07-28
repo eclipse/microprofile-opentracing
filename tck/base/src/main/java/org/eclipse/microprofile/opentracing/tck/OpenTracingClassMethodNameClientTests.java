@@ -21,6 +21,7 @@ package org.eclipse.microprofile.opentracing.tck;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -49,6 +50,11 @@ public class OpenTracingClassMethodNameClientTests extends OpenTracingClientBase
         @Override
         public String getName() {
             return this.getClass().getName();
+        }
+
+        @Override
+        public Set<String> getPropertyNames() {
+            return getProperties().keySet();
         }
     }
 
