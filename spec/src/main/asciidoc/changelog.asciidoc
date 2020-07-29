@@ -32,7 +32,7 @@ The following APIs were removed:
 * `Span = Scope.span()`: use `ScopeManager.activeSpan()` or hold the reference to `Span` explicitly since the span was started.
 * `Scope =SpanBuilder.startActive()`: use `Tracer.activateSpan(Span)` instead.
 * `Span = Tracer.startManual()`: use `Tracer.start()` instead.
-* `AutoFinishScopeManager`: no alternative auto-finishing has been removed.
+* `AutoFinishScopeManager`: no alternative, auto-finishing has been removed.
 
 ==== Other changes
 
