@@ -29,7 +29,7 @@ The following APIs were removed:
 
 * `Scope = ScopeManager.active()`: no alternative, the reference `Scope` has to be kept explicitly since the scope was created.
 * `Scope = ScopeManager.activate(Span, boolean)`: no alternative auto-finishing has been removed.
-* `Span = Scope.span()`: no alternative the reference to `Span` has to be kept explicitly since the span was started.
+* `Span = Scope.span()`: use `ScopeManager.activeSpan()` or hold the reference to `Span` explicitly since the span was started.
 * `Scope =SpanBuilder.startActive()`: use `Tracer.activateSpan(Span)` instead.
 * `Span = Tracer.startManual()`: use `Tracer.start()` instead.
 * `AutoFinishScopeManager`: no alternative auto-finishing has been removed.
