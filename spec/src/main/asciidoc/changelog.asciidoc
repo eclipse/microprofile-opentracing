@@ -21,10 +21,24 @@
 
 === Release 2.0
 
+==== Incompatible changes
+
+===== Update OpenTracing API to 0.33.0 (https://github.com/eclipse/microprofile-opentracing/pull/177[#177])
+
+The following APIs were removed:
+
+* `Scope = ScopeManager.active()`: no alternative, the reference `Scope` has to be kept explicitly since the scope was created.
+* `Scope = ScopeManager.activate(Span, boolean)`: no alternative auto-finishing has been removed.
+* `Span = Scope.span()`: use `ScopeManager.activeSpan()` or hold the reference to `Span` explicitly since the span was started.
+* `Scope =SpanBuilder.startActive()`: use `Tracer.activateSpan(Span)` instead.
+* `Span = Tracer.startManual()`: use `Tracer.start()` instead.
+* `AutoFinishScopeManager`: no alternative, auto-finishing has been removed.
+
+==== Other changes
+
 * Exclude transitive dependency on `javax.el-api` (https://github.com/eclipse/microprofile-opentracing/pull/196[#196])
 * Make OSGI dependency provided (https://github.com/eclipse/microprofile-opentracing/pull/190[#190])
 * Remove OpenTracing API from WAR in TCK (https://github.com/eclipse/microprofile-opentracing/pull/183[#183])
-* Update OpenTracing API to 0.33.0 (https://github.com/eclipse/microprofile-opentracing/pull/177[#177])
 * Update Arquillian version in TCK to 1.6.0 (https://github.com/eclipse/microprofile-opentracing/pull/168[#168])
 * Use Jakarta EE 8 APIs instead of Java EE 7 and remove dependency on Jackson (https://github.com/eclipse/microprofile-opentracing/pull/162[#162])
 
