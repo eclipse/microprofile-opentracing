@@ -47,7 +47,7 @@ Distributed tracing allows you to trace the flow of a request across service bou
 This is particularly important in a microservices environment where a request typically flows through multiple services.
 To accomplish distributed tracing, each service must be instrumented to log messages with a correlation id that may have been propagated from an upstream service.
 A common companion to distributed trace logging is a service where the distributed trace records can be stored.
-See also examples on http://opentracing.io/documentation/pages/supported-tracers.html[opentracing.io].
+See also examples on https://opentracing.io/docs/supported-tracers/[opentracing.io].
 The storage service for distributed trace records can provide features to view the cross service trace records associated with particular request flows.
 
 It will be useful for services written in the MicroProfile framework to be able to integrate well with a distributed trace system that is part of the larger microservices environment.
