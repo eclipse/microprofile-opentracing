@@ -20,26 +20,24 @@
 
 :authors: Steve Fontes, Heiko W. Rupp, Pavol Loffay
 :email: steve.m.fontes@gmail.com, hrupp@redhat.com, ploffay@redhat.com
-:revnumber: 0.2
-:revdate: 2017-10-4
-:revremark: Specification
 :version-label!:
 :sectanchors:
 :doctype: book
-:license: Apache License v2.0
+:license: Eclipse Foundation Specification License v1.0
 :source-highlighter: coderay
 :toc: left
 :toclevels: 4
-:sectnums:
+:sectnumlevels: 4
 ifdef::backend-pdf[]
 :pagenums:
 endif::[]
 :icons: font
 
-
 = Eclipse MicroProfile OpenTracing
 
-include::license-alv2.asciidoc[]
+:sectnums!:
+include::license-efsl.adoc[]
+:sectnums:
 
 == Introduction
 
