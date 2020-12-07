@@ -20,7 +20,6 @@
 package org.eclipse.microprofile.opentracing.tck;
 
 import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -368,7 +367,7 @@ public abstract class OpenTracingBaseTests extends Arquillian {
         tags.put(Tags.SPAN_KIND.getKey(), spanKind);
         tags.put(Tags.HTTP_METHOD.getKey(), httpMethod);
         tags.put(Tags.HTTP_URL.getKey(), getWebServiceURL(service, relativePath, queryParameters));
-        tags.put(Tags.HTTP_STATUS.getKey(), new BigDecimal(httpStatus));
+        tags.put(Tags.HTTP_STATUS.getKey(), httpStatus);
         tags.put(Tags.COMPONENT.getKey(), component);
         return tags;
     }
