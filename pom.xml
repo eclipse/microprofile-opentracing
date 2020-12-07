@@ -33,7 +33,7 @@
         <checkstyle.methodNameFormat>^_?[a-z][a-zA-Z0-9]*$</checkstyle.methodNameFormat>
         <autorelease>false</autorelease>
 
-        <version.mp.config>2.0-RC1</version.mp.config>
+        <version.mp.config>2.0</version.mp.config>
         <version.mp.rest.client>2.0-RC2</version.mp.rest.client>
         <version.opentracing>0.33.0</version.opentracing>
         <!-- Versions of API dependencies -->
