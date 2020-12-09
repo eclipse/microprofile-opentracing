@@ -42,6 +42,7 @@
 
         <revremark>Draft</revremark>
         <inceptionYear>2017</inceptionYear>
+        <stagingProgressTimeoutMinutes>5</stagingProgressTimeoutMinutes>
     </properties>
 
     <licenses>
@@ -352,6 +353,7 @@
                             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                             <serverId>ossrh</serverId>
                             <autoReleaseAfterClose>${autorelease}</autoReleaseAfterClose>
+                            <stagingProgressTimeoutMinutes>${stagingProgressTimeoutMinutes}</stagingProgressTimeoutMinutes>
                         </configuration>
                     </plugin>
                     <plugin>
