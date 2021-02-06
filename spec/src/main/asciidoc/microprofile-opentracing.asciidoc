@@ -222,7 +222,8 @@ An annotation is provided to define explicit Span creation. This works on top of
 
 The `@Traced` annotation, applies to a class or a method. When applied to a class, the `@Traced` annotation is applied to all methods of the class.
 If the annotation is applied to a class and method then the annotation applied to the method takes precedence.
-The annotation starts a Span at the beginning of the method, and finishes the Span at the end of the method.
+The annotation starts a Span at the beginning of a business method, and finishes the Span at the end of that method.
+Because the `@Traced` annotation uses the https://docs.jboss.org/cdi/spec/1.0/html/interceptors.html[Interceptor] pattern, only business logic invocations cause a Span to be created.
 
 The `@Traced` annotation has two optional arguments.
 
