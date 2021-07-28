@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -18,27 +18,24 @@
  */
 package org.eclipse.microprofile.opentracing.tck.tracer;
 
-import io.opentracing.Scope;
-import io.opentracing.ScopeManager;
-import io.opentracing.Span;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.enterprise.inject.Alternative;
-
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree.TreeNode;
 
+import io.opentracing.Scope;
+import io.opentracing.ScopeManager;
+import io.opentracing.Span;
 import io.opentracing.SpanContext;
 import io.opentracing.Tracer;
 import io.opentracing.propagation.Format;
+import jakarta.enterprise.inject.Alternative;
 
 /**
- * Test Tracer.
- * The {@link javax.enterprise.inject.Alternative} annotation
- * is needed so that this doesn't get injected instead of the
- * container's {@link io.opentracing.Tracer}.
+ * Test Tracer. The {@link jakarta.enterprise.inject.Alternative} annotation is needed so that this doesn't get injected
+ * instead of the container's {@link io.opentracing.Tracer}.
  */
 @Alternative
 public class TestTracer implements Tracer {
@@ -50,6 +47,7 @@ public class TestTracer implements Tracer {
 
     /**
      * Get a list of accumulated spans.
+     * 
      * @return List of spans.
      */
     public List<TestSpan> getSpans() {
@@ -58,7 +56,9 @@ public class TestTracer implements Tracer {
 
     /**
      * Set the list of spans.
-     * @param newSpans List of spans.
+     * 
+     * @param newSpans
+     *            List of spans.
      */
     public void setSpans(final List<TestSpan> newSpans) {
         this.spans = newSpans;
@@ -116,27 +116,27 @@ public class TestTracer implements Tracer {
 
     /**
      * Convert the list of spans into a tree.
+     * 
      * @return Tree of spans.
      */
     public TestSpanTree spanTree() {
         TestSpanTree tree = new TestSpanTree();
         Map<Long, TreeNode<TestSpan>> map = new HashMap<>();
-        for (TestSpan span: spans) {
+        for (TestSpan span : spans) {
             map.put(span.getSpanId(), new TreeNode<>(span));
         }
 
-        for (TestSpan span: spans) {
+        for (TestSpan span : spans) {
             TreeNode<TestSpan> spanTreeNode = map.get(span.getSpanId());
             if (span.getParentId() == 0 || map.get(span.getParentId()) == null) {
                 tree.addRootNode(spanTreeNode);
-            }
-            else {
+            } else {
                 TreeNode<TestSpan> parentNode = map.get(span.getParentId());
                 if (parentNode != null) {
                     parentNode.addChild(spanTreeNode);
                 }
             }
-          }
+        }
         return tree;
     }
 }

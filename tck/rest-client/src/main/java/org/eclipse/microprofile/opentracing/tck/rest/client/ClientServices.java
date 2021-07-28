@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -27,14 +27,16 @@ import static org.eclipse.microprofile.opentracing.tck.application.TestServerWeb
 import static org.eclipse.microprofile.opentracing.tck.rest.client.RestClientServices.REST_NESTED_MP_REST_CLIENT;
 
 import java.util.concurrent.CompletionStage;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+
 import org.eclipse.microprofile.opentracing.Traced;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 /**
  * @author Pavol Loffay
@@ -46,20 +48,19 @@ public interface ClientServices {
     @Path(REST_NESTED_MP_REST_CLIENT)
     @Produces(MediaType.TEXT_PLAIN)
     Response executeNested(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
-        @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
-        @QueryParam(PARAM_ASYNC) boolean async,
-        @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
-        @QueryParam(PARAM_FAIL_NEST) boolean failNest);
+            @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
+            @QueryParam(PARAM_ASYNC) boolean async,
+            @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
+            @QueryParam(PARAM_FAIL_NEST) boolean failNest);
 
     @GET
     @Path(REST_NESTED_MP_REST_CLIENT)
     @Produces(MediaType.TEXT_PLAIN)
     CompletionStage<Response> executeNestedAsync(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
-        @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
-        @QueryParam(PARAM_ASYNC) boolean async,
-        @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
-        @QueryParam(PARAM_FAIL_NEST) boolean failNest);
-
+            @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
+            @QueryParam(PARAM_ASYNC) boolean async,
+            @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
+            @QueryParam(PARAM_FAIL_NEST) boolean failNest);
 
     @GET
     @Traced(false)

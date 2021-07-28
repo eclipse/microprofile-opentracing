@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Contributors to the Eclipse Foundation
+ * Copyright (c) 2019-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -31,17 +31,19 @@ import java.net.URL;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+
 import org.eclipse.microprofile.opentracing.tck.application.ApplicationUtils;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 /**
  * @author Pavol Loffay
@@ -78,8 +80,8 @@ public class RestClientServices {
     public Response restClientTracingDisabled() throws MalformedURLException {
         URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
         ClientServicesTracingDisabled client = RestClientBuilder.newBuilder()
-            .baseUrl(webServicesUrl)
-            .build(ClientServicesTracingDisabled.class);
+                .baseUrl(webServicesUrl)
+                .build(ClientServicesTracingDisabled.class);
         client.restSimpleTest();
         return Response.ok().build();
     }
@@ -90,45 +92,44 @@ public class RestClientServices {
     public Response restClientMethodTracingDisabled() throws MalformedURLException {
         URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + TestServerWebServices.REST_TEST_SERVICE_PATH);
         ClientServices client = RestClientBuilder.newBuilder()
-            .baseUrl(webServicesUrl)
-            .build(ClientServices.class);
+                .baseUrl(webServicesUrl)
+                .build(ClientServices.class);
         client.disabledTracing();
         return Response.ok().build();
     }
-
 
     @GET
     @Path(REST_NESTED_MP_REST_CLIENT)
     @Produces(MediaType.TEXT_PLAIN)
     public Response nestedMpRestClient(@QueryParam(PARAM_NEST_DEPTH) int nestDepth,
-        @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
-        @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
-        @QueryParam(PARAM_FAIL_NEST) boolean failNest,
-        @QueryParam(PARAM_ASYNC) boolean async)
-        throws MalformedURLException, ExecutionException, InterruptedException {
+            @QueryParam(PARAM_NEST_BREADTH) int nestBreadth,
+            @QueryParam(PARAM_UNIQUE_ID) String uniqueID,
+            @QueryParam(PARAM_FAIL_NEST) boolean failNest,
+            @QueryParam(PARAM_ASYNC) boolean async)
+            throws MalformedURLException, ExecutionException, InterruptedException {
         if (nestDepth > 0) {
             for (int i = 0; i < nestBreadth; i++) {
-                executeNestedMpRestClient( nestDepth - 1, 1, uniqueID, async);
+                executeNestedMpRestClient(nestDepth - 1, 1, uniqueID, async);
             }
         }
         return Response.ok().build();
     }
 
     private void executeNestedMpRestClient(int depth, int breath, String id, boolean async)
-        throws MalformedURLException, InterruptedException, ExecutionException {
+            throws MalformedURLException, InterruptedException, ExecutionException {
         URL webServicesUrl = new URL(getBaseURL().toString() + "rest/" + REST_SERVICE_PATH);
         ClientServices clientServices = RestClientBuilder.newBuilder()
-            .baseUrl(webServicesUrl)
-            .executorService(Executors.newFixedThreadPool(50))
-            .build(ClientServices.class);
+                .baseUrl(webServicesUrl)
+                .executorService(Executors.newFixedThreadPool(50))
+                .build(ClientServices.class);
         if (async) {
-            CompletionStage<Response> completionStage = clientServices.executeNestedAsync(depth, breath, async, id, false);
+            CompletionStage<Response> completionStage =
+                    clientServices.executeNestedAsync(depth, breath, async, id, false);
             completionStage.toCompletableFuture()
-                .get();
-        }
-        else {
-              clientServices.executeNested(depth, breath, async, id, false)
-                  .close();
+                    .get();
+        } else {
+            clientServices.executeNested(depth, breath, async, id, false)
+                    .close();
         }
     }
 
@@ -137,14 +138,13 @@ public class RestClientServices {
         int i = incomingURLValue.indexOf(ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT);
         if (i == -1) {
             throw new RuntimeException("Expecting "
-                + ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT
-                + " in " + incomingURLValue);
+                    + ApplicationUtils.TEST_WEB_SERVICES_CONTEXT_ROOT
+                    + " in " + incomingURLValue);
         }
         URL incomingURL;
         try {
             incomingURL = new URL(incomingURLValue.substring(0, i));
-        }
-        catch (MalformedURLException e) {
+        } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
         return incomingURL;

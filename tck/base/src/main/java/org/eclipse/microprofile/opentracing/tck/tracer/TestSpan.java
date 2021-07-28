@@ -18,7 +18,6 @@
  */
 package org.eclipse.microprofile.opentracing.tck.tracer;
 
-import io.opentracing.tag.Tag;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,6 +27,7 @@ import java.util.Map.Entry;
 
 import io.opentracing.Span;
 import io.opentracing.SpanContext;
+import io.opentracing.tag.Tag;
 
 /**
  * Test Tracer.
@@ -88,9 +88,13 @@ public class TestSpan implements Span {
 
     /**
      * Create span with a particular kind and operation name.
-     * @param operationName Operation name
-     * @param tags Tags associated with span
-     * @param logEntries Log entries
+     * 
+     * @param operationName
+     *            Operation name
+     * @param tags
+     *            Tags associated with span
+     * @param logEntries
+     *            Log entries
      */
     public TestSpan(final String operationName, Map<String, Object> tags, List<Map<String, ?>> logEntries) {
         this.simulated = true;
@@ -101,6 +105,7 @@ public class TestSpan implements Span {
 
     /**
      * Start time of the span.
+     * 
      * @return the startMicros
      */
     public long getStartMicros() {
@@ -109,7 +114,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the start time of the span.
-     * @param newSartMicros the startMicros to set
+     * 
+     * @param newSartMicros
+     *            the startMicros to set
      */
     public void setStartMicros(final long newSartMicros) {
         this.startMicros = newSartMicros;
@@ -117,6 +124,7 @@ public class TestSpan implements Span {
 
     /**
      * End time of the span.
+     * 
      * @return the finishMicros
      */
     public long getFinishMicros() {
@@ -125,7 +133,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the finish time of the span.
-     * @param newFinishMicros the finishMicros to set
+     * 
+     * @param newFinishMicros
+     *            the finishMicros to set
      */
     public void setFinishMicros(final long newFinishMicros) {
         this.finishMicros = newFinishMicros;
@@ -133,6 +143,7 @@ public class TestSpan implements Span {
 
     /**
      * Get the trace ID of the span.
+     * 
      * @return the traceId
      */
     public long getTraceId() {
@@ -141,7 +152,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the trace ID of the span.
-     * @param newTraceId the traceId to set
+     * 
+     * @param newTraceId
+     *            the traceId to set
      */
     public void setTraceId(final long newTraceId) {
         this.traceId = newTraceId;
@@ -149,6 +162,7 @@ public class TestSpan implements Span {
 
     /**
      * Get the Parent ID of the span.
+     * 
      * @return the parentId
      */
     public long getParentId() {
@@ -157,7 +171,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the parent ID of the span.
-     * @param newParentId the parentId to set
+     * 
+     * @param newParentId
+     *            the parentId to set
      */
     public void setParentId(final long newParentId) {
         this.parentId = newParentId;
@@ -165,6 +181,7 @@ public class TestSpan implements Span {
 
     /**
      * Get the Span ID.
+     * 
      * @return the spanId
      */
     public long getSpanId() {
@@ -173,7 +190,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the span ID.
-     * @param newSpanId the spanId to set
+     * 
+     * @param newSpanId
+     *            the spanId to set
      */
     public void setSpanId(final long newSpanId) {
         this.spanId = newSpanId;
@@ -181,6 +200,7 @@ public class TestSpan implements Span {
 
     /**
      * Get the operation name of the span.
+     * 
      * @return the operationName
      */
     public String getCachedOperationName() {
@@ -189,7 +209,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the operation name of the span.
-     * @param newCachedOperationName the operationName to set
+     * 
+     * @param newCachedOperationName
+     *            the operationName to set
      */
     public void setCachedOperationName(final String newCachedOperationName) {
         this.cachedOperationName = newCachedOperationName;
@@ -197,6 +219,7 @@ public class TestSpan implements Span {
 
     /**
      * Return a map of tags.
+     * 
      * @return the tags
      */
     public Map<String, Object> getTags() {
@@ -205,7 +228,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the map of tags.
-     * @param newTags the tags to set
+     * 
+     * @param newTags
+     *            the tags to set
      */
     public void setTags(final Map<String, Object> newTags) {
         this.tags = newTags;
@@ -213,6 +238,7 @@ public class TestSpan implements Span {
 
     /**
      * Return a list of log entries.
+     * 
      * @return the log entries
      */
     public List<Map<String, ?>> getLogEntries() {
@@ -221,7 +247,9 @@ public class TestSpan implements Span {
 
     /**
      * Set the list of log entries
-     * @param newLogEntries the log entries to set
+     * 
+     * @param newLogEntries
+     *            the log entries to set
      */
     public void setLogEntries(final List<Map<String, ?>> newLogEntries) {
         this.logEntries = newLogEntries;
@@ -346,10 +374,10 @@ public class TestSpan implements Span {
         // assertion failure is easy to understand.
 
         // return "{ " + "startMicros: " + startMicros
-        //         + ", finishMicros: " + finishMicros + ", traceId: "
-        //         + traceId + ", parentId: " + parentId + ", spanId: "
-        //         + spanId + ", operationName: " + cachedOperationName
-        //         + ", tags: " + tags + " }";
+        // + ", finishMicros: " + finishMicros + ", traceId: "
+        // + traceId + ", parentId: " + parentId + ", spanId: "
+        // + spanId + ", operationName: " + cachedOperationName
+        // + ", tags: " + tags + " }";
 
         // Sort the tags to make it easier to visually compare object outputs.
         List<Entry<String, Object>> tagsList = new ArrayList<>();
@@ -401,11 +429,12 @@ public class TestSpan implements Span {
                 Map<String, ?> logFieldsX = logEntries.get(i);
                 Map<String, ?> logFieldsY = otherSpan.logEntries.get(i);
                 if (logFieldsX.size() != logFieldsY.size()) {
-                    System.err.printf("MISMATCH: Number of log fields doesn't match (%d, %d)\n", logFieldsX.size(), logFieldsY.size());
+                    System.err.printf("MISMATCH: Number of log fields doesn't match (%d, %d)\n", logFieldsX.size(),
+                            logFieldsY.size());
                     return false;
                 }
 
-                for (Map.Entry<String, ?> logEntry: logFieldsX.entrySet()) {
+                for (Map.Entry<String, ?> logEntry : logFieldsX.entrySet()) {
                     Object valY = logFieldsY.get(logEntry.getKey());
                     if (valY == null) {
                         System.err.printf("Log field %s not present in the logs\n", logEntry.getKey());
@@ -414,7 +443,8 @@ public class TestSpan implements Span {
 
                     if (!logEntry.getKey().equals("error.object")) {
                         if (!valY.equals(logEntry.getValue())) {
-                            System.err.printf("Log values do not match key=%s, %s, %s\n\n\n\n", logEntry.getKey(), logEntry.getValue(), valY);
+                            System.err.printf("Log values do not match key=%s, %s, %s\n\n\n\n", logEntry.getKey(),
+                                    logEntry.getValue(), valY);
                             return false;
                         }
                     }

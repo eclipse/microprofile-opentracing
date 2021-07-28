@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,9 +19,9 @@
 
 package org.eclipse.microprofile.opentracing.tck.application;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import org.eclipse.microprofile.opentracing.Traced;
+
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * Injectable class with the Traced annotation disabled on the class but not on methods.

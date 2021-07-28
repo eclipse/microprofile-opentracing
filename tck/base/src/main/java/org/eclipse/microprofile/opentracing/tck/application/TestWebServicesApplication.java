@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -22,8 +22,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
 
 /**
  * Test web services JAXRS application.
@@ -37,11 +37,11 @@ public class TestWebServicesApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
         return new HashSet<>(Arrays.asList(
-            TracerWebService.class,
-            TestServerWebServices.class,
-            TestServerSkipAllWebServices.class,
-            TestServerWebServicesWithOperationName.class,
-            TestClientRegistrarWebServices.class,
-            WildcardClassService.class));
+                TracerWebService.class,
+                TestServerWebServices.class,
+                TestServerSkipAllWebServices.class,
+                TestServerWebServicesWithOperationName.class,
+                TestClientRegistrarWebServices.class,
+                WildcardClassService.class));
     }
 }

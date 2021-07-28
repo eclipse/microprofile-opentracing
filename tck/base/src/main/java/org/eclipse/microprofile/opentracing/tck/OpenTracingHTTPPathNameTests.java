@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,16 +19,12 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
-import io.opentracing.tag.Tags;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.opentracing.tck.application.WildcardClassService;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
@@ -38,6 +34,12 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.testng.annotations.Test;
+
+import io.opentracing.tag.Tags;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * @author Pavol Loffay
@@ -75,7 +77,7 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
     @Deployment
     public static WebArchive createDeployment() {
         return OpenTracingBaseTests.createDeployment()
-            .addAsServiceProvider(ConfigSource.class, TestConfiguration.class);
+                .addAsServiceProvider(ConfigSource.class, TestConfiguration.class);
     }
 
     @Override
@@ -111,33 +113,29 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
     @RunAsClient
     private void testWildcard() {
         Response response = executeRemoteWebServiceRaw("wildcard/10/foo",
-            "getFoo/ten", Status.OK);
+                "getFoo/ten", Status.OK);
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
         TestSpanTree expectedTree = new TestSpanTree(
-            new TreeNode<>(
-                new TestSpan(
-                    getOperationName(
-                        Tags.SPAN_KIND_SERVER,
-                        HttpMethod.GET,
-                        WildcardClassService.class,
-                        getEndpointMethod(WildcardClassService.class, WildcardClassService.REST_FOO_PATH)
-                        ),
-                    getExpectedSpanTags(
-                        Tags.SPAN_KIND_SERVER,
-                        HttpMethod.GET,
-                        "wildcard/10/foo",
-                        "getFoo/ten",
-                        null,
-                        Status.OK.getStatusCode(),
-                        JAXRS_COMPONENT
-                    ),
-                    Collections.emptyList()
-                )
-            )
-        );
+                new TreeNode<>(
+                        new TestSpan(
+                                getOperationName(
+                                        Tags.SPAN_KIND_SERVER,
+                                        HttpMethod.GET,
+                                        WildcardClassService.class,
+                                        getEndpointMethod(WildcardClassService.class,
+                                                WildcardClassService.REST_FOO_PATH)),
+                                getExpectedSpanTags(
+                                        Tags.SPAN_KIND_SERVER,
+                                        HttpMethod.GET,
+                                        "wildcard/10/foo",
+                                        "getFoo/ten",
+                                        null,
+                                        Status.OK.getStatusCode(),
+                                        JAXRS_COMPONENT),
+                                Collections.emptyList())));
         assertEqualTrees(spans, expectedTree);
     }
 
@@ -148,33 +146,29 @@ public class OpenTracingHTTPPathNameTests extends OpenTracingClientBaseTests {
     @RunAsClient
     private void testTwoSameParams() {
         Response response = executeRemoteWebServiceRaw("wildcard/1/foo",
-            "twoIds/1/1", Status.OK);
+                "twoIds/1/1", Status.OK);
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
         TestSpanTree expectedTree = new TestSpanTree(
-            new TreeNode<>(
-                new TestSpan(
-                    getOperationName(
-                        Tags.SPAN_KIND_SERVER,
-                        HttpMethod.GET,
-                        WildcardClassService.class,
-                        getEndpointMethod(WildcardClassService.class, WildcardClassService.REST_TWO_IDS)
-                    ),
-                    getExpectedSpanTags(
-                        Tags.SPAN_KIND_SERVER,
-                        HttpMethod.GET,
-                        "wildcard/1/foo",
-                        "twoIds/1/1",
-                        null,
-                        Status.OK.getStatusCode(),
-                        JAXRS_COMPONENT
-                    ),
-                    Collections.emptyList()
-                )
-            )
-        );
+                new TreeNode<>(
+                        new TestSpan(
+                                getOperationName(
+                                        Tags.SPAN_KIND_SERVER,
+                                        HttpMethod.GET,
+                                        WildcardClassService.class,
+                                        getEndpointMethod(WildcardClassService.class,
+                                                WildcardClassService.REST_TWO_IDS)),
+                                getExpectedSpanTags(
+                                        Tags.SPAN_KIND_SERVER,
+                                        HttpMethod.GET,
+                                        "wildcard/1/foo",
+                                        "twoIds/1/1",
+                                        null,
+                                        Status.OK.getStatusCode(),
+                                        JAXRS_COMPONENT),
+                                Collections.emptyList())));
         assertEqualTrees(spans, expectedTree);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -21,18 +21,20 @@ package org.eclipse.microprofile.opentracing.tck.application;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+
 import org.eclipse.microprofile.opentracing.ClientTracingRegistrar;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 /**
  * @author Pavol Loffay
@@ -55,14 +57,14 @@ public class TestClientRegistrarWebServices {
     }
 
     /**
-     * Endpoint which uses {@link ClientTracingRegistrar#configure(ClientBuilder)} to create an outbound request
-     * to instrument a client for an outbound request.
+     * Endpoint which uses {@link ClientTracingRegistrar#configure(ClientBuilder)} to create an outbound request to
+     * instrument a client for an outbound request.
      */
     @GET
     @Path(REST_CLIENT_BUILDER)
     @Produces(MediaType.TEXT_PLAIN)
     public Response clientRegistrar(@QueryParam("async") boolean async)
-        throws ExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         return executeSimpleEndpoint(instrumentedClient(), async);
     }
 
@@ -74,16 +76,16 @@ public class TestClientRegistrarWebServices {
     @Path(REST_CLIENT_BUILDER_EXECUTOR)
     @Produces(MediaType.TEXT_PLAIN)
     public Response clientRegistrarExecutor(@QueryParam("async") boolean async)
-        throws ExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         return executeSimpleEndpoint(instrumentedClientExecutor(), async);
     }
 
     private Response executeSimpleEndpoint(Client client, boolean async)
-        throws ExecutionException, InterruptedException {
+            throws ExecutionException, InterruptedException {
         Builder requestBuilder = client.target(uri.getBaseUri())
-            .path(REST_SERVICE_PATH)
-            .path(REST_OK)
-            .request();
+                .path(REST_SERVICE_PATH)
+                .path(REST_OK)
+                .request();
 
         Response response = async ? requestBuilder.async().get().get() : requestBuilder.get();
         response.close();
