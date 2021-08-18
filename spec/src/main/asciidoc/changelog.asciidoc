@@ -19,6 +19,14 @@
 
 :numbered!:
 
+=== Release 3.0
+
+==== Incompatible changes
+
+===== Jakarta EE 9.1 alignment (https://github.com/eclipse/microprofile-opentracing/pull/221[#221])
+* Use `microprofile-parent` version `2.1` in `pom.xml`
+* Rename all `javax.*` packages to `jakarta.*` 
+
 === Release 2.0
 
 ==== Incompatible changes
@@ -36,7 +44,7 @@ The following APIs were removed:
 
 ==== Other changes
 
-* Exclude transitive dependency on `jakarta.el-api` (https://github.com/eclipse/microprofile-opentracing/pull/196[#196])
+* Exclude transitive dependency on `javax.el-api` (https://github.com/eclipse/microprofile-opentracing/pull/196[#196])
 * Make OSGI dependency provided (https://github.com/eclipse/microprofile-opentracing/pull/190[#190])
 * Remove OpenTracing API from WAR in TCK (https://github.com/eclipse/microprofile-opentracing/pull/183[#183])
 * Update Arquillian version in TCK to 1.6.0 (https://github.com/eclipse/microprofile-opentracing/pull/168[#168])
@@ -66,7 +74,7 @@ The following APIs were removed:
 * By default will not trace endpoints associated with MicroProfile Metrics, Health and OpenAPI (https://github.com/eclipse/microprofile-opentracing/pull/95[#95])
 * Added logging exceptions thrown by explicit instrumentation (`@Traced`)(https://github.com/eclipse/microprofile-opentracing/pull/94[#94])
 * Added server operation name provider (https://github.com/eclipse/microprofile-opentracing/pull/90[#90])
-* Removed `geronimo-atinject` and `jakarta.annotation` dependencies for API module (https://github.com/eclipse/microprofile-opentracing/pull/92[#92])
+* Removed `geronimo-atinject` and `javax.annotation` dependencies for API module (https://github.com/eclipse/microprofile-opentracing/pull/92[#92])
 * Added support for server side skip pattern (https://github.com/eclipse/microprofile-opentracing/pull/86[#86])
 
 === Release 1.1
