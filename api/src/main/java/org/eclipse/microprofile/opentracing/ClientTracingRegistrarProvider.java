@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -20,14 +20,14 @@
 package org.eclipse.microprofile.opentracing;
 
 import java.util.concurrent.ExecutorService;
-import javax.ws.rs.client.ClientBuilder;
+
+import jakarta.ws.rs.client.ClientBuilder;
 
 /**
- * Implementation of this interface will be used to configure {@link ClientBuilder}
- * when {@link ClientTracingRegistrar#configure(ClientBuilder)} is called.
+ * Implementation of this interface will be used to configure {@link ClientBuilder} when
+ * {@link ClientTracingRegistrar#configure(ClientBuilder)} is called.
  *
- * Implementation must be registered in
- * <code>
+ * Implementation must be registered in <code>
  * META-INF/services/org.eclipse.microprofile.opentracing.{@link ClientTracingRegistrarProvider}
  * </code>
  *
@@ -38,7 +38,8 @@ public interface ClientTracingRegistrarProvider {
     /**
      * Configures {@link ClientBuilder} with tracing integration.
      *
-     * @param clientBuilder Client builder to configure.
+     * @param clientBuilder
+     *            Client builder to configure.
      * @return clientBuilder with tracing integration
      */
     ClientBuilder configure(ClientBuilder clientBuilder);
@@ -46,8 +47,10 @@ public interface ClientTracingRegistrarProvider {
     /**
      * Configures {@link ClientBuilder} with tracing integration.
      *
-     * @param clientBuilder Client builder to configure.
-     * @param executorService Executor service which will be added to the client builder.
+     * @param clientBuilder
+     *            Client builder to configure.
+     * @param executorService
+     *            Executor service which will be added to the client builder.
      * @return clientBuilder with tracing integration
      */
     ClientBuilder configure(ClientBuilder clientBuilder, ExecutorService executorService);

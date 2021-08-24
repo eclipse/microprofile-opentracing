@@ -19,6 +19,14 @@
 
 :numbered!:
 
+=== Release 3.0
+
+==== Incompatible changes
+
+===== Jakarta EE 9.1 alignment (https://github.com/eclipse/microprofile-opentracing/pull/221[#221])
+* Use `microprofile-parent` version `2.1` in `pom.xml`
+* Rename all `javax.*` packages to `jakarta.*` 
+
 === Release 2.0
 
 ==== Incompatible changes

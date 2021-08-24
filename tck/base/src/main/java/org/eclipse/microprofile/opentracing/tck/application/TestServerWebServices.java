@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -27,27 +27,26 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
 import org.eclipse.microprofile.opentracing.ClientTracingRegistrar;
 import org.eclipse.microprofile.opentracing.Traced;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.UriInfo;
 
 /**
  * Test JAXRS web services.
@@ -120,7 +119,6 @@ public class TestServerWebServices {
      */
     public static final String REST_NESTED = "nested";
 
-
     /**
      * Query parameter for the number of nested calls.
      */
@@ -170,8 +168,7 @@ public class TestServerWebServices {
     private TestAnnotatedClass testAnnotatedClass;
 
     /**
-     * Injected class with Traced annotation disable on the class,
-     * but enabled on methods.
+     * Injected class with Traced annotation disable on the class, but enabled on methods.
      */
     @Inject
     private TestDisabledAnnotatedClass testDisabledAnnotatedClass;
@@ -184,6 +181,7 @@ public class TestServerWebServices {
 
     /**
      * Simple JAXRS endpoint.
+     * 
      * @return OK response
      */
     @GET
@@ -195,6 +193,7 @@ public class TestServerWebServices {
 
     /**
      * Endpoint which creates local span.
+     * 
      * @return OK response
      */
     @GET
@@ -207,7 +206,9 @@ public class TestServerWebServices {
 
     /**
      * Async endpoint which creates local span.
-     * @param asyncResponse holds state of the asynchronous processing
+     * 
+     * @param asyncResponse
+     *            holds state of the asynchronous processing
      */
     @GET
     @Path(REST_ASYNC_LOCAL_SPAN)
@@ -219,6 +220,7 @@ public class TestServerWebServices {
 
     /**
      * Returns HTTP 500 error.
+     * 
      * @return error response
      */
     @GET
@@ -230,6 +232,7 @@ public class TestServerWebServices {
 
     /**
      * Returns HTTP 500 error.
+     * 
      * @return Response Never returned because an exception is thrown.
      */
     @GET
@@ -241,6 +244,7 @@ public class TestServerWebServices {
 
     /**
      * Web service endpoint to test Traced annotations.
+     * 
      * @return HTTP 200 OK.
      */
     @GET
@@ -263,6 +267,7 @@ public class TestServerWebServices {
 
     /**
      * Web service endpoint to test a Traced annotation with an exception.
+     * 
      * @return HTTP 200 OK.
      */
     @GET
@@ -271,8 +276,7 @@ public class TestServerWebServices {
     public Response annotationException() {
         try {
             testAnnotatedClass.annotatedClassMethodImplicitlyTracedWithException();
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             System.out.println("annotationException expected exception caught");
         }
         return Response.ok().build();
@@ -280,6 +284,7 @@ public class TestServerWebServices {
 
     /**
      * Shouldn't create a span.
+     * 
      * @return OK response
      */
     @Traced(value = false)
@@ -292,6 +297,7 @@ public class TestServerWebServices {
 
     /**
      * Traced with an explicit operation name.
+     * 
      * @return OK response
      */
     @Traced(operationName = REST_OPERATION_NAME)
@@ -307,20 +313,25 @@ public class TestServerWebServices {
      *
      * A nesting depth of zero (0) causes an immediate return.
      *
-     * A nesting depth greater than zero causes a call to the nesting service
-     * with the depth reduced by one (1).
+     * A nesting depth greater than zero causes a call to the nesting service with the depth reduced by one (1).
      *
-     * The {@code nestBreadth} controls how many concurrent, nested calls are
-     * made on the first level of nesting.
+     * The {@code nestBreadth} controls how many concurrent, nested calls are made on the first level of nesting.
      *
-     * @param nestDepth The depth of nesting to use when implementing the request.
-     * @param nestBreadth The breadth of nested calls.
-     * @param uniqueID Unique ID propagated down nested calls.
-     * @param failNest True if nested response should be an error
-     * @param async Whether the nested request is executed asynchronously.
+     * @param nestDepth
+     *            The depth of nesting to use when implementing the request.
+     * @param nestBreadth
+     *            The breadth of nested calls.
+     * @param uniqueID
+     *            Unique ID propagated down nested calls.
+     * @param failNest
+     *            True if nested response should be an error
+     * @param async
+     *            Whether the nested request is executed asynchronously.
      * @return OK response
-     * @throws ExecutionException Error executing nested web service.
-     * @throws InterruptedException Error executing nested web service.
+     * @throws ExecutionException
+     *             Error executing nested web service.
+     * @throws InterruptedException
+     *             Error executing nested web service.
      */
     @GET
     @Path(REST_NESTED)
@@ -338,8 +349,7 @@ public class TestServerWebServices {
             String target;
             if (failNest) {
                 target = REST_ERROR;
-            }
-            else {
+            } else {
                 target = REST_NESTED;
                 nestParameters.put(PARAM_NEST_DEPTH, nestDepth - 1);
                 nestParameters.put(PARAM_NEST_BREADTH, 1);
@@ -356,8 +366,7 @@ public class TestServerWebServices {
             for (int i = 0; i < nestBreadth; i++) {
                 if (async) {
                     futures.add(executeNestedAsync(requestUrl));
-                }
-                else {
+                } else {
                     executeNested(requestUrl);
                 }
             }
@@ -372,6 +381,7 @@ public class TestServerWebServices {
 
     /**
      * Endpoint which creates local span.
+     * 
      * @return OK response
      */
     @GET
@@ -379,13 +389,15 @@ public class TestServerWebServices {
     @Produces(MediaType.TEXT_PLAIN)
     public Response skipSimple() {
         boolean isActiveSpan = tracer.activeSpan() != null;
-        return Response.ok().status(isActiveSpan ?
-            Status.OK.getStatusCode() : Status.NO_CONTENT.getStatusCode()).build();
+        return Response.ok().status(isActiveSpan ? Status.OK.getStatusCode() : Status.NO_CONTENT.getStatusCode())
+                .build();
     }
 
     /**
      * Execute a nested web service call.
-     * @param requestUrl The request URL.
+     * 
+     * @param requestUrl
+     *            The request URL.
      */
     private void executeNested(String requestUrl) {
         Client restClient = ClientTracingRegistrar.configure(ClientBuilder.newBuilder()).build();
@@ -396,7 +408,9 @@ public class TestServerWebServices {
 
     /**
      * Execute a nested web service call asynchronously.
-     * @param requestUrl The request URL.
+     * 
+     * @param requestUrl
+     *            The request URL.
      * @return Future for the Response.
      */
     private Future<Response> executeNestedAsync(String requestUrl) {
@@ -407,9 +421,13 @@ public class TestServerWebServices {
 
     /**
      * Create the full URL for the web service request.
-     * @param servicePath Service path component.
-     * @param endpointPath The final component of the path.
-     * @param requestParameters Query parameters.
+     * 
+     * @param servicePath
+     *            Service path component.
+     * @param endpointPath
+     *            The final component of the path.
+     * @param requestParameters
+     *            Query parameters.
      * @return Full URL for the web service request.
      */
     public String getRequestPath(
@@ -426,8 +444,7 @@ public class TestServerWebServices {
         URL incomingURL;
         try {
             incomingURL = new URL(incomingUrl.substring(0, i));
-        }
-        catch (MalformedURLException e) {
+        } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
         String result = ApplicationUtils.getWebServiceURL(incomingURL, servicePath, endpointPath);
@@ -442,13 +459,13 @@ public class TestServerWebServices {
     /**
      * Start a new child span of the active span.
      *
-     * The child span must be finished using {@link #finishChildSpan} before
-     * completing the service request which created the span.
+     * The child span must be finished using {@link #finishChildSpan} before completing the service request which
+     * created the span.
      *
-     * If there is no active span, the newly created span is made the active
-     * span.
+     * If there is no active span, the newly created span is made the active span.
      *
-     * @param operationName The operation name to give the new child span.
+     * @param operationName
+     *            The operation name to give the new child span.
      *
      * @return The new child span.
      */
@@ -466,7 +483,8 @@ public class TestServerWebServices {
     /**
      * Finish a child span of the active span.
      *
-     * @param span The child span.
+     * @param span
+     *            The child span.
      */
     private void finishChildSpan(Span span) {
         span.finish();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,13 +19,10 @@
 
 package org.eclipse.microprofile.opentracing.tck;
 
-import io.opentracing.tag.Tags;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+
 import org.eclipse.microprofile.opentracing.tck.application.TestClientRegistrarWebServices;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpan;
 import org.eclipse.microprofile.opentracing.tck.tracer.TestSpanTree;
@@ -34,6 +31,11 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.testng.annotations.Test;
+
+import io.opentracing.tag.Tags;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * @author Pavol Loffay
@@ -75,71 +77,62 @@ public class ClientRegistrarTests extends OpenTracingBaseTests {
             queryParams.put("async", "true");
         }
         Response response = executeRemoteWebServiceRaw(TestClientRegistrarWebServices.REST_SERVICE_PATH,
-            path, queryParams, Status.OK);
+                path, queryParams, Status.OK);
         response.close();
 
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
 
         TestSpanTree expectedTree = new TestSpanTree(
-            new TreeNode<>(
-                new TestSpan(
-                    getOperationName(
-                        Tags.SPAN_KIND_SERVER,
-                        HttpMethod.GET,
-                        TestClientRegistrarWebServices.class,
-                        getEndpointMethod(TestClientRegistrarWebServices.class, path)
-                    ),
-                    getExpectedSpanTags(
-                        Tags.SPAN_KIND_SERVER,
-                        HttpMethod.GET,
-                        TestClientRegistrarWebServices.REST_SERVICE_PATH,
-                        path,
-                        queryParams,
-                        Status.OK.getStatusCode(),
-                        JAXRS_COMPONENT
-                    ),
-                    Collections.emptyList()
-                ),
                 new TreeNode<>(
-                    new TestSpan(
-                        getOperationName(
-                            Tags.SPAN_KIND_CLIENT,
-                            HttpMethod.GET,
-                            TestClientRegistrarWebServices.class,
-                            getEndpointMethod(TestClientRegistrarWebServices.class, TestClientRegistrarWebServices.REST_OK)
-                        ),
-                        getExpectedSpanTags(
-                            Tags.SPAN_KIND_CLIENT,
-                            HttpMethod.GET,
-                            TestClientRegistrarWebServices.REST_SERVICE_PATH,
-                            TestClientRegistrarWebServices.REST_OK,
-                            null,
-                            Status.OK.getStatusCode(),
-                            JAXRS_COMPONENT
-                        ),
-                        Collections.emptyList()
-                    ),
-                    new TreeNode<>(
                         new TestSpan(
-                            getOperationName(
-                                Tags.SPAN_KIND_SERVER,
-                                HttpMethod.GET,
-                                TestClientRegistrarWebServices.class,
-                                getEndpointMethod(TestClientRegistrarWebServices.class, TestClientRegistrarWebServices.REST_OK)
-                            ),
-                            getExpectedSpanTags(
-                                Tags.SPAN_KIND_SERVER,
-                                HttpMethod.GET,
-                                TestClientRegistrarWebServices.REST_SERVICE_PATH,
-                                TestClientRegistrarWebServices.REST_OK,
-                                null,
-                                Status.OK.getStatusCode(),
-                                JAXRS_COMPONENT
-                            ),
-                            Collections.emptyList()
-                        )
-                )
-        )));
+                                getOperationName(
+                                        Tags.SPAN_KIND_SERVER,
+                                        HttpMethod.GET,
+                                        TestClientRegistrarWebServices.class,
+                                        getEndpointMethod(TestClientRegistrarWebServices.class, path)),
+                                getExpectedSpanTags(
+                                        Tags.SPAN_KIND_SERVER,
+                                        HttpMethod.GET,
+                                        TestClientRegistrarWebServices.REST_SERVICE_PATH,
+                                        path,
+                                        queryParams,
+                                        Status.OK.getStatusCode(),
+                                        JAXRS_COMPONENT),
+                                Collections.emptyList()),
+                        new TreeNode<>(
+                                new TestSpan(
+                                        getOperationName(
+                                                Tags.SPAN_KIND_CLIENT,
+                                                HttpMethod.GET,
+                                                TestClientRegistrarWebServices.class,
+                                                getEndpointMethod(TestClientRegistrarWebServices.class,
+                                                        TestClientRegistrarWebServices.REST_OK)),
+                                        getExpectedSpanTags(
+                                                Tags.SPAN_KIND_CLIENT,
+                                                HttpMethod.GET,
+                                                TestClientRegistrarWebServices.REST_SERVICE_PATH,
+                                                TestClientRegistrarWebServices.REST_OK,
+                                                null,
+                                                Status.OK.getStatusCode(),
+                                                JAXRS_COMPONENT),
+                                        Collections.emptyList()),
+                                new TreeNode<>(
+                                        new TestSpan(
+                                                getOperationName(
+                                                        Tags.SPAN_KIND_SERVER,
+                                                        HttpMethod.GET,
+                                                        TestClientRegistrarWebServices.class,
+                                                        getEndpointMethod(TestClientRegistrarWebServices.class,
+                                                                TestClientRegistrarWebServices.REST_OK)),
+                                                getExpectedSpanTags(
+                                                        Tags.SPAN_KIND_SERVER,
+                                                        HttpMethod.GET,
+                                                        TestClientRegistrarWebServices.REST_SERVICE_PATH,
+                                                        TestClientRegistrarWebServices.REST_OK,
+                                                        null,
+                                                        Status.OK.getStatusCode(),
+                                                        JAXRS_COMPONENT),
+                                                Collections.emptyList())))));
         assertEqualTrees(spans, expectedTree);
     }
 }

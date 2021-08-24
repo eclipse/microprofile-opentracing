@@ -22,12 +22,16 @@ import java.util.function.Consumer;
 
 /**
  * Provide a way to visit all the nodes of a tree with a lambda.
- * @param <T> The type of data in the tree.
+ * 
+ * @param <T>
+ *            The type of data in the tree.
  */
 public interface ConsumableTree<T> {
     /**
      * Recursively visit all nodes with the lambda.
-     * @param visitor Lambda
+     * 
+     * @param visitor
+     *            Lambda
      */
     void visitTree(Consumer<? super T> visitor);
 }

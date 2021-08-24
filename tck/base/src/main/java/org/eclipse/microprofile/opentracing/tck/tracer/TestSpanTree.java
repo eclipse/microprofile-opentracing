@@ -46,7 +46,9 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
     /**
      * Create a tree with a particular JSON display node name.
-     * @param jsonNodeName JSON node name.
+     * 
+     * @param jsonNodeName
+     *            JSON node name.
      */
     public TestSpanTree(final String jsonNodeName) {
         this.nodeName = jsonNodeName;
@@ -54,7 +56,9 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
     /**
      * Create a tree with a particular JSON display node name.
-     * @param newRootSpans Root spans
+     * 
+     * @param newRootSpans
+     *            Root spans
      */
     @SafeVarargs
     public TestSpanTree(final TreeNode<TestSpan>... newRootSpans) {
@@ -65,6 +69,7 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
     /**
      * Return a list of this tree's root spans.
+     * 
      * @return List of root spans.
      */
     public List<TreeNode<TestSpan>> getRootSpans() {
@@ -73,7 +78,9 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
     /**
      * Add a root span.
-     * @param node The node to add.
+     * 
+     * @param node
+     *            The node to add.
      * @return The added node.
      */
     public TreeNode<TestSpan> addRootNode(final TreeNode<TestSpan> node) {
@@ -83,7 +90,9 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
     /**
      * Generic tree structure.
-     * @param <T> Type of data to hold in the node.
+     * 
+     * @param <T>
+     *            Type of data to hold in the node.
      */
     public static class TreeNode<T> implements ConsumableTree<T> {
 
@@ -99,8 +108,11 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
         /**
          * Create a new node.
-         * @param nodeData Data held in the node.
-         * @param newChildren Child nodes
+         * 
+         * @param nodeData
+         *            Data held in the node.
+         * @param newChildren
+         *            Child nodes
          */
         @SafeVarargs
         public TreeNode(final T nodeData, final TreeNode<T>... newChildren) {
@@ -112,6 +124,7 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
         /**
          * Return the data in the node.
+         * 
          * @return Data
          */
         public T getData() {
@@ -120,6 +133,7 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
         /**
          * Return the child nodes.
+         * 
          * @return Child nodes.
          */
         public List<TreeNode<T>> getChildren() {
@@ -128,7 +142,9 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
         /**
          * Add new child to this node.
-         * @param child Child to add.
+         * 
+         * @param child
+         *            Child to add.
          * @return Newly created node.
          */
         public TreeNode<T> addChild(final TreeNode<T> child) {
@@ -138,9 +154,13 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
         /**
          * Return JSON representation.
-         * @param nodeName Node name to display in JSON.
-         * @param indentationLevel How many instances of indentationCharacters
-         * @param indentationCharacters The indentation characters to use
+         * 
+         * @param nodeName
+         *            Node name to display in JSON.
+         * @param indentationLevel
+         *            How many instances of indentationCharacters
+         * @param indentationCharacters
+         *            The indentation characters to use
          * @return JSON
          */
         public String toJSON(final String nodeName, final int indentationLevel,
@@ -175,8 +195,7 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
                 sb.append(indent2);
                 sb.append(']');
-            }
-            else {
+            } else {
                 sb.append('\"');
             }
             sb.append(System.lineSeparator());
@@ -225,7 +244,9 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
 
         /**
          * Recursively visit all nodes with the lambda.
-         * @param visitor Lambda
+         * 
+         * @param visitor
+         *            Lambda
          */
         @Override
         public void visitTree(final Consumer<? super T> visitor) {
@@ -301,9 +322,10 @@ public class TestSpanTree implements ConsumableTree<TestSpan> {
     }
 
     /**
-     * Visit every {@link TestSpan} in this tree with the {@code visitor}
-     * lambda.
-     * @param visitor Lambda
+     * Visit every {@link TestSpan} in this tree with the {@code visitor} lambda.
+     * 
+     * @param visitor
+     *            Lambda
      */
     @Override
     public void visitTree(final Consumer<? super TestSpan> visitor) {

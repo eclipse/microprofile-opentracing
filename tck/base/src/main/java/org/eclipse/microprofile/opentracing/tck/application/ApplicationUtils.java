@@ -41,26 +41,31 @@ public class ApplicationUtils {
 
     /**
      * Create web service URL.
-     * @param baseUri Base URI.
-     * @param service Web service path
-     * @param relativePath Web service endpoint
+     * 
+     * @param baseUri
+     *            Base URI.
+     * @param service
+     *            Web service path
+     * @param relativePath
+     *            Web service endpoint
      * @return Web service URL
      */
     public static String getWebServiceURL(final URL baseUri,
-        final String service, final String relativePath) {
+            final String service, final String relativePath) {
         try {
             return new URL(baseUri,
-                TEST_WEB_SERVICES_CONTEXT_ROOT + "/"
-                    + service + "/" + relativePath).toString();
-        }
-        catch (MalformedURLException e) {
+                    TEST_WEB_SERVICES_CONTEXT_ROOT + "/"
+                            + service + "/" + relativePath).toString();
+        } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
      * Convert a map into a query string.
-     * @param queryParameters Map to convert.
+     * 
+     * @param queryParameters
+     *            Map to convert.
      * @return Query string.
      */
     public static String getQueryString(Map<String, Object> queryParameters) {
@@ -72,14 +77,13 @@ public class ApplicationUtils {
 
         String prefix = null;
         for (Map.Entry<String, Object> parmEntry : queryParameters
-            .entrySet()) {
+                .entrySet()) {
             String parmName = parmEntry.getKey();
             Object parmValue = parmEntry.getValue();
 
             if (prefix != null) {
                 result += prefix;
-            }
-            else {
+            } else {
                 prefix = "&";
             }
 
@@ -96,20 +100,22 @@ public class ApplicationUtils {
 
     /**
      * URL-encode {@code text}.
-     * @param text Text to encode.
+     * 
+     * @param text
+     *            Text to encode.
      * @return Encoded text.
      */
     public static String urlEncode(String text) {
         try {
             return URLEncoder.encode(text, StandardCharsets.UTF_8.name());
-        }
-        catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
      * Create an example RuntimeException used by a web service.
+     * 
      * @return New RuntimeException.
      */
     public static RuntimeException createExampleRuntimeException() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Contributors to the Eclipse Foundation
+ * Copyright (c) 2017-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -19,10 +19,10 @@
 
 package org.eclipse.microprofile.opentracing.tck.application;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.Response;
 
 /**
  * @author Pavol Loffay
@@ -41,7 +41,8 @@ public class WildcardClassService {
 
     @GET
     @Path(REST_TWO_IDS)
-    public Response getTwoParams(@PathParam("id") String id, @PathParam("aaa") String first, @PathParam("bbb") String second) {
+    public Response getTwoParams(@PathParam("id") String id, @PathParam("aaa") String first,
+            @PathParam("bbb") String second) {
         return Response.ok().build();
     }
 }

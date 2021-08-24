@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Contributors to the Eclipse Foundation
+ * Copyright (c) 2018-2021 Contributors to the Eclipse Foundation
  *
  * See the NOTICE file(s) distributed with this work for additional
  * information regarding copyright ownership.
@@ -22,10 +22,7 @@ package org.eclipse.microprofile.opentracing.tck;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+
 import org.eclipse.microprofile.config.spi.ConfigSource;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerSkipAllWebServices;
 import org.eclipse.microprofile.opentracing.tck.application.TestServerWebServices;
@@ -34,6 +31,11 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.testng.annotations.Test;
+
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 /**
  * @author Pavol Loffay
@@ -71,9 +73,8 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
     @Deployment
     public static WebArchive createDeployment() {
         return OpenTracingBaseTests.createDeployment()
-            .addAsServiceProvider(ConfigSource.class, TestConfiguration.class);
+                .addAsServiceProvider(ConfigSource.class, TestConfiguration.class);
     }
-
 
     /**
      * Test a web service endpoint that shouldn't be traced.
@@ -82,7 +83,7 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
     @RunAsClient
     private void testSkipSimple() {
         Response response = executeRemoteWebServiceRaw(TestServerWebServices.REST_TEST_SERVICE_PATH,
-            TestServerWebServices.REST_SKIP_SIMPLE, Status.NO_CONTENT);
+                TestServerWebServices.REST_SKIP_SIMPLE, Status.NO_CONTENT);
         response.close();
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
         assertEqualTrees(spans, new TestSpanTree());
@@ -95,7 +96,7 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
     @RunAsClient
     private void testSkipFoo() {
         Response response = executeRemoteWebServiceRaw(TestServerSkipAllWebServices.REST_TEST_SKIP_SERVICE_PATH,
-            TestServerSkipAllWebServices.REST_SIMPLE_PATH, Status.OK);
+                TestServerSkipAllWebServices.REST_SIMPLE_PATH, Status.OK);
         response.close();
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
         assertEqualTrees(spans, new TestSpanTree());
@@ -108,7 +109,7 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
     @RunAsClient
     private void testSkipFooBar() {
         Response response = executeRemoteWebServiceRaw(TestServerSkipAllWebServices.REST_TEST_SKIP_SERVICE_PATH,
-            TestServerSkipAllWebServices.REST_NESTED_PATH, Status.OK);
+                TestServerSkipAllWebServices.REST_NESTED_PATH, Status.OK);
         response.close();
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
         assertEqualTrees(spans, new TestSpanTree());
@@ -121,7 +122,7 @@ public class OpenTracingSkipPatternTests extends OpenTracingBaseTests {
     @RunAsClient
     private void testExplicitlyTraced() {
         Response response = executeRemoteWebServiceRaw(TestServerSkipAllWebServices.REST_TEST_SKIP_SERVICE_PATH,
-            TestServerSkipAllWebServices.REST_EXPLICITLY_TRACED, Status.OK);
+                TestServerSkipAllWebServices.REST_EXPLICITLY_TRACED, Status.OK);
         response.close();
         TestSpanTree spans = executeRemoteWebServiceTracerTree();
         assertEqualTrees(spans, new TestSpanTree());
