@@ -32,23 +32,12 @@
     <url>http://microprofile.io</url>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <checkstyle.version>2.17</checkstyle.version>
-        <checkstyle.methodNameFormat>^_?[a-z][a-zA-Z0-9]*$</checkstyle.methodNameFormat>
-        <autorelease>false</autorelease>
-
-        <version.mp.config>2.0</version.mp.config>
-        <version.mp.rest.client>3.0-m1</version.mp.rest.client>
+        <version.mp.config>3.0-RC3</version.mp.config>
+        <version.mp.rest.client>3.0-RC1</version.mp.rest.client>
         <version.opentracing>0.33.0</version.opentracing>
         <!-- Versions of API dependencies -->
-        <osgi-annotation.version>1.0.0</osgi-annotation.version>
-        <version.arquillian>1.6.0.Final</version.arquillian>
-
-        <revremark>Draft</revremark>
+        <osgi-annotation.version>1.1.0</osgi-annotation.version>
         <inceptionYear>2017</inceptionYear>
-        <stagingProgressTimeoutMinutes>5</stagingProgressTimeoutMinutes>
     </properties>
 
     <licenses>
@@ -73,10 +62,7 @@
         </developer>
     </developers>
 
-    <organization>
-        <name>Eclipse Foundation</name>
-        <url>http://www.eclipse.org/</url>
-    </organization>
+   
 
     <issueManagement>
         <system>GitHub</system>
@@ -89,20 +75,6 @@
         <url>https://github.com/eclipse/microprofile-opentracing</url>
         <tag>HEAD</tag>
     </scm>
-
-    <distributionManagement>
-        <repository>
-            <id>ossrh</id>
-            <name>Sonatype OSSRH - Release Staging Area</name>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <name>Sonatype OSSRH Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <uniqueVersion>true</uniqueVersion>
-        </snapshotRepository>
-    </distributionManagement>
 
     <modules>
         <module>api</module>
