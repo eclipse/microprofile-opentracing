@@ -32,8 +32,8 @@
     <url>http://microprofile.io</url>
 
     <properties>
-        <version.mp.config>3.0-RC3</version.mp.config>
-        <version.mp.rest.client>3.0-RC1</version.mp.rest.client>
+        <version.mp.config>3.0-RC4</version.mp.config>
+        <version.mp.rest.client>3.0-RC2</version.mp.rest.client>
         <version.opentracing>0.33.0</version.opentracing>
         <!-- Versions of API dependencies -->
         <osgi-annotation.version>1.1.0</osgi-annotation.version>
