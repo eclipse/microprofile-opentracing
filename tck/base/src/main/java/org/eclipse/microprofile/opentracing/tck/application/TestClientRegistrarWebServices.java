@@ -38,6 +38,7 @@ import jakarta.ws.rs.core.UriInfo;
 
 /**
  * @author Pavol Loffay
+ * @author Patrik Dudits
  */
 @Path(TestClientRegistrarWebServices.REST_SERVICE_PATH)
 public class TestClientRegistrarWebServices {
@@ -95,13 +96,13 @@ public class TestClientRegistrarWebServices {
 
     private Client instrumentedClient() {
         ClientBuilder clientBuilder = ClientBuilder.newBuilder();
-        ClientTracingRegistrar.configure(clientBuilder);
+        clientBuilder = ClientTracingRegistrar.configure(clientBuilder);
         return clientBuilder.build();
     }
 
     private Client instrumentedClientExecutor() {
         ClientBuilder clientBuilder = ClientBuilder.newBuilder();
-        ClientTracingRegistrar.configure(clientBuilder, Executors.newFixedThreadPool(10));
+        clientBuilder = ClientTracingRegistrar.configure(clientBuilder, Executors.newFixedThreadPool(10));
         return clientBuilder.build();
     }
 }
